@@ -21,7 +21,7 @@ const serverConfig = isProduction
     };
 
 export default defineConfig({
-  base: './',
+  base: '/', // Changed from './' to '/'
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
