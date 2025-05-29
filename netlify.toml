@@ -2,10 +2,9 @@
   publish = "dist"
   command = "npm run build"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
 [build.environment]
   NODE_VERSION = "22"
+  VITE_API_URL = "https://167.71.17.59"
+
+[context.production.environment]
+  VITE_API_URL = "https://167.71.17.59"
