@@ -56,9 +56,6 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
     }
   };
 
-  const links = navigation.map((item) => (
-    <LinksGroup {...item} key={item.name} onClick={handleLinkClick} />
-  ));
 
   const adminLink = (
     <Authorization allowedRoles={[ROLES.Admin]}>
@@ -93,7 +90,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
           <ScrollArea className={classes.links}>
             <div className={classes.linksInner}>
-              {links}
+
               {adminLink}
             </div>
           </ScrollArea>
@@ -121,7 +118,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
       >
         <ScrollArea style={{ height: 'calc(100vh - 60px)' }}>
           <div className={classes.linksInner}>
-            {links}
+  
             {adminLink}
           </div>
         </ScrollArea>
