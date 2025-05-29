@@ -11,7 +11,7 @@ import { AuthResponse, User } from '@/types/api';
 
 
 const getUser = async (): Promise<User> => {
-  const response = await api.get('/auth/me') as AuthResponse;
+  const response = await api.get('/users/me') as AuthResponse;
   console.log(response)
   if (response.token) {
     setToken(response.token);
@@ -22,7 +22,7 @@ const getUser = async (): Promise<User> => {
 
 const logout = async (): Promise<void> => {
   try {
-    await api.post('/auth/logout');
+    await api.post('/users/logout');
   } finally {
     clearToken();
   }
@@ -36,7 +36,7 @@ export const loginInputSchema = z.object({
 export type LoginInput = z.infer<typeof loginInputSchema>;
 
 const loginWithEmailAndPassword = async (data: LoginInput): Promise<AuthResponse> => {
-  const response = await api.post('/auth/login', data) as AuthResponse;
+  const response = await api.post('/users/login', data) as AuthResponse;
   
   if (response.token) {
     setToken(response.token);
@@ -57,7 +57,7 @@ export type RegisterInput = z.infer<typeof registerInputSchema>;
 const registerWithEmailAndPassword = (
   data: RegisterInput,
 ): Promise<AuthResponse> => {
-  return api.post('/auth/register', data);
+  return api.post('/users/register', data);
 };
 
 const authConfig = {
