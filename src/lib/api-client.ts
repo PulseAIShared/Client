@@ -31,7 +31,7 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
 
 
 export const api = Axios.create({
-  baseURL: env.API_URL,
+  baseURL: "https://167.71.17.59",
 });
 
 api.interceptors.request.use(authRequestInterceptor);
