@@ -22,9 +22,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       link:  '/app'
     },
     {
-      name: 'Users',
+      name: 'Subscribers',
       icon: FaUser,
-      link: './users'
+      link: './subscribers'
     },
     {
       name: 'Segments',

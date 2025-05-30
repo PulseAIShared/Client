@@ -65,3 +65,15 @@ export interface DashboardStats {
   avgLTV: string;
 }
 
+
+export interface SubscriberData {
+  id: string;
+  name: string;
+  email: string;
+  monthsSubbed: number;
+  ltv: string;
+  churnRisk: number;
+  activityFrequency: 'High' | 'Medium' | 'Low';
+  lastActivity: string;
+  plan: string;
+}

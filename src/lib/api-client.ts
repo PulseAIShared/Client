@@ -29,6 +29,7 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
 
 export const api = Axios.create({
   baseURL: "https://pulseai-api.ddns.net",
+   // baseURL: "https://localhost:7126/",
 });
 
 api.interceptors.request.use(authRequestInterceptor);

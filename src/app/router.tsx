@@ -63,6 +63,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
             return { Component: DashboardRoute };
           },
         },
+              {
+          path: 'subscribers',
+          lazy: async () => {
+            const { SubscribersRoute } = await import('./routes/app/subscribers/subscribers');
+            return { Component: SubscribersRoute };
+          },
+        },
       ],
     },
     
