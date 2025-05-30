@@ -1,7 +1,10 @@
 // src/features/dashboard/components/dashboard-header.tsx
+import { useUser } from '@/lib/auth';
 import React from 'react';
 
 export const DashboardHeader = () => {
+
+    const user = useUser();
   return (
     <div className="relative">
       {/* Background gradient effect */}
@@ -15,7 +18,7 @@ export const DashboardHeader = () => {
               <span className="text-sm font-medium text-purple-200">AI Dashboard</span>
             </div>
             <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
-              Welcome back, John
+              Welcome back, {user?.data?.firstName}
             </h1>
             <p className="text-slate-300 text-lg">
               AI-powered insights for your subscription business
