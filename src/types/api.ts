@@ -39,3 +39,29 @@ export type AuthResponse = {
   user: User;
 };
 
+
+export interface ChurnRiskData {
+  week: string;
+  risk: number;
+}
+
+export interface CustomerInsight {
+  name: string;
+  value: number;
+  revenue: number;
+  color: string;
+}
+
+export interface AtRiskCustomer {
+  name: string;
+  daysSince: number;
+  score: number;
+}
+
+export interface DashboardStats {
+  totalUsers: string;
+  churnRisk: string;
+  recoveredRevenue: string;
+  avgLTV: string;
+}
+
