@@ -4,7 +4,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { Code } from '@mantine/core';
 import { useUser, useLogout } from '@/lib/auth';
 
-// Mock notifications data - replace with real API call
+
 const mockNotifications = [
   {
     id: '1',
@@ -111,7 +111,7 @@ export const TopNav = () => {
 
   const handleLogout = async () => {
     try {
-      await logout.mutateAsync();
+      await logout.mutateAsync({});
       navigate('/auth/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -377,7 +377,7 @@ export const TopNav = () => {
                   <div className="flex-1 min-w-0">
                     <div className="text-white font-medium truncate">{getUserDisplayName()}</div>
                     <div className="text-slate-400 text-sm truncate">{user.data?.email}</div>
-                    <div className="text-slate-500 text-xs">
+                    <div className="text-slate-500 text-x mt-2">
                       {user.data?.role && (
                         <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium border border-blue-500/30">
                           {user.data.role}
