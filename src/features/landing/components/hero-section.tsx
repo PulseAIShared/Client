@@ -66,7 +66,7 @@ export const HeroSection = () => {
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12 animate-fade-in-up delay-600">
           <Link 
-            to="/auth/register" 
+            to="/auth" 
             className="group px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:shadow-2xl hover:shadow-purple-500/25 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2"
           >
             Start Free Trial

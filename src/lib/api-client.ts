@@ -1,8 +1,5 @@
 import Axios, { InternalAxiosRequestConfig } from 'axios';
 
-import { useNotifications } from '@/components/ui/notifications';
-import { env } from '@/config/env';
-
 let accessToken: string | null = null;
 
 export const setToken = (token: string | null): void => {
@@ -42,12 +39,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status !== 401 || error.response?.data?.message) {
       const message = error.response?.data?.message || error.message;
-      useNotifications.getState().addNotification({
-        type: 'error',
-        title: 'Error',
-        message,
-      });
+      console.log(message);
     }
     return Promise.reject(error);
   },
-);
+);    
