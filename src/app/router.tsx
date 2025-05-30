@@ -70,6 +70,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
             return { Component: SubscribersRoute };
           },
         },
+        {
+          path: 'settings',
+          lazy: async () => {
+            const { SettingsRoute } = await import('./routes/app/settings/settings');
+            return { Component: SettingsRoute };
+          },
+        },
       ],
     },
     

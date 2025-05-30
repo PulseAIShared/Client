@@ -44,7 +44,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   return (
-    <div className="flex w-full flex-col bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
+    <div className="flex w-full flex-col bg-gradient-to-br from-slate-900 via-purple-800 to-slate-900 min-h-screen">
       <TopNav />
       <div className="flex flex-grow min-h-0">
         <Sidebar navigation={navigation} />
