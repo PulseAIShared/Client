@@ -14,7 +14,6 @@ export const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
     {
       path: '/',
-
       lazy: async () => {
         const { LandingRoute } = await import('./routes/landing');
         return { Component: LandingRoute };
@@ -57,7 +56,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
         </ProtectedRoute>
       ),
       children: [
-
+        {
+          path: '',
+          lazy: async () => {
+            const { DashboardRoute } = await import('./routes/app/dashboard/dashboard');
+            return { Component: DashboardRoute };
+          },
+        },
       ],
     },
     

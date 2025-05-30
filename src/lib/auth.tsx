@@ -92,7 +92,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user.data) {
     return (
-      <Navigate to='/login' replace />
+      <Navigate to='/auth/login' replace />
     );
   }
 
