@@ -71,6 +71,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
           },
         },
         {
+          path: 'segments',
+          lazy: async () => {
+            const { SegmentsRoute } = await import('./routes/app/segments/segments');
+            return { Component: SegmentsRoute };
+          },
+        },
+        {
           path: 'insights',
           lazy: async () => {
             const { InsightsRoute } = await import('./routes/app/insights/insights');
