@@ -5,14 +5,14 @@ import {
   ThemeIcon,
   rem,
 } from '@mantine/core';
-import { useState } from 'react';
+
 import { Link, useLocation } from 'react-router-dom';
 
 interface LinksGroupProps {
-  icon: React.FC<any>;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
   name: string;
   initiallyOpened?: boolean;
-  link: string
+  link: string;
   onClick: () => void;
 }
 

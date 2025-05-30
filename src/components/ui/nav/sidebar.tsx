@@ -3,7 +3,6 @@ import {
   Burger,
   Code,
   Drawer,
-  Group,
   ScrollArea,
   useMantineTheme,
 } from '@mantine/core';
@@ -14,12 +13,14 @@ import { LinksGroup } from './links';
 
 import { Authorization, ROLES } from '@/lib/authorization';
 import { FaUsersCog } from 'react-icons/fa';
+import { IconType } from 'react-icons';
 
 export type SideNavigationItem = {
   name: string;
-  icon: unknown;
+  icon: IconType;
   link: string;
 };
+
 
 type SidebarProps = {
   navigation: SideNavigationItem[];
