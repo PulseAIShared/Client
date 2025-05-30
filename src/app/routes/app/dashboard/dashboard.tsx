@@ -1,5 +1,4 @@
 // src/app/routes/app/dashboard/dashboard.tsx
-
 import React from 'react';
 import { ContentLayout } from '@/components/layouts';
 import {
@@ -19,7 +18,6 @@ import {
 } from '@/utils/mock-data';
 
 export const DashboardRoute = () => {
-
   const stats = getDashboardStats();
   const churnRiskData = getChurnRiskData();
   const customerInsightsData = getCustomerInsightsData();
@@ -27,17 +25,17 @@ export const DashboardRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+      <div className="space-y-8">
         {/* Header */}
         <DashboardHeader />
 
         {/* Top Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard 
             title="Total Users" 
             value={stats.totalUsers}
             color="text-white"
-            bgGradient="from-slate-700 to-slate-800"
+            bgGradient="from-slate-800/80 to-slate-900/80"
           />
           <StatCard 
             title="Churn Risk" 
@@ -60,7 +58,7 @@ export const DashboardRoute = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Churn Risk Predictor */}
           <ChurnRiskChart data={churnRiskData} />
 

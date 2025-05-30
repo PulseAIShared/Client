@@ -1,9 +1,6 @@
-// src/features/dashboard/components/charts/customer-insights-pie.tsx
-
 import { CustomerInsight } from '@/types/api';
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-
 
 interface CustomerInsightsPieProps {
   data: CustomerInsight[];
@@ -11,8 +8,14 @@ interface CustomerInsightsPieProps {
 
 export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data }) => {
   return (
-    <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-600/30 shadow-lg">
-      <h2 className="text-xl font-semibold text-white mb-6">Customer Insights</h2>
+    <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-white mb-1">Customer Demographics</h2>
+          <p className="text-sm text-slate-400">Age distribution analysis</p>
+        </div>
+      </div>
+      
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="h-48">
@@ -45,7 +48,10 @@ export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data }
                 />
                 <span className="text-slate-300 font-medium">{item.name}</span>
               </div>
-              <span className="text-white font-semibold">${item.revenue}</span>
+              <div className="text-right">
+                <div className="text-white font-semibold">${item.revenue}</div>
+                <div className="text-xs text-slate-400">{item.value}%</div>
+              </div>
             </div>
           ))}
         </div>

@@ -1,3 +1,4 @@
+// src/components/layouts/content-layout.tsx
 import * as React from 'react';
 
 type ContentLayoutProps = {
@@ -7,7 +8,9 @@ type ContentLayoutProps = {
 export const ContentLayout = ({ children }: ContentLayoutProps) => {
   return (
     <div className="w-full">
-      {children}
+      <div className="w-full">
+        {children}
+      </div>
     </div>
   );
 };

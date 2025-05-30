@@ -1,5 +1,7 @@
+// src/components/ui/nav/sidebar.tsx
 import {
   Burger,
+  Code,
   Drawer,
   Group,
   ScrollArea,
@@ -7,8 +9,9 @@ import {
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { LinksGroup } from './links';
+
 import { Authorization, ROLES } from '@/lib/authorization';
 import { FaUsersCog } from 'react-icons/fa';
 
@@ -24,11 +27,11 @@ type SidebarProps = {
 
 const Logo = () => {
   return (
-    <Link className="flex items-center gap-3" to="/app">
-      <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-sm">P</span>
-      </div>
-      <span className="text-lg font-bold text-slate-900">Pulse AI</span>
+    <Link className="flex items-center gap-2" to="/app">
+      <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+        Pulse AI
+      </span>
+      <Code fw={700} className="text-xs">BETA</Code>
     </Link>
   );
 };
@@ -37,7 +40,6 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
   const theme = useMantineTheme();
   const [drawerOpened, setDrawerOpened] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const location = useLocation();
   
   // Close drawer when screen size changes from mobile to desktop
   useEffect(() => {
@@ -45,13 +47,6 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
       setDrawerOpened(false);
     }
   }, [isMobile]);
-
-  // Close drawer when route changes on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setDrawerOpened(false);
-    }
-  }, [location.pathname, isMobile]);
 
   const toggleDrawer = () => {
     setDrawerOpened((o) => !o);
@@ -76,16 +71,12 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
   );
 
   const sidebarContent = (
-    <div className="flex flex-col h-full">
-      {/* Logo - only shown in mobile drawer */}
-      {isMobile && (
-        <div className="p-4 border-b border-slate-200">
-          <Logo />
-        </div>
-      )}
+    <div className="h-full bg-slate-900/95 backdrop-blur-lg border-r border-slate-700/50">
+      {/* Header */}
 
-      {/* Navigation Links */}
-      <ScrollArea className="flex-1 p-4">
+
+      {/* Navigation */}
+      <ScrollArea className="flex-1 px-3 py-6">
         <div className="space-y-2">
           {navigation.map((item) => (
             <LinksGroup
@@ -101,9 +92,13 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-200">
-        <div className="text-xs text-slate-500 text-center">
-          Pulse AI Dashboard
+      <div className="p-6 border-t border-slate-700/50">
+        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg p-4 border border-blue-500/30">
+          <h3 className="text-sm font-medium text-white mb-1">Need Help?</h3>
+          <p className="text-xs text-slate-300 mb-3">Get support from our team</p>
+          <button className="w-full px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium rounded-md hover:shadow-lg transition-all duration-200">
+            Contact Support
+          </button>
         </div>
       </div>
     </div>
@@ -117,7 +112,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
           opened={drawerOpened}
           onClick={toggleDrawer}
           size="sm"
-          color={theme.colors.gray[6]}
+          color="white"
           className="fixed left-4 top-3 z-50"
           aria-label={drawerOpened ? 'Close navigation' : 'Open navigation'}
         />
@@ -125,7 +120,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
       {/* Sidebar for Desktop */}
       {!isMobile && (
-        <nav className="fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200 shadow-sm z-10">
+        <nav className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-[300px] z-10">
           {sidebarContent}
         </nav>
       )}
@@ -134,31 +129,47 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
       <Drawer
         opened={drawerOpened}
         onClose={toggleDrawer}
-        title={null}
-        padding={0}
+        title={<Logo />}
+        padding="md"
         size="280px"
         zIndex={1000}
-        withCloseButton={false}
+        withCloseButton
+        styles={{
+          content: {
+            backgroundColor: 'rgb(15 23 42 / 0.95)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgb(71 85 105 / 0.5)',
+          },
+          header: {
+            backgroundColor: 'transparent',
+            borderBottom: '1px solid rgb(71 85 105 / 0.5)',
+          },
+          title: {
+            color: 'white',
+            fontWeight: 'bold',
+          },
+        }}
         overlayProps={{
           color: theme.colors.gray[2],
           opacity: 0.55,
           blur: 3,
         }}
-        styles={{
-          content: {
-            display: 'flex',
-            flexDirection: 'column',
-          },
-          body: {
-            padding: 0,
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-          }
-        }}
       >
-        {sidebarContent}
+        <ScrollArea style={{ height: 'calc(100vh - 120px)' }}>
+          <div className="space-y-2 py-4">
+            {navigation.map((item) => (
+              <LinksGroup
+                key={item.name}
+                name={item.name}
+                icon={item.icon}
+                link={item.link}
+                onClick={handleLinkClick}
+              />
+            ))}
+            {adminLink}
+          </div>
+        </ScrollArea>
       </Drawer>
     </>
   );
-}
+};
