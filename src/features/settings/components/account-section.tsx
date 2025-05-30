@@ -30,20 +30,21 @@ export const AccountSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="First Name"
-              registration={{ name: 'firstName', value: 'John' }}
+              registration={{ name: 'firstName'}}
             />
             <Input
               label="Last Name"
-              registration={{ name: 'lastName', value: 'Doe' }}
+              registration={{ name: 'lastName'}}
             />
             <Input
               label="Email"
               type="email"
-              registration={{ name: 'email', value: 'john.doe@company.com' }}
+              defaultValue="john.doe@company.com"
+              registration={{ name: 'email' }}
             />
             <Input
               label="Company"
-              registration={{ name: 'company', value: 'Tech Solutions Inc.' }}
+              registration={{ name: 'company' }}
             />
           </div>
           
