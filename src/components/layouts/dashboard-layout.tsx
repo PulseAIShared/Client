@@ -16,39 +16,39 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation: SideNavigationItem[] = [
     {
-      name: 'Hub',
+      name: 'Dashboard',
       icon: BiSolidDashboard,
-      link:  '/app'
+      link: '/app'
     },
     {
       name: 'Templates',
       icon: VscNotebookTemplate,
-      link: './templates'
+      link: '/app/templates'
     },
     {
       name: 'Progress',
       icon: GiProgression,
-      link: './progress'
+      link: '/app/progress'
     },
     {
       name: 'Inbox',
       icon: FaBell,
-      link: './inbox'
+      link: '/app/inbox'
     },
     {
       name: 'Settings',
       icon: IoMdSettings,
-      link: './settings'
+      link: '/app/settings'
     },
   ];
 
   return (
-    <div className="flex w-full flex-col bg-gray-100 min-h-screen">
+    <div className="flex w-full flex-col bg-gray-50 min-h-screen">
       <TopNav />
       <div className="flex flex-grow min-h-0">
         <Sidebar navigation={navigation} />
         <div className="flex-1 overflow-x-hidden">
-          <main className={`mt-16 md:mt-20 ${isMobile ? 'px-4' : 'pl-[450px] pr-8'}`}>
+          <main className={`mt-16 ${isMobile ? 'p-4' : 'ml-64 p-6'} max-w-none w-full`}>
             {children}
           </main>
         </div>

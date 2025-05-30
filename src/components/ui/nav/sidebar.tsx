@@ -1,6 +1,5 @@
 import {
   Burger,
-  Code,
   Drawer,
   Group,
   ScrollArea,
@@ -8,10 +7,8 @@ import {
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import classes from './css/sidebar.module.css';
+import { Link, useLocation } from 'react-router-dom';
 import { LinksGroup } from './links';
-
 import { Authorization, ROLES } from '@/lib/authorization';
 import { FaUsersCog } from 'react-icons/fa';
 
@@ -27,9 +24,11 @@ type SidebarProps = {
 
 const Logo = () => {
   return (
-    <Link className="flex items-center" to="/app">
-
-      <span className="text-lg sm:text-xl font-bold text-black">BodyLedger</span>
+    <Link className="flex items-center gap-3" to="/app">
+      <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+        <span className="text-white font-bold text-sm">P</span>
+      </div>
+      <span className="text-lg font-bold text-slate-900">Pulse AI</span>
     </Link>
   );
 };
@@ -38,6 +37,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
   const theme = useMantineTheme();
   const [drawerOpened, setDrawerOpened] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const location = useLocation();
   
   // Close drawer when screen size changes from mobile to desktop
   useEffect(() => {
@@ -45,6 +45,13 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
       setDrawerOpened(false);
     }
   }, [isMobile]);
+
+  // Close drawer when route changes on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setDrawerOpened(false);
+    }
+  }, [location.pathname, isMobile]);
 
   const toggleDrawer = () => {
     setDrawerOpened((o) => !o);
@@ -56,7 +63,6 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
     }
   };
 
-
   const adminLink = (
     <Authorization allowedRoles={[ROLES.Admin]}>
       <LinksGroup
@@ -67,6 +73,40 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
         key="admin-panel"
       />
     </Authorization>
+  );
+
+  const sidebarContent = (
+    <div className="flex flex-col h-full">
+      {/* Logo - only shown in mobile drawer */}
+      {isMobile && (
+        <div className="p-4 border-b border-slate-200">
+          <Logo />
+        </div>
+      )}
+
+      {/* Navigation Links */}
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-2">
+          {navigation.map((item) => (
+            <LinksGroup
+              key={item.name}
+              name={item.name}
+              icon={item.icon}
+              link={item.link}
+              onClick={handleLinkClick}
+            />
+          ))}
+          {adminLink}
+        </div>
+      </ScrollArea>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-slate-200">
+        <div className="text-xs text-slate-500 text-center">
+          Pulse AI Dashboard
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -85,19 +125,8 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
       {/* Sidebar for Desktop */}
       {!isMobile && (
-        <nav className={classes.navbar}>
- 
-
-          <ScrollArea className={classes.links}>
-            <div className={classes.linksInner}>
-
-              {adminLink}
-            </div>
-          </ScrollArea>
-
-          <div className={classes.footer}>
-            {/* Footer content */}
-          </div>
+        <nav className="fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200 shadow-sm z-10">
+          {sidebarContent}
         </nav>
       )}
 
@@ -105,24 +134,31 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
       <Drawer
         opened={drawerOpened}
         onClose={toggleDrawer}
-        title={<Logo />}
-        padding="md"
-        size="100%"
+        title={null}
+        padding={0}
+        size="280px"
         zIndex={1000}
-        withCloseButton
+        withCloseButton={false}
         overlayProps={{
           color: theme.colors.gray[2],
           opacity: 0.55,
           blur: 3,
         }}
+        styles={{
+          content: {
+            display: 'flex',
+            flexDirection: 'column',
+          },
+          body: {
+            padding: 0,
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+          }
+        }}
       >
-        <ScrollArea style={{ height: 'calc(100vh - 60px)' }}>
-          <div className={classes.linksInner}>
-  
-            {adminLink}
-          </div>
-        </ScrollArea>
+        {sidebarContent}
       </Drawer>
     </>
   );
-};
+}
