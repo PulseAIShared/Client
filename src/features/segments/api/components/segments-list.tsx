@@ -1,123 +1,17 @@
 // src/features/segments/components/segments-list.tsx
-import React, { useState } from 'react';
-
-// Mock data for segments
-const mockSegments = [
-  {
-    id: '1',
-    name: 'High-Value Enterprise',
-    description: 'Enterprise customers with high LTV and low churn risk',
-    customerCount: 1240,
-    churnRate: 3.2,
-    avgLTV: 850,
-    avgRevenue: 12500,
-    type: 'behavioral' as const,
-    status: 'active' as const,
-    color: '#8b5cf6',
-    createdAt: '2024-03-15',
-    criteria: [
-      { field: 'plan_type', operator: 'equals' as const, value: 'Enterprise', label: 'Plan Type = Enterprise' },
-      { field: 'ltv', operator: 'greater_than' as const, value: 500, label: 'LTV > $500' },
-      { field: 'churn_risk', operator: 'less_than' as const, value: 20, label: 'Churn Risk < 20%' }
-    ]
-  },
-  {
-    id: '2',
-    name: 'Trial Power Users',
-    description: 'Trial users with high engagement and feature adoption',
-    customerCount: 890,
-    churnRate: 12.5,
-    avgLTV: 245,
-    avgRevenue: 890,
-    type: 'behavioral' as const,
-    status: 'active' as const,
-    color: '#06b6d4',
-    createdAt: '2024-03-20',
-    criteria: [
-      { field: 'plan_type', operator: 'equals' as const, value: 'Trial', label: 'Plan Type = Trial' },
-      { field: 'feature_usage', operator: 'greater_than' as const, value: 80, label: 'Feature Usage > 80%' },
-      { field: 'login_frequency', operator: 'greater_than' as const, value: 10, label: 'Logins > 10/week' }
-    ]
-  },
-  {
-    id: '3',
-    name: 'Payment Failed Recovery',
-    description: 'Customers with recent payment failures requiring intervention',
-    customerCount: 567,
-    churnRate: 67.8,
-    avgLTV: 156,
-    avgRevenue: 2340,
-    type: 'behavioral' as const,
-    status: 'active' as const,
-    color: '#ef4444',
-    createdAt: '2024-04-01',
-    criteria: [
-      { field: 'payment_status', operator: 'equals' as const, value: 'failed', label: 'Payment Status = Failed' },
-      { field: 'days_since_failure', operator: 'less_than' as const, value: 7, label: 'Failure < 7 days ago' }
-    ]
-  },
-  {
-    id: '4',
-    name: 'Young Professionals (25-34)',
-    description: 'Demographic segment of working professionals aged 25-34',
-    customerCount: 2890,
-    churnRate: 18.4,
-    avgLTV: 185,
-    avgRevenue: 3450,
-    type: 'demographic' as const,
-    status: 'active' as const,
-    color: '#10b981',
-    createdAt: '2024-02-28',
-    criteria: [
-      { field: 'age', operator: 'greater_than' as const, value: 24, label: 'Age > 24' },
-      { field: 'age', operator: 'less_than' as const, value: 35, label: 'Age < 35' },
-      { field: 'employment_status', operator: 'equals' as const, value: 'employed', label: 'Employment = Employed' }
-    ]
-  },
-  {
-    id: '5',
-    name: 'Feature Champions',
-    description: 'Users who actively use advanced features and provide feedback',
-    customerCount: 1890,
-    churnRate: 8.9,
-    avgLTV: 420,
-    avgRevenue: 5670,
-    type: 'behavioral' as const,
-    status: 'active' as const,
-    color: '#f59e0b',
-    createdAt: '2024-03-10',
-    criteria: [
-      { field: 'advanced_features_used', operator: 'greater_than' as const, value: 5, label: 'Advanced Features > 5' },
-      { field: 'feedback_submissions', operator: 'greater_than' as const, value: 2, label: 'Feedback > 2' },
-      { field: 'support_tickets', operator: 'less_than' as const, value: 3, label: 'Support Tickets < 3' }
-    ]
-  },
-  {
-    id: '6',
-    name: 'At-Risk SMB',
-    description: 'Small business customers showing signs of disengagement',
-    customerCount: 756,
-    churnRate: 45.2,
-    avgLTV: 89,
-    avgRevenue: 1250,
-    type: 'ai-generated' as const,
-    status: 'active' as const,
-    color: '#f97316',
-    createdAt: '2024-04-05',
-    criteria: [
-      { field: 'plan_type', operator: 'equals' as const, value: 'Basic', label: 'Plan Type = Basic' },
-      { field: 'login_frequency', operator: 'less_than' as const, value: 2, label: 'Logins < 2/week' },
-      { field: 'feature_usage', operator: 'less_than' as const, value: 30, label: 'Feature Usage < 30%' }
-    ]
-  }
-];
+import React, { useState, useMemo } from 'react';
+import { useGetSegments } from '@/features/segments/api/segments';
 
 interface SegmentsListProps {
   onSelectSegment: (segmentId: string | null) => void;
   selectedSegment: string | null;
 }
 
-export const SegmentsList: React.FC<SegmentsListProps> = ({ onSelectSegment, selectedSegment }) => {
+export const SegmentsList: React.FC<SegmentsListProps> = ({ 
+  onSelectSegment, 
+  selectedSegment 
+}) => {
+  const { data: segments = [], isLoading, error } = useGetSegments();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'behavioral' | 'demographic' | 'ai-generated'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'customers' | 'churn' | 'ltv'>('churn');
@@ -139,22 +33,59 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({ onSelectSegment, sel
     return { label: 'Minimal Risk', color: 'text-green-400 bg-green-500/20 border-green-500/30' };
   };
 
-  const filteredSegments = mockSegments
-    .filter(segment => {
-      const matchesSearch = segment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           segment.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = filterType === 'all' || segment.type === filterType;
-      return matchesSearch && matchesType;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'name': return a.name.localeCompare(b.name);
-        case 'customers': return b.customerCount - a.customerCount;
-        case 'churn': return b.churnRate - a.churnRate;
-        case 'ltv': return b.avgLTV - a.avgLTV;
-        default: return 0;
-      }
-    });
+  const filteredSegments = useMemo(() => {
+    return segments
+      .filter(segment => {
+        const matchesSearch = segment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             segment.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === 'all' || segment.type === filterType;
+        return matchesSearch && matchesType;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'name': return a.name.localeCompare(b.name);
+          case 'customers': return b.customerCount - a.customerCount;
+          case 'churn': return b.churnRate - a.churnRate;
+          case 'ltv': return b.avgLTV - a.avgLTV;
+          default: return 0;
+        }
+      });
+  }, [segments, searchTerm, filterType, sortBy]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-slate-700 rounded w-1/4"></div>
+            <div className="h-10 bg-slate-700 rounded"></div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="bg-slate-700/30 backdrop-blur-lg p-6 rounded-xl border border-slate-600/50 animate-pulse">
+              <div className="space-y-3">
+                <div className="h-4 bg-slate-600 rounded w-3/4"></div>
+                <div className="h-3 bg-slate-600 rounded w-1/2"></div>
+                <div className="h-20 bg-slate-600 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load segments</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -341,7 +272,7 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({ onSelectSegment, sel
       {selectedSegment && (
         <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-lg p-6 rounded-2xl border border-blue-500/30 shadow-xl">
           {(() => {
-            const segment = mockSegments.find(s => s.id === selectedSegment);
+            const segment = segments.find(s => s.id === selectedSegment);
             if (!segment) return null;
             
             return (

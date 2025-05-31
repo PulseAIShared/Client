@@ -14,33 +14,19 @@ export const InsightsRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-8">
-        {/* Header */}
         <InsightsHeader />
-
-        {/* Analytics Overview */}
         <AnalyticsOverview />
-
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {/* Churn Prediction */}
           <ChurnPredictionCard />
-
-          {/* LTV Analytics */}
           <LTVAnalytics />
         </div>
-
-        {/* Secondary Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {/* Demographic Insights */}
           <DemographicInsights />
-
-          {/* Recovery Flows - spans full width on larger screens */}
           <div className="xl:col-span-1">
             <RecoveryFlows />
           </div>
         </div>
 
-        {/* Additional Insights Section */}
         <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-lg p-8 rounded-2xl border border-blue-500/30 shadow-xl">
           <div className="text-center">
             <h3 className="text-2xl font-bold text-white mb-4">

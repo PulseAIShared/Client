@@ -67,7 +67,7 @@ export const getSegmentPerformance = async (): Promise<SegmentPerformanceMetrics
   // TODO: Replace with actual API call when backend is ready
   // return api.get('/segments/performance');
   return {
-    totalSegments: 12,
+    totalSegments: 6,
     activeSegments: 10,
     totalCustomersSegmented: 11200,
     avgChurnReduction: 34,

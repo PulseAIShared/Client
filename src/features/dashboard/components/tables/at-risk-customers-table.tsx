@@ -1,9 +1,6 @@
-import { AtRiskCustomer } from '@/types/api';
+// src/features/dashboard/components/tables/at-risk-customers-table.tsx
 import React from 'react';
-
-interface AtRiskCustomersTableProps {
-  customers: AtRiskCustomer[];
-}
+import { useGetAtRiskCustomers } from '@/features/dashboard/api/dashboard';
 
 const ChurnScoreBar: React.FC<{ score: number }> = ({ score }) => (
   <div className="flex items-center gap-3">
@@ -17,7 +14,45 @@ const ChurnScoreBar: React.FC<{ score: number }> = ({ score }) => (
   </div>
 );
 
-export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ customers }) => {
+export const AtRiskCustomersTable: React.FC = () => {
+  const { data: customers, isLoading, error } = useGetAtRiskCustomers();
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <div className="h-6 bg-slate-700 rounded w-48"></div>
+            <div className="h-4 bg-slate-700 rounded w-32"></div>
+          </div>
+          <div className="h-6 bg-slate-700 rounded w-20"></div>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4 px-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="h-4 bg-slate-700 rounded"></div>
+            ))}
+          </div>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="h-16 bg-slate-700 rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !customers) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load at-risk customers</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">

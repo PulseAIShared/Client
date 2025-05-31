@@ -1,12 +1,41 @@
-import { ChurnRiskData } from '@/types/api';
+// src/features/dashboard/components/charts/churn-risk-chart.tsx
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { useGetChurnRiskData } from '@/features/dashboard/api/dashboard';
 
-interface ChurnRiskChartProps {
-  data: ChurnRiskData[];
-}
+export const ChurnRiskChart: React.FC = () => {
+  const { data: churnRiskData, isLoading, error } = useGetChurnRiskData();
 
-export const ChurnRiskChart: React.FC<ChurnRiskChartProps> = ({ data }) => {
+  if (isLoading) {
+    return (
+      <div className="lg:col-span-2 bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <div className="h-6 bg-slate-700 rounded w-48"></div>
+            <div className="h-4 bg-slate-700 rounded w-32"></div>
+          </div>
+          <div className="text-right space-y-2">
+            <div className="h-8 bg-slate-700 rounded w-16"></div>
+            <div className="h-4 bg-slate-700 rounded w-24"></div>
+          </div>
+        </div>
+        <div className="h-64 bg-slate-700 rounded mb-4"></div>
+        <div className="h-4 bg-slate-700 rounded"></div>
+      </div>
+    );
+  }
+
+  if (error || !churnRiskData) {
+    return (
+      <div className="lg:col-span-2 bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load churn risk data</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="lg:col-span-2 bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">
@@ -23,7 +52,7 @@ export const ChurnRiskChart: React.FC<ChurnRiskChartProps> = ({ data }) => {
       {/* Chart */}
       <div className="h-64 mb-4">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart data={churnRiskData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis 
               dataKey="week" 

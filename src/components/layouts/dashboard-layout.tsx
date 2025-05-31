@@ -2,12 +2,13 @@
 import { Sidebar, SideNavigationItem } from "../ui/nav";
 import { TopNav } from "../ui/nav/top-navigation";
 import { BiSolidDashboard } from "react-icons/bi";
-import { VscNotebookTemplate } from "react-icons/vsc";
 import { IoMdSettings } from "react-icons/io";
 import { GiProgression } from "react-icons/gi";
 import { FaUser } from "react-icons/fa";
 import { useMediaQuery } from "@mantine/hooks";
 import { MdSegment } from "react-icons/md";
+
+
 type DashboardLayoutProps = {
   children: React.ReactNode;
 };

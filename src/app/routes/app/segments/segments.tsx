@@ -7,7 +7,7 @@ import {
   SegmentCreator,
   SegmentAnalytics,
   SegmentPerformance
-} from '@/features/segments/components'
+} from '@/features/segments/api/components';
 
 type SegmentTab = 'overview' | 'analytics' | 'create';
 
@@ -51,7 +51,10 @@ export const SegmentsRoute = () => {
         return (
           <div className="space-y-8">
             <SegmentPerformance />
-            <SegmentsList onSelectSegment={setSelectedSegment} selectedSegment={selectedSegment} />
+            <SegmentsList 
+              onSelectSegment={setSelectedSegment} 
+              selectedSegment={selectedSegment} 
+            />
           </div>
         );
       case 'analytics':
@@ -62,7 +65,10 @@ export const SegmentsRoute = () => {
         return (
           <div className="space-y-8">
             <SegmentPerformance />
-            <SegmentsList onSelectSegment={setSelectedSegment} selectedSegment={selectedSegment} />
+            <SegmentsList 
+              onSelectSegment={setSelectedSegment} 
+              selectedSegment={selectedSegment} 
+            />
           </div>
         );
     }

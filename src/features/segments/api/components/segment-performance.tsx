@@ -1,49 +1,93 @@
 // src/features/segments/components/segment-performance.tsx
 import React from 'react';
+import { useGetSegmentPerformance } from '@/features/segments/api/segments';
 
-const performanceMetrics = [
-  { 
-    title: 'Total Segments', 
-    value: '12', 
-    change: '+2', 
-    changeType: 'positive' as const,
-    color: 'text-white',
-    bgGradient: 'from-slate-800/80 to-slate-900/80'
-  },
-  { 
-    title: 'Customers Segmented', 
-    value: '11.2K', 
-    change: '+8.3%', 
-    changeType: 'positive' as const,
-    color: 'text-cyan-400',
-    bgGradient: 'from-cyan-600/20 to-blue-600/20'
-  },
-  { 
-    title: 'Avg Churn Reduction', 
-    value: '34%', 
-    change: '+12%', 
-    changeType: 'positive' as const,
-    color: 'text-green-400',
-    bgGradient: 'from-green-600/20 to-emerald-600/20'
-  },
-  { 
-    title: 'Revenue Impact', 
-    value: '$127K', 
-    change: '+23%', 
-    changeType: 'positive' as const,
-    color: 'text-yellow-400',
-    bgGradient: 'from-yellow-600/20 to-orange-600/20'
+export const SegmentPerformance: React.FC = () => {
+  const { data: performanceData, isLoading, error } = useGetSegmentPerformance();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+              <div className="h-4 bg-slate-700 rounded mb-3"></div>
+              <div className="h-8 bg-slate-700 rounded mb-4"></div>
+              <div className="h-2 bg-slate-700 rounded"></div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+          <div className="h-6 bg-slate-700 rounded mb-6 w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="h-16 bg-slate-700 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
-];
 
-const topPerformingSegments = [
-  { name: 'High-Value Enterprise', impact: '+45%', customers: 1240, color: 'bg-purple-500' },
-  { name: 'Trial Power Users', impact: '+38%', customers: 890, color: 'bg-blue-500' },
-  { name: 'Payment Failed', impact: '+42%', customers: 567, color: 'bg-red-500' },
-  { name: 'Feature Champions', impact: '+31%', customers: 1890, color: 'bg-green-500' },
-];
+  if (error || !performanceData) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load segment performance data</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
 
-export const SegmentPerformance = () => {
+  const performanceMetrics = [
+    { 
+      title: 'Total Segments', 
+      value: performanceData.totalSegments.toString(), 
+      change: '+2', 
+      changeType: 'positive' as const,
+      color: 'text-white',
+      bgGradient: 'from-slate-800/80 to-slate-900/80'
+    },
+    { 
+      title: 'Customers Segmented', 
+      value: `${(performanceData.totalCustomersSegmented / 1000).toFixed(1)}K`, 
+      change: '+8.3%', 
+      changeType: 'positive' as const,
+      color: 'text-cyan-400',
+      bgGradient: 'from-cyan-600/20 to-blue-600/20'
+    },
+    { 
+      title: 'Avg Churn Reduction', 
+      value: `${performanceData.avgChurnReduction}%`, 
+      change: '+12%', 
+      changeType: 'positive' as const,
+      color: 'text-green-400',
+      bgGradient: 'from-green-600/20 to-emerald-600/20'
+    },
+    { 
+      title: 'Revenue Impact', 
+      value: performanceData.revenueImpact, 
+      change: '+23%', 
+      changeType: 'positive' as const,
+      color: 'text-yellow-400',
+      bgGradient: 'from-yellow-600/20 to-orange-600/20'
+    }
+  ];
+
+  const topPerformingSegments = [
+    { 
+      name: performanceData.topPerformingSegment.name, 
+      impact: `+${performanceData.topPerformingSegment.churnReduction}%`, 
+      customers: 1240, 
+      color: 'bg-purple-500' 
+    },
+    { name: 'Trial Power Users', impact: '+38%', customers: 890, color: 'bg-blue-500' },
+    { name: 'Payment Failed', impact: '+42%', customers: 567, color: 'bg-red-500' },
+    { name: 'Feature Champions', impact: '+31%', customers: 1890, color: 'bg-green-500' },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Performance Metrics */}

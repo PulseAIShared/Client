@@ -1,11 +1,45 @@
-import { CustomerInsight } from '@/types/api';
+// src/features/dashboard/components/tables/customer-insights-table.tsx
 import React from 'react';
+import { useGetCustomerInsights } from '@/features/dashboard/api/dashboard';
 
-interface CustomerInsightsTableProps {
-  insights: CustomerInsight[];
-}
+export const CustomerInsightsTable: React.FC = () => {
+  const { data: insights, isLoading, error } = useGetCustomerInsights();
 
-export const CustomerInsightsTable: React.FC<CustomerInsightsTableProps> = ({ insights }) => {
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <div className="h-6 bg-slate-700 rounded w-40"></div>
+            <div className="h-4 bg-slate-700 rounded w-32"></div>
+          </div>
+          <div className="h-6 bg-slate-700 rounded w-24"></div>
+        </div>
+        
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-16 bg-slate-700 rounded"></div>
+          ))}
+        </div>
+        
+        <div className="mt-4 pt-4 border-t border-slate-700/50">
+          <div className="h-10 bg-slate-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !insights) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load revenue analysis</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">
