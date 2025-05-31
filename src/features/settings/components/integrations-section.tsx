@@ -1,34 +1,75 @@
 // src/features/settings/components/integrations-section.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { useGetIntegrations } from '../api/integrations';
+import { 
+  useGetIntegrations, 
+  useGetIntegrationStats,
+  useConnectIntegration,
+  useDisconnectIntegration,
+  useSyncIntegration,
+  Integration 
+} from '../api/integrations';
+import { useNotifications } from '@/components/ui/notifications';
 
-interface Integration {
+interface IntegrationTemplate {
   id: string;
   name: string;
   description: string;
   category: 'crm' | 'email' | 'payment' | 'analytics';
-  isConnected: boolean;
   icon: React.ReactNode;
   features: string[];
   setupComplexity: 'Easy' | 'Medium' | 'Advanced';
-  connectionCount?: number;
-  lastSync?: string;
 }
 
 export const IntegrationsSection = () => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'crm' | 'email' | 'payment' | 'analytics'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const { addNotification } = useNotifications();
+  
+  // Hooks
+  const { data: integrations = [], isLoading, error, refetch } = useGetIntegrations();
+  const { data: stats } = useGetIntegrationStats();
+  const connectMutation = useConnectIntegration({
+    mutationConfig: {
+      onSuccess: () => {
+        addNotification({ type: 'success', title: 'Integration connected successfully' });
+        refetch();
+      },
+      onError: () => {
+        addNotification({ type: 'error', title: 'Failed to connect integration' });
+      }
+    }
+  });
+  const disconnectMutation = useDisconnectIntegration({
+    mutationConfig: {
+      onSuccess: () => {
+        addNotification({ type: 'success', title: 'Integration disconnected successfully' });
+        refetch();
+      },
+      onError: () => {
+        addNotification({ type: 'error', title: 'Failed to disconnect integration' });
+      }
+    }
+  });
+  const syncMutation = useSyncIntegration({
+    mutationConfig: {
+      onSuccess: () => {
+        addNotification({ type: 'success', title: 'Integration synced successfully' });
+        refetch();
+      },
+      onError: () => {
+        addNotification({ type: 'error', title: 'Failed to sync integration' });
+      }
+    }
+  });
 
-  const integrations: Integration[] = [
+  const integrationTemplates: IntegrationTemplate[] = [
     {
       id: 'salesforce',
       name: 'Salesforce',
       description: 'Sync customer data, lead scores, and opportunity information for enhanced churn prediction.',
       category: 'crm',
-      isConnected: false,
-      connectionCount: 12450,
-      lastSync: '2 minutes ago',
       setupComplexity: 'Medium',
       features: ['Customer Data Sync', 'Lead Scoring', 'Opportunity Tracking', 'Real-time Updates'],
       icon: (
@@ -44,7 +85,6 @@ export const IntegrationsSection = () => {
       name: 'HubSpot',
       description: 'Connect your HubSpot CRM to automatically sync contacts, deals, and engagement metrics.',
       category: 'crm',
-      isConnected: false,
       setupComplexity: 'Easy',
       features: ['Contact Management', 'Deal Pipeline', 'Email Tracking', 'Marketing Automation'],
       icon: (
@@ -63,7 +103,6 @@ export const IntegrationsSection = () => {
       name: 'Pipedrive',
       description: 'Integrate your sales pipeline data to enhance customer lifecycle predictions.',
       category: 'crm',
-      isConnected: false,
       setupComplexity: 'Easy',
       features: ['Pipeline Management', 'Activity Tracking', 'Custom Fields', 'Sales Reporting'],
       icon: (
@@ -79,9 +118,6 @@ export const IntegrationsSection = () => {
       name: 'Zoho CRM',
       description: 'Sync customer interactions and sales data from your Zoho CRM system.',
       category: 'crm',
-      isConnected: false,
-      connectionCount: 8420,
-      lastSync: '15 minutes ago',
       setupComplexity: 'Medium',
       features: ['Contact Management', 'Sales Analytics', 'Workflow Automation', 'Territory Management'],
       icon: (
@@ -97,9 +133,6 @@ export const IntegrationsSection = () => {
       name: 'Mailchimp',
       description: 'Connect email campaign data to analyze customer engagement patterns.',
       category: 'email',
-      isConnected: false,
-      connectionCount: 15230,
-      lastSync: '5 minutes ago',
       setupComplexity: 'Easy',
       features: ['Email Campaigns', 'Audience Segmentation', 'Open/Click Tracking', 'Automation Workflows'],
       icon: (
@@ -115,9 +148,6 @@ export const IntegrationsSection = () => {
       name: 'Stripe',
       description: 'Sync payment data, subscription status, and billing events for revenue tracking.',
       category: 'payment',
-      isConnected: false,
-      connectionCount: 9870,
-      lastSync: '1 minute ago',
       setupComplexity: 'Medium',
       features: ['Payment Processing', 'Subscription Management', 'Billing Events', 'Revenue Analytics'],
       icon: (
@@ -133,7 +163,6 @@ export const IntegrationsSection = () => {
       name: 'Google Analytics',
       description: 'Track user behavior and engagement metrics to improve churn prediction accuracy.',
       category: 'analytics',
-      isConnected: false,
       setupComplexity: 'Medium',
       features: ['User Behavior', 'Conversion Tracking', 'Event Analytics', 'Audience Insights'],
       icon: (
@@ -150,39 +179,114 @@ export const IntegrationsSection = () => {
   ];
 
   const categories = [
-    { id: 'all' as const, label: 'All Integrations', count: integrations.length },
-    { id: 'crm' as const, label: 'CRM Systems', count: integrations.filter(i => i.category === 'crm').length },
-    { id: 'email' as const, label: 'Email Marketing', count: integrations.filter(i => i.category === 'email').length },
-    { id: 'payment' as const, label: 'Payment Processing', count: integrations.filter(i => i.category === 'payment').length },
-    { id: 'analytics' as const, label: 'Analytics', count: integrations.filter(i => i.category === 'analytics').length }
+    { id: 'all' as const, label: 'All Integrations', count: integrationTemplates.length },
+    { id: 'crm' as const, label: 'CRM Systems', count: integrationTemplates.filter(i => i.category === 'crm').length },
+    { id: 'email' as const, label: 'Email Marketing', count: integrationTemplates.filter(i => i.category === 'email').length },
+    { id: 'payment' as const, label: 'Payment Processing', count: integrationTemplates.filter(i => i.category === 'payment').length },
+    { id: 'analytics' as const, label: 'Analytics', count: integrationTemplates.filter(i => i.category === 'analytics').length }
   ];
 
-  const filteredIntegrations = integrations.filter(integration => {
-    const matchesCategory = selectedCategory === 'all' || integration.category === selectedCategory;
-    const matchesSearch = integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         integration.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredTemplates = useMemo(() => {
+    return integrationTemplates.filter(template => {
+      const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
+      const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           template.description.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [integrationTemplates, selectedCategory, searchTerm]);
 
-  const connectedCount = integrations.filter(i => i.isConnected).length;
-
-  const handleConnect = (integrationId: string) => {
-    console.log(`Connecting to ${integrationId}`);
+  const getIntegrationStatus = (templateId: string): Integration | undefined => {
+    return integrations.find(integration => 
+      integration.type.toLowerCase() === templateId.toLowerCase()
+    );
   };
 
-  const handleDisconnect = (integrationId: string) => {
-
-    console.log(`Disconnecting from ${integrationId}`);
+  const handleConnect = async (templateId: string, templateName: string) => {
+    await connectMutation.mutateAsync({
+      type: templateId,
+      name: templateName,
+      configuration: {}
+    });
   };
 
-  const handleConfigure = (integrationId: string) => {
-    console.log(`Configuring ${integrationId}`);
+  const handleDisconnect = async (integrationId: string) => {
+    await disconnectMutation.mutateAsync({ integrationId });
   };
 
-  const currentIntegrations = useGetIntegrations();
+  const handleSync = async (integrationId: string) => {
+    await syncMutation.mutateAsync({ integrationId });
+  };
 
-  console.log(currentIntegrations.data);
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Stats Loading */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="bg-slate-700/30 backdrop-blur-lg p-6 rounded-xl border border-slate-600/50 animate-pulse">
+              <div className="h-6 bg-slate-600 rounded mb-2"></div>
+              <div className="h-8 bg-slate-600 rounded"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Search and Filters Loading */}
+        <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 h-12 bg-slate-700 rounded"></div>
+            <div className="flex gap-2">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="h-10 w-24 bg-slate-700 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Integrations Grid Loading */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="bg-slate-700/30 backdrop-blur-lg p-6 rounded-xl border border-slate-600/50 animate-pulse">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-slate-600 rounded-xl"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-slate-600 rounded w-3/4"></div>
+                    <div className="h-3 bg-slate-600 rounded w-1/2"></div>
+                  </div>
+                </div>
+                <div className="h-16 bg-slate-600 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load integrations</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -196,7 +300,7 @@ export const IntegrationsSection = () => {
               </svg>
             </div>
             <div>
-              <div className="text-2xl font-bold text-green-400">{connectedCount}</div>
+              <div className="text-2xl font-bold text-green-400">{stats?.connectedCount || 0}</div>
               <div className="text-sm text-green-300">Connected Integrations</div>
             </div>
           </div>
@@ -210,7 +314,7 @@ export const IntegrationsSection = () => {
               </svg>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-400">45.2K</div>
+              <div className="text-2xl font-bold text-blue-400">{stats?.totalRecordsSynced.toLocaleString() || '0'}</div>
               <div className="text-sm text-blue-300">Total Records Synced</div>
             </div>
           </div>
@@ -224,7 +328,7 @@ export const IntegrationsSection = () => {
               </svg>
             </div>
             <div>
-              <div className="text-2xl font-bold text-purple-400">2 min</div>
+              <div className="text-2xl font-bold text-purple-400">{stats?.lastSyncTime || 'Never'}</div>
               <div className="text-sm text-purple-300">Last Sync</div>
             </div>
           </div>
@@ -232,146 +336,158 @@ export const IntegrationsSection = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1 relative">
-          <input 
-            type="text" 
-            placeholder="Search integrations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-4 py-3 pl-10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-          />
-          <svg className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1 relative">
+            <input 
+              type="text" 
+              placeholder="Search integrations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-4 py-3 pl-10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            />
+            <svg className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
 
-        <div className="flex gap-2 overflow-x-auto">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                selectedCategory === category.id
-                  ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-400 border border-blue-500/30'
-                  : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
-              }`}
-            >
-              {category.label} ({category.count})
-            </button>
-          ))}
+          <div className="flex gap-2 overflow-x-auto">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                  selectedCategory === category.id
+                    ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-400 border border-blue-500/30'
+                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
+                }`}
+              >
+                {category.label} ({category.count})
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Integrations Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredIntegrations.map((integration) => (
-          <div
-            key={integration.id}
-            className="group bg-slate-700/30 backdrop-blur-lg p-6 rounded-xl border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300 hover:shadow-lg"
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-4">
-                {integration.icon}
-                <div>
-                  <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">
-                    {integration.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      integration.isConnected 
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                        : 'bg-slate-600/50 text-slate-400 border border-slate-600/50'
-                    }`}>
-                      {integration.isConnected ? 'Connected' : 'Not Connected'}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      integration.setupComplexity === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                      integration.setupComplexity === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {integration.setupComplexity} Setup
-                    </span>
+        {filteredTemplates.map((template) => {
+          const integration = getIntegrationStatus(template.id);
+          const isConnected = integration?.status === 'Connected';
+          
+          return (
+            <div
+              key={template.id}
+              className="group bg-slate-700/30 backdrop-blur-lg p-6 rounded-xl border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300 hover:shadow-lg"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  {template.icon}
+                  <div>
+                    <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">
+                      {template.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        isConnected
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                          : 'bg-slate-600/50 text-slate-400 border border-slate-600/50'
+                      }`}>
+                        {isConnected ? 'Connected' : 'Not Connected'}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        template.setupComplexity === 'Easy' ? 'bg-green-500/20 text-green-400' :
+                        template.setupComplexity === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-red-500/20 text-red-400'
+                      }`}>
+                        {template.setupComplexity} Setup
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex gap-2">
-                {integration.isConnected ? (
-                  <>
+                <div className="flex gap-2">
+                  {isConnected ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSync(integration!.id)}
+                        disabled={syncMutation.isPending}
+                        className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                      >
+                        {syncMutation.isPending ? 'Syncing...' : 'Sync'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDisconnect(integration!.id)}
+                        disabled={disconnectMutation.isPending}
+                        className="border-slate-600/50 hover:border-red-500/50 hover:text-red-400"
+                      >
+                        {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
+                      </Button>
+                    </>
+                  ) : (
                     <Button
-                      variant="outline"
+                      variant="default"
                       size="sm"
-                      onClick={() => handleConfigure(integration.id)}
-                      className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                      onClick={() => handleConnect(template.id, template.name)}
+                      disabled={connectMutation.isPending}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                     >
-                      Configure
+                      {connectMutation.isPending ? 'Connecting...' : 'Connect'}
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDisconnect(integration.id)}
-                      className="border-slate-600/50 hover:border-red-500/50 hover:text-red-400"
-                    >
-                      Disconnect
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => handleConnect(integration.id)}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  >
-                    Connect
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-slate-300 text-sm mb-4 leading-relaxed">
-              {integration.description}
-            </p>
-
-            {/* Connection Details */}
-            {integration.isConnected && (
-              <div className="flex items-center gap-4 mb-4 text-sm">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  <span>{integration.connectionCount?.toLocaleString()} records</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Last sync: {integration.lastSync}</span>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Features */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-slate-300">Key Features:</h4>
-              <div className="flex flex-wrap gap-2">
-                {integration.features.map((feature, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-slate-600/50 text-slate-300 rounded-md text-xs border border-slate-600/50"
-                  >
-                    {feature}
-                  </span>
-                ))}
+              {/* Description */}
+              <p className="text-slate-300 text-sm mb-4 leading-relaxed">
+                {template.description}
+              </p>
+
+              {/* Connection Details */}
+              {isConnected && integration && (
+                <div className="flex items-center gap-4 mb-4 text-sm">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span>{integration.syncedRecordCount.toLocaleString()} records</span>
+                  </div>
+                  {integration.lastSyncedAt && (
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Last sync: {formatTimeAgo(integration.lastSyncedAt)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Features */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-slate-300">Key Features:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {template.features.map((feature, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-slate-600/50 text-slate-300 rounded-md text-xs border border-slate-600/50"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {filteredIntegrations.length === 0 && (
+      {filteredTemplates.length === 0 && (
         <div className="text-center py-12">
           <div className="text-slate-400 mb-2">No integrations found</div>
           <div className="text-sm text-slate-500">Try adjusting your search or filter criteria</div>

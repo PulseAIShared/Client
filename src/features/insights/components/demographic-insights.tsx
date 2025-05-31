@@ -1,40 +1,50 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-
-const demographicData = [
-  { name: 'Women 35+', value: 35, ltv: 185, color: '#8b5cf6' },
-  { name: 'Men 35+', value: 28, ltv: 142, color: '#06b6d4' },
-  { name: 'Women 25-34', value: 22, ltv: 128, color: '#10b981' },
-  { name: 'Men 25-34', value: 15, ltv: 95, color: '#f59e0b' },
-];
-
-const behaviorInsights = [
-  {
-    insight: 'Women aged 35+ have 30% higher LTV than men of the same age group',
-    impact: 'High',
-    action: 'Target marketing campaigns towards this demographic',
-    metric: '+30% LTV'
-  },
-  {
-    insight: 'Enterprise customers show 45% better retention than SMB',
-    impact: 'High', 
-    action: 'Focus sales efforts on enterprise prospects',
-    metric: '+45% retention'
-  },
-  {
-    insight: 'Mobile-first users have 25% lower engagement',
-    impact: 'Medium',
-    action: 'Improve mobile app experience and features',
-    metric: '-25% engagement'
-  },
-  {
-    insight: 'Customers onboarded with demo calls have 60% lower churn',
-    impact: 'High',
-    action: 'Increase demo call conversion rate',
-    metric: '-60% churn'
-  }
-];
+import { useGetDemographicInsights } from '@/features/insights/api/insights';
 
 export const DemographicInsights = () => {
+  const { data, isLoading, error } = useGetDemographicInsights();
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <div className="h-6 bg-slate-700 rounded w-48"></div>
+            <div className="h-4 bg-slate-700 rounded w-32"></div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="h-48 bg-slate-700 rounded"></div>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="h-12 bg-slate-700 rounded"></div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-20 bg-slate-700 rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load demographic insights</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
+
+  const { demographicData, behaviorInsights } = data;
+
   return (
     <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">

@@ -56,7 +56,7 @@ export const CustomersTable: React.FC = () => {
 
   // Filter and sort customers
   const filteredAndSortedCustomers = useMemo(() => {
-    let filtered = customers.filter(customer => {
+    const filtered = customers.filter(customer => {
       const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            customer.email.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -311,7 +311,7 @@ export const CustomersTable: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredAndSortedCustomers.map((customer, index) => (
+              {filteredAndSortedCustomers.map((customer) => (
                 <tr 
                   key={customer.id} 
                   className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-all duration-200 group"

@@ -127,3 +127,103 @@ export interface SegmentPerformanceMetrics {
     churnReduction: number;
   };
 }
+
+// Types for insights data
+export interface ChurnPredictionData {
+  month: string;
+  predicted: number;
+  actual: number | null;
+}
+
+export interface RiskFactor {
+  factor: string;
+  impact: 'High' | 'Medium' | 'Low';
+  percentage: number;
+  color: string;
+}
+
+export interface RevenueData {
+  month: string;
+  revenue: number;
+  recovered: number;
+  churn: number;
+}
+
+export interface KPIData {
+  metric: string;
+  value: string;
+  change: string;
+  trend: 'up' | 'down';
+}
+
+export interface DemographicData {
+  name: string;
+  value: number;
+  ltv: number;
+  color: string;
+}
+
+export interface BehaviorInsight {
+  insight: string;
+  impact: 'High' | 'Medium' | 'Low';
+  action: string;
+  metric: string;
+}
+
+export interface LTVData {
+  segment: string;
+  current: number;
+  previous: number;
+  growth: number;
+}
+
+export interface CohortData {
+  month: string;
+  retention: number;
+  ltv: number;
+}
+
+export interface RecoveryFlow {
+  id: string;
+  name: string;
+  status: 'Active' | 'Paused' | 'Draft';
+  type: 'Automated' | 'AI-Generated' | 'Behavioral';
+  trigger: string;
+  channels: string[];
+  success_rate: number;
+  recovered_revenue: string;
+  steps: FlowStep[];
+}
+
+export interface FlowStep {
+  step: number;
+  type: string;
+  delay: string;
+  subject: string;
+  open_rate?: number;
+  response_rate?: number;
+  click_rate?: number;
+  conversion?: number;
+}
+
+export interface FlowTemplate {
+  name: string;
+  trigger: string;
+  success_rate: number;
+}
+
+export interface Integration {
+  id: string;
+  type: string;
+  name: string;
+  status: 'Connected' | 'Disconnected' | 'Error';
+  lastSyncedAt?: string;
+  syncedRecordCount: number;
+  configuration?: Record<string, unknown>;
+}
+
+export interface IntegrationStats {
+  connectedCount: number;
+  totalRecordsSynced: number;
+  lastSyncTime: string;
+}

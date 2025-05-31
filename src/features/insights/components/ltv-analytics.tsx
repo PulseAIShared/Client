@@ -1,21 +1,55 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
-
-const ltvData = [
-  { segment: 'Premium', current: 280, previous: 245, growth: 14.3 },
-  { segment: 'Pro', current: 135, previous: 128, growth: 5.5 },
-  { segment: 'Basic', current: 85, previous: 92, growth: -7.6 },
-  { segment: 'Trial', current: 12, previous: 15, growth: -20.0 },
-];
-
-const cohortData = [
-  { month: 'Jan Cohort', retention: 92, ltv: 156 },
-  { month: 'Feb Cohort', retention: 89, ltv: 142 },
-  { month: 'Mar Cohort', retention: 91, ltv: 165 },
-  { month: 'Apr Cohort', retention: 94, ltv: 178 },
-  { month: 'May Cohort', retention: 88, ltv: 134 },
-];
+import { useGetLTVAnalytics } from '@/features/insights/api/insights';
 
 export const LTVAnalytics = () => {
+  const { data, isLoading, error } = useGetLTVAnalytics();
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <div className="h-6 bg-slate-700 rounded w-48"></div>
+            <div className="h-4 bg-slate-700 rounded w-32"></div>
+          </div>
+          <div className="text-right space-y-2">
+            <div className="h-8 bg-slate-700 rounded w-16"></div>
+            <div className="h-4 bg-slate-700 rounded w-20"></div>
+          </div>
+        </div>
+
+        <div className="h-64 bg-slate-700 rounded mb-6"></div>
+
+        <div className="space-y-3 mb-6">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-12 bg-slate-700 rounded"></div>
+          ))}
+        </div>
+
+        <div className="pt-4 border-t border-slate-700/50">
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="h-8 bg-slate-700 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load LTV analytics</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
+
+  const { ltvData, cohortData } = data;
+
   return (
     <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">

@@ -1,22 +1,45 @@
-import { Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
-
-const revenueData = [
-  { month: 'Jan', revenue: 45000, recovered: 8200, churn: 12000 },
-  { month: 'Feb', revenue: 48000, recovered: 9100, churn: 11200 },
-  { month: 'Mar', revenue: 52000, recovered: 10800, churn: 9800 },
-  { month: 'Apr', revenue: 49000, recovered: 12400, churn: 13500 },
-  { month: 'May', revenue: 55000, recovered: 11600, churn: 10100 },
-  { month: 'Jun', revenue: 58000, recovered: 13200, churn: 9400 },
-];
-
-const kpiData = [
-  { metric: 'Monthly Recurring Revenue', value: '$58,000', change: '+12.3%', trend: 'up' },
-  { metric: 'Churn Rate', value: '8.2%', change: '-2.1%', trend: 'down' },
-  { metric: 'Recovery Rate', value: '73%', change: '+8.5%', trend: 'up' },
-  { metric: 'Customer Acquisition Cost', value: '$89', change: '-15.2%', trend: 'down' },
-];
+import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
+import { useGetRevenueAnalytics } from '@/features/insights/api/insights';
 
 export const AnalyticsOverview = () => {
+  const { data, isLoading, error } = useGetRevenueAnalytics();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        {/* KPI Cards Loading */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+              <div className="h-4 bg-slate-700 rounded mb-3 w-3/4"></div>
+              <div className="h-8 bg-slate-700 rounded mb-2"></div>
+              <div className="h-3 bg-slate-700 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Chart Loading */}
+        <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+          <div className="h-6 bg-slate-700 rounded mb-6 w-1/3"></div>
+          <div className="h-80 bg-slate-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load revenue analytics</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
+
+  const { revenueData, kpiData } = data;
+
   return (
     <div className="space-y-6">
       {/* KPI Cards */}
@@ -95,14 +118,6 @@ export const AnalyticsOverview = () => {
                 fill="#06b6d4"
                 fillOpacity={0.3}
                 name="Recovered Revenue"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="churn" 
-                stroke="#ef4444" 
-                strokeWidth={3}
-                dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
-                name="Revenue Lost to Churn"
               />
             </AreaChart>
           </ResponsiveContainer>

@@ -1,23 +1,48 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
-
-const predictionData = [
-  { month: 'Jan', predicted: 8.2, actual: 7.9 },
-  { month: 'Feb', predicted: 7.8, actual: 8.1 },
-  { month: 'Mar', predicted: 6.5, actual: 6.8 },
-  { month: 'Apr', predicted: 9.1, actual: 8.9 },
-  { month: 'May', predicted: 8.2, actual: null },
-  { month: 'Jun', predicted: 7.6, actual: null },
-];
-
-const riskFactors = [
-  { factor: 'Payment Failures', impact: 'High', percentage: 85, color: 'text-red-400' },
-  { factor: 'Low Engagement', impact: 'High', percentage: 78, color: 'text-red-400' },
-  { factor: 'Support Tickets', impact: 'Medium', percentage: 62, color: 'text-orange-400' },
-  { factor: 'Feature Usage', impact: 'Medium', percentage: 56, color: 'text-orange-400' },
-  { factor: 'Login Frequency', impact: 'Low', percentage: 34, color: 'text-yellow-400' },
-];
+import { useGetChurnPredictionData } from '@/features/insights/api/insights';
+import { RiskFactor } from '@/types/api';
 
 export const ChurnPredictionCard = () => {
+  const { data, isLoading, error } = useGetChurnPredictionData();
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <div className="h-6 bg-slate-700 rounded w-48"></div>
+            <div className="h-4 bg-slate-700 rounded w-32"></div>
+          </div>
+          <div className="text-right space-y-2">
+            <div className="h-8 bg-slate-700 rounded w-16"></div>
+            <div className="h-4 bg-slate-700 rounded w-24"></div>
+          </div>
+        </div>
+        
+        <div className="h-64 bg-slate-700 rounded mb-6"></div>
+        
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="h-12 bg-slate-700 rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load churn prediction data</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
+
+  const { data: predictionData, riskFactors } = data;
+
   return (
     <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">
@@ -79,7 +104,8 @@ export const ChurnPredictionCard = () => {
       {/* Risk Factors */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-white">Top Risk Factors</h3>
-        {riskFactors.map((factor, index) => (
+
+        {riskFactors.map((factor: RiskFactor, index: number) => (
           <div key={index} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
             <div className="flex items-center gap-3">
               <div className={`w-3 h-3 rounded-full ${

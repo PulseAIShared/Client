@@ -1,64 +1,53 @@
 import React, { useState } from 'react';
-
-const recoveryFlows = [
-  {
-    id: 'payment-failed',
-    name: 'Payment Recovery Flow',
-    status: 'Active',
-    type: 'Automated',
-    trigger: 'Payment Failed',
-    channels: ['Email', 'SMS'],
-    success_rate: 73,
-    recovered_revenue: '$18,420',
-    steps: [
-      { step: 1, type: 'email', delay: '1 hour', subject: 'Payment Update Required', open_rate: 68 },
-      { step: 2, type: 'sms', delay: '24 hours', subject: 'Quick payment reminder', response_rate: 45 },
-      { step: 3, type: 'email', delay: '3 days', subject: 'Special offer to stay', open_rate: 52 },
-      { step: 4, type: 'phone', delay: '7 days', subject: 'Personal outreach call', conversion: 35 }
-    ]
-  },
-  {
-    id: 'inactive-users',
-    name: 'Re-engagement Campaign',
-    status: 'Active',
-    type: 'AI-Generated',
-    trigger: '14 days inactive',
-    channels: ['Email', 'In-App'],
-    success_rate: 41,
-    recovered_revenue: '$12,680',
-    steps: [
-      { step: 1, type: 'email', delay: 'Immediate', subject: 'We miss you! Here\'s what\'s new', open_rate: 34 },
-      { step: 2, type: 'in-app', delay: '2 days', subject: 'Feature highlight notification', click_rate: 28 },
-      { step: 3, type: 'email', delay: '5 days', subject: 'Exclusive discount just for you', open_rate: 45 },
-    ]
-  },
-  {
-    id: 'high-risk',
-    name: 'High-Risk Intervention',
-    status: 'Active',
-    type: 'Behavioral',
-    trigger: 'Churn risk >80%',
-    channels: ['Email', 'SMS', 'Phone'],
-    success_rate: 62,
-    recovered_revenue: '$24,750',
-    steps: [
-      { step: 1, type: 'email', delay: 'Immediate', subject: 'Let\'s schedule a quick chat', open_rate: 58 },
-      { step: 2, type: 'phone', delay: '2 days', subject: 'Personal check-in call', conversion: 42 },
-      { step: 3, type: 'email', delay: '5 days', subject: 'Custom success plan', open_rate: 61 },
-    ]
-  }
-];
-
-const flowTemplates = [
-  { name: 'Winback Campaign', trigger: 'Cancelled subscription', success_rate: 28 },
-  { name: 'Trial Extension', trigger: 'Trial ending soon', success_rate: 54 },
-  { name: 'Feature Adoption', trigger: 'Low feature usage', success_rate: 39 },
-  { name: 'Upgrade Nudge', trigger: 'Usage limit reached', success_rate: 67 },
-];
+import { useGetRecoveryFlows } from '@/features/insights/api/insights';
 
 export const RecoveryFlows = () => {
-  const [activeFlow, setActiveFlow] = useState(recoveryFlows[0]);
+  const { data, isLoading, error } = useGetRecoveryFlows();
   const [selectedTab, setSelectedTab] = useState<'active' | 'templates'>('active');
+  const [activeFlow, setActiveFlow] = useState<string>('payment-failed');
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <div className="h-6 bg-slate-700 rounded w-40"></div>
+            <div className="h-4 bg-slate-700 rounded w-64"></div>
+          </div>
+          <div className="flex gap-2">
+            <div className="h-8 w-24 bg-slate-700 rounded"></div>
+            <div className="h-8 w-24 bg-slate-700 rounded"></div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="h-24 bg-slate-700 rounded"></div>
+            ))}
+          </div>
+          <div className="space-y-4">
+            <div className="h-16 bg-slate-700 rounded"></div>
+            <div className="h-32 bg-slate-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="text-center py-8">
+          <div className="text-red-400 mb-2">Failed to load recovery flows</div>
+          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
+
+  const { flows, templates } = data;
+  const selectedFlow = flows.find(f => f.id === activeFlow) || flows[0];
 
   const getChannelIcon = (channel: string) => {
     switch (channel.toLowerCase()) {
@@ -127,12 +116,12 @@ export const RecoveryFlows = () => {
           {/* Flow List */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-white">Active Campaigns</h3>
-            {recoveryFlows.map((flow) => (
+            {flows.map((flow) => (
               <div
                 key={flow.id}
-                onClick={() => setActiveFlow(flow)}
+                onClick={() => setActiveFlow(flow.id)}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
-                  activeFlow.id === flow.id
+                  activeFlow === flow.id
                     ? 'bg-blue-600/20 border-blue-500/50 text-blue-400'
                     : 'bg-slate-700/30 border-slate-600/50 hover:bg-slate-700/50 text-white'
                 }`}
@@ -164,7 +153,7 @@ export const RecoveryFlows = () => {
           {/* Flow Details */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">{activeFlow.name}</h3>
+              <h3 className="text-lg font-semibold text-white">{selectedFlow.name}</h3>
               <div className="flex gap-2">
                 <button className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors text-sm border border-blue-500/30">
                   Edit Flow
@@ -179,25 +168,25 @@ export const RecoveryFlows = () => {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <div className="text-slate-400 text-sm">Trigger</div>
-                  <div className="text-white font-medium">{activeFlow.trigger}</div>
+                  <div className="text-white font-medium">{selectedFlow.trigger}</div>
                 </div>
                 <div>
                   <div className="text-slate-400 text-sm">Type</div>
-                  <div className="text-white font-medium">{activeFlow.type}</div>
+                  <div className="text-white font-medium">{selectedFlow.type}</div>
                 </div>
                 <div>
                   <div className="text-slate-400 text-sm">Success Rate</div>
-                  <div className="text-green-400 font-semibold">{activeFlow.success_rate}%</div>
+                  <div className="text-green-400 font-semibold">{selectedFlow.success_rate}%</div>
                 </div>
                 <div>
                   <div className="text-slate-400 text-sm">Revenue Recovered</div>
-                  <div className="text-green-400 font-semibold">{activeFlow.recovered_revenue}</div>
+                  <div className="text-green-400 font-semibold">{selectedFlow.recovered_revenue}</div>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h4 className="text-white font-medium">Flow Steps</h4>
-                {activeFlow.steps.map((step, index) => (
+                {selectedFlow.steps.map((step, index) => (
                   <div key={index} className="flex items-center gap-4 p-3 bg-slate-600/30 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-blue-600/30 rounded-full flex items-center justify-center text-blue-400 font-bold text-sm">
@@ -213,13 +202,13 @@ export const RecoveryFlows = () => {
                       {step.open_rate && (
                         <div className="text-blue-400 text-sm">{step.open_rate}% open</div>
                       )}
-                      {'response_rate' in step && step.response_rate && (
+                      {step.response_rate && (
                         <div className="text-green-400 text-sm">{step.response_rate}% response</div>
                       )}
-                      {'click_rate' in step && step.click_rate && (
+                      {step.click_rate && (
                         <div className="text-purple-400 text-sm">{step.click_rate}% click</div>
                       )}
-                      {('conversion' in step && step.conversion) && (
+                      {step.conversion && (
                         <div className="text-green-400 text-sm">{step.conversion}% convert</div>
                       )}
                     </div>
@@ -240,7 +229,7 @@ export const RecoveryFlows = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {flowTemplates.map((template, index) => (
+            {templates.map((template, index) => (
               <div key={index} className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-all duration-200">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-white font-semibold">{template.name}</h4>

@@ -7,7 +7,7 @@ import {
   SegmentCreator,
   SegmentAnalytics,
   SegmentPerformance
-} from '@/features/segments/api/components';
+} from '@/features/segments/components';
 
 type SegmentTab = 'overview' | 'analytics' | 'create';
 

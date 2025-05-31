@@ -20,7 +20,7 @@ export const InsightsRoute = () => {
           <ChurnPredictionCard />
           <LTVAnalytics />
         </div>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <DemographicInsights />
           <div className="xl:col-span-1">
             <RecoveryFlows />
