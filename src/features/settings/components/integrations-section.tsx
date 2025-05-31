@@ -7,9 +7,9 @@ import {
   useConnectIntegration,
   useDisconnectIntegration,
   useSyncIntegration,
-  Integration 
 } from '../api/integrations';
 import { useNotifications } from '@/components/ui/notifications';
+import { Integration } from '@/types/api';
 
 interface IntegrationTemplate {
   id: string;
