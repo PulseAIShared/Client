@@ -1,6 +1,7 @@
 // src/features/settings/components/integrations-section.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useGetIntegrations } from '../api/integrations';
 
 interface Integration {
   id: string;
@@ -25,7 +26,7 @@ export const IntegrationsSection = () => {
       name: 'Salesforce',
       description: 'Sync customer data, lead scores, and opportunity information for enhanced churn prediction.',
       category: 'crm',
-      isConnected: true,
+      isConnected: false,
       connectionCount: 12450,
       lastSync: '2 minutes ago',
       setupComplexity: 'Medium',
@@ -78,7 +79,7 @@ export const IntegrationsSection = () => {
       name: 'Zoho CRM',
       description: 'Sync customer interactions and sales data from your Zoho CRM system.',
       category: 'crm',
-      isConnected: true,
+      isConnected: false,
       connectionCount: 8420,
       lastSync: '15 minutes ago',
       setupComplexity: 'Medium',
@@ -96,7 +97,7 @@ export const IntegrationsSection = () => {
       name: 'Mailchimp',
       description: 'Connect email campaign data to analyze customer engagement patterns.',
       category: 'email',
-      isConnected: true,
+      isConnected: false,
       connectionCount: 15230,
       lastSync: '5 minutes ago',
       setupComplexity: 'Easy',
@@ -114,7 +115,7 @@ export const IntegrationsSection = () => {
       name: 'Stripe',
       description: 'Sync payment data, subscription status, and billing events for revenue tracking.',
       category: 'payment',
-      isConnected: true,
+      isConnected: false,
       connectionCount: 9870,
       lastSync: '1 minute ago',
       setupComplexity: 'Medium',
@@ -166,19 +167,22 @@ export const IntegrationsSection = () => {
   const connectedCount = integrations.filter(i => i.isConnected).length;
 
   const handleConnect = (integrationId: string) => {
-    // This would typically open a modal or redirect to OAuth flow
     console.log(`Connecting to ${integrationId}`);
   };
 
   const handleDisconnect = (integrationId: string) => {
-    // This would typically show a confirmation modal
+
     console.log(`Disconnecting from ${integrationId}`);
   };
 
   const handleConfigure = (integrationId: string) => {
-    // This would typically open a configuration modal
     console.log(`Configuring ${integrationId}`);
   };
+
+  const currentIntegrations = useGetIntegrations();
+
+  console.log(currentIntegrations.data);
+
 
   return (
     <div className="space-y-6">

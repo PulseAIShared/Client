@@ -1,25 +1,25 @@
 // src/app/routes/app/subscribers/subscribers.tsx
 import React, { useState } from 'react';
 import { ContentLayout } from '@/components/layouts';
-import { SubscribersTable } from '@/features/subscribers/components';
-import { getSubscribersData } from '@/utils/mock-data';
+import { CustomersTable } from '@/features/customers/components';
+import { getCustomersData } from '@/utils/mock-data';
 
-export const SubscribersRoute = () => {
+export const CustomersRoute = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  
-  const subscribers = getSubscribersData();
-  
-  // Filter subscribers based on search and filter criteria
-  const filteredSubscribers = subscribers.filter(subscriber => {
-    const matchesSearch = subscriber.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         subscriber.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
+  const customers = getCustomersData();
+
+  // Filter customers based on search and filter criteria
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (selectedFilter === 'all') return matchesSearch;
-    if (selectedFilter === 'high-risk') return matchesSearch && subscriber.churnRisk >= 70;
-    if (selectedFilter === 'active') return matchesSearch && subscriber.activityFrequency === 'High';
-    if (selectedFilter === 'inactive') return matchesSearch && subscriber.activityFrequency === 'Low';
-    
+    if (selectedFilter === 'high-risk') return matchesSearch && customer.churnRisk >= 70;
+    if (selectedFilter === 'active') return matchesSearch && customer.activityFrequency === 'High';
+    if (selectedFilter === 'inactive') return matchesSearch && customer.activityFrequency === 'Low';
+
     return matchesSearch;
   });
 
@@ -77,10 +77,10 @@ export const SubscribersRoute = () => {
             {/* Filter buttons */}
             <div className="flex gap-2">
               {[
-                { key: 'all', label: 'All Subscribers', count: subscribers.length },
-                { key: 'high-risk', label: 'High Risk', count: subscribers.filter(s => s.churnRisk >= 70).length },
-                { key: 'active', label: 'Active', count: subscribers.filter(s => s.activityFrequency === 'High').length },
-                { key: 'inactive', label: 'Inactive', count: subscribers.filter(s => s.activityFrequency === 'Low').length }
+                { key: 'all', label: 'All Customers', count: customers.length },
+                { key: 'high-risk', label: 'High Risk', count: customers.filter(s => s.churnRisk >= 70).length },
+                { key: 'active', label: 'Active', count: customers.filter(s => s.activityFrequency === 'High').length },
+                { key: 'inactive', label: 'Inactive', count: customers.filter(s => s.activityFrequency === 'Low').length }
               ].map((filter) => (
                 <button
                   key={filter.key}
@@ -98,8 +98,8 @@ export const SubscribersRoute = () => {
           </div>
         </div>
 
-        {/* Subscribers Table */}
-        <SubscribersTable subscribers={filteredSubscribers} />
+        {/* Customers Table */}
+        <CustomersTable customers={filteredCustomers} />
       </div>
     </ContentLayout>
   );

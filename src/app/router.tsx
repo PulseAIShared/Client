@@ -64,10 +64,10 @@ export const createAppRouter = (queryClient: QueryClient) =>
           },
         },
               {
-          path: 'subscribers',
+          path: 'customers',
           lazy: async () => {
-            const { SubscribersRoute } = await import('./routes/app/subscribers/subscribers');
-            return { Component: SubscribersRoute };
+            const { CustomersRoute } = await import('./routes/app/customers/customers');
+            return { Component: CustomersRoute };
           },
         },
         {

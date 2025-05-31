@@ -1,6 +1,6 @@
 // src/utils/mock-data.ts
 
-import { DashboardStats, ChurnRiskData, CustomerInsight, AtRiskCustomer, SubscriberData } from '@/types/api';
+import { DashboardStats, ChurnRiskData, CustomerInsight, AtRiskCustomer, CustomerData } from '@/types/api';
 
 export const getDashboardStats = (): DashboardStats => ({
   totalUsers: "12,450",
@@ -33,7 +33,7 @@ export const getAtRiskCustomers = (): AtRiskCustomer[] => [
 ];
 
 // New function for subscribers data
-export const getSubscribersData = (): SubscriberData[] => [
+export const getCustomersData = (): CustomerData[] => [
   {
     id: '1',
     name: 'Sarah Chen',

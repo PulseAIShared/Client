@@ -1,9 +1,9 @@
 // src/features/subscribers/components/subscribers-table.tsx
 import React, { useState } from 'react';
-import { SubscriberData } from '@/types/api';
+import { CustomerData } from '@/types/api';
 
-interface SubscribersTableProps {
-  subscribers: SubscriberData[];
+interface CustomersTableProps {
+  customers: CustomerData[];
 }
 
 type SortField = 'name' | 'monthsSubbed' | 'ltv' | 'churnRisk' | 'activityFrequency';
@@ -41,10 +41,10 @@ const ChurnRiskBar: React.FC<{ risk: number }> = ({ risk }) => (
   </div>
 );
 
-export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers }) => {
+export const CustomersTable: React.FC<CustomersTableProps> = ({ customers }) => {
   const [sortField, setSortField] = useState<SortField>('churnRisk');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [selectedSubscribers, setSelectedSubscribers] = useState<Set<string>>(new Set());
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -55,16 +55,16 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
     }
   };
 
-  const sortedSubscribers = [...subscribers].sort((a, b) => {
-    let aValue: any = a[sortField];
-    let bValue: any = b[sortField];
+  const sortedCustomers = [...customers].sort((a, b) => {
+    let aValue: string | number = a[sortField] as string | number;
+    let bValue: string | number = b[sortField] as string | number;
 
     if (sortField === 'ltv') {
-      aValue = parseFloat(aValue.replace('$', '').replace(',', ''));
-      bValue = parseFloat(bValue.replace('$', '').replace(',', ''));
+      aValue = parseFloat(String(aValue).replace('$', '').replace(',', ''));
+      bValue = parseFloat(String(bValue).replace('$', '').replace(',', ''));
     }
 
-    if (typeof aValue === 'string') {
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
       aValue = aValue.toLowerCase();
       bValue = bValue.toLowerCase();
     }
@@ -76,21 +76,21 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
     }
   });
 
-  const toggleSubscriberSelection = (subscriberId: string) => {
-    const newSelected = new Set(selectedSubscribers);
-    if (newSelected.has(subscriberId)) {
-      newSelected.delete(subscriberId);
+  const toggleCustomerSelection = (customerId: string) => {
+    const newSelected = new Set(selectedCustomers);
+    if (newSelected.has(customerId)) {
+      newSelected.delete(customerId);
     } else {
-      newSelected.add(subscriberId);
+      newSelected.add(customerId);
     }
-    setSelectedSubscribers(newSelected);
+    setSelectedCustomers(newSelected);
   };
 
   const toggleSelectAll = () => {
-    if (selectedSubscribers.size === subscribers.length) {
-      setSelectedSubscribers(new Set());
+    if (selectedCustomers.size === customers.length) {
+      setSelectedCustomers(new Set());
     } else {
-      setSelectedSubscribers(new Set(subscribers.map(s => s.id)));
+      setSelectedCustomers(new Set(customers.map(c => c.id)));
     }
   };
 
@@ -117,12 +117,12 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold text-white">
-              Subscribers ({subscribers.length})
+              Customers ({customers.length})
             </h2>
-            {selectedSubscribers.size > 0 && (
+            {selectedCustomers.size > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-400">
-                  {selectedSubscribers.size} selected
+                  {selectedCustomers.size} selected
                 </span>
                 <button className="px-3 py-1 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors text-sm border border-red-500/30">
                   Send Recovery Campaign
@@ -148,7 +148,7 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
               <th className="text-left p-4">
                 <input
                   type="checkbox"
-                  checked={selectedSubscribers.size === subscribers.length && subscribers.length > 0}
+                  checked={selectedCustomers.size === customers.length && customers.length > 0}
                   onChange={toggleSelectAll}
                   className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
                 />
@@ -158,7 +158,7 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-2 text-sm font-medium text-slate-300 uppercase tracking-wider">
-                  Subscriber
+                  Customer
                   <SortIcon field="name" />
                 </div>
               </th>
@@ -206,44 +206,44 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
             </tr>
           </thead>
           <tbody>
-            {sortedSubscribers.map((subscriber, index) => (
+            {sortedCustomers.map((customer, index) => (
               <tr 
-                key={subscriber.id} 
+                key={customer.id} 
                 className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-all duration-200 group"
               >
                 <td className="p-4">
                   <input
                     type="checkbox"
-                    checked={selectedSubscribers.has(subscriber.id)}
-                    onChange={() => toggleSubscriberSelection(subscriber.id)}
+                    checked={selectedCustomers.has(customer.id)}
+                    onChange={() => toggleCustomerSelection(customer.id)}
                     className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
                   />
                 </td>
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                      {subscriber.name.split(' ').map(n => n[0]).join('')}
+                      {customer.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
                       <div className="font-medium text-white group-hover:text-blue-400 transition-colors">
-                        {subscriber.name}
+                        {customer.name}
                       </div>
-                      <div className="text-sm text-slate-400">{subscriber.email}</div>
+                      <div className="text-sm text-slate-400">{customer.email}</div>
                     </div>
                   </div>
                 </td>
                 <td className="p-4">
-                  <span className="text-white font-medium">{subscriber.monthsSubbed}</span>
+                  <span className="text-white font-medium">{customer.monthsSubbed}</span>
                 </td>
                 <td className="p-4">
-                  <span className="text-green-400 font-semibold">{subscriber.ltv}</span>
+                  <span className="text-green-400 font-semibold">{customer.ltv}</span>
                 </td>
                 <td className="p-4">
-                  <ChurnRiskBar risk={subscriber.churnRisk} />
+                  <ChurnRiskBar risk={customer.churnRisk} />
                 </td>
                 <td className="p-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getActivityColor(subscriber.activityFrequency)}`}>
-                    {subscriber.activityFrequency}
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getActivityColor(customer.activityFrequency)}`}>
+                    {customer.activityFrequency}
                   </span>
                 </td>
                 <td className="p-4">
@@ -267,9 +267,9 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
         </table>
       </div>
 
-      {subscribers.length === 0 && (
+      {customers.length === 0 && (
         <div className="p-12 text-center">
-          <div className="text-slate-400 mb-2">No subscribers found</div>
+          <div className="text-slate-400 mb-2">No customers found</div>
           <div className="text-sm text-slate-500">Try adjusting your search or filter criteria</div>
         </div>
       )}

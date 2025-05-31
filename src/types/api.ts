@@ -66,7 +66,7 @@ export interface DashboardStats {
 }
 
 
-export interface SubscriberData {
+export interface CustomerData {
   id: string;
   name: string;
   email: string;
