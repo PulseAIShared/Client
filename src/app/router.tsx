@@ -70,6 +70,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
             return { Component: CustomersRoute };
           },
         },
+              {
+          path: 'customers/:customerId',
+          lazy: async () => {
+            const { CustomerDetailRoute } = await import('./routes/app/customers/customer-detail');
+            return { Component: CustomerDetailRoute };
+          },
+        },
         {
           path: 'segments',
           lazy: async () => {

@@ -1,5 +1,6 @@
-// src/features/customers/components/customers-table.tsx
+// src/features/customers/components/customers-table.tsx (updated)
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGetCustomers } from '@/features/customers/api/customers';
 
 type SortField = 'name' | 'monthsSubbed' | 'ltv' | 'churnRisk' | 'activityFrequency';
@@ -38,6 +39,7 @@ const ChurnRiskBar: React.FC<{ risk: number }> = ({ risk }) => (
 );
 
 export const CustomersTable: React.FC = () => {
+  const navigate = useNavigate();
   const { data: customers = [], isLoading, error } = useGetCustomers();
   const [sortField, setSortField] = useState<SortField>('churnRisk');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -52,6 +54,10 @@ export const CustomersTable: React.FC = () => {
       setSortField(field);
       setSortDirection('desc');
     }
+  };
+
+  const handleCustomerClick = (customerId: string) => {
+    navigate(`/app/customers/${customerId}`);
   };
 
   // Filter and sort customers
@@ -97,7 +103,8 @@ export const CustomersTable: React.FC = () => {
     inactive: customers.filter(s => s.activityFrequency === 'Low').length
   }), [customers]);
 
-  const toggleCustomerSelection = (customerId: string) => {
+  const toggleCustomerSelection = (customerId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation(); // Prevent navigation when clicking checkbox
     const newSelected = new Set(selectedCustomers);
     if (newSelected.has(customerId)) {
       newSelected.delete(customerId);
@@ -314,13 +321,14 @@ export const CustomersTable: React.FC = () => {
               {filteredAndSortedCustomers.map((customer) => (
                 <tr 
                   key={customer.id} 
-                  className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-all duration-200 group"
+                  className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-all duration-200 group cursor-pointer"
+                  onClick={() => handleCustomerClick(customer.id)}
                 >
                   <td className="p-4">
                     <input
                       type="checkbox"
                       checked={selectedCustomers.has(customer.id)}
-                      onChange={() => toggleCustomerSelection(customer.id)}
+                      onChange={(e) => toggleCustomerSelection(customer.id, e)}
                       className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
                     />
                   </td>
@@ -353,13 +361,22 @@ export const CustomersTable: React.FC = () => {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <button className="p-2 text-blue-400 hover:bg-blue-600/20 rounded-lg transition-colors border border-blue-500/30">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCustomerClick(customer.id);
+                        }}
+                        className="p-2 text-blue-400 hover:bg-blue-600/20 rounded-lg transition-colors border border-blue-500/30"
+                      >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </button>
-                      <button className="p-2 text-slate-400 hover:bg-slate-600/20 rounded-lg transition-colors border border-slate-600/30">
+                      <button 
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2 text-slate-400 hover:bg-slate-600/20 rounded-lg transition-colors border border-slate-600/30"
+                      >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                         </svg>

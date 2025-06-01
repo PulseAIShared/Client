@@ -6,17 +6,17 @@ export const mockIntegrations: Integration[] = [
     id: '1',
     type: 'Salesforce',
     name: 'Salesforce CRM',
-    status: 'Connected',
-    lastSyncedAt: '2024-03-15T10:30:00Z',
-    syncedRecordCount: 12450
+    status: 'Disconnected',
+    lastSyncedAt: undefined,
+    syncedRecordCount: 0
   },
   {
     id: '2',
     type: 'Stripe',
     name: 'Stripe Payments',
-    status: 'Connected',
-    lastSyncedAt: '2024-03-15T10:15:00Z',
-    syncedRecordCount: 9870
+    status: 'Disconnected',
+    lastSyncedAt: undefined,
+    syncedRecordCount: 0
   },
   {
     id: '3',
@@ -30,9 +30,9 @@ export const mockIntegrations: Integration[] = [
     id: '4',
     type: 'Mailchimp',
     name: 'Mailchimp Email Marketing',
-    status: 'Connected',
-    lastSyncedAt: '2024-03-15T09:45:00Z',
-    syncedRecordCount: 15230
+    status: 'Disconnected',
+    lastSyncedAt: undefined,
+    syncedRecordCount: 0
   },
   {
     id: '5',
@@ -54,9 +54,9 @@ export const mockIntegrations: Integration[] = [
     id: '7',
     type: 'Zoho',
     name: 'Zoho CRM',
-    status: 'Connected',
-    lastSyncedAt: '2024-03-15T08:20:00Z',
-    syncedRecordCount: 8420
+    status: 'Disconnected',
+    lastSyncedAt: undefined,
+    syncedRecordCount: 0
   }
 ];
 
