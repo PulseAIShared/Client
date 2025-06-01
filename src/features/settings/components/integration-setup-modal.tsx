@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
+import { FieldError, useForm, FieldValues } from 'react-hook-form';
 
 interface IntegrationSetupModalProps {
   integration: {
@@ -11,7 +11,7 @@ interface IntegrationSetupModalProps {
     description: string;
     icon: React.ReactNode;
   } | null;
-  onConnect: (integrationId: string, integrationName: string, config: any) => Promise<void>;
+  onConnect: (integrationId: string, integrationName: string, config: FieldValues) => Promise<void>;
   onClose: () => void;
 }
 
@@ -171,7 +171,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         ]
       }
     };
-    return configs[type.toLowerCase()] || configs.salesforce;
+    return ((configs as unknown) as Record<string, typeof configs.salesforce>)[type.toLowerCase()] || configs.salesforce;
   };
 
   const config = getIntegrationConfig(integration.id);
@@ -186,7 +186,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
     setSelectedSyncOptions(newSet);
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: FieldValues) => {
     setIsConnecting(true);
     try {
       await onConnect(integration.id, integration.name, {
@@ -215,14 +215,14 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
             </div>
 
             <div className="space-y-4">
-              {Object.entries(config.fields).map(([key, field]: [string, any]) => (
+              {Object.entries(config.fields as { [key: string]: { label: string; placeholder: string; type: string } }).map(([key, field]) => (
                 <Input
                   key={key}
                   label={field.label}
                   type={field.type}
                   placeholder={field.placeholder}
                   registration={register(key, { required: `${field.label} is required` })}
-                  error={errors[key]}
+                  error={errors[key] as FieldError | undefined}
                 />
               ))}
             </div>
@@ -279,7 +279,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
             </div>
 
             <div className="space-y-3">
-              {config.syncOptions.map((option: any) => (
+              {config.syncOptions.map((option: { id: string; label: string; description: string }) => (
                 <div
                   key={option.id}
                   className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
@@ -379,7 +379,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
                 <h4 className="text-white font-medium mb-3">Sync Preview</h4>
                 <div className="space-y-2 text-sm">
                   {Array.from(selectedSyncOptions).map(optionId => {
-                    const option = config.syncOptions.find((o: any) => o.id === optionId);
+                    const option = config.syncOptions.find((o: { id: string; label: string; description: string }) => o.id === optionId);
                     return (
                       <div key={optionId} className="flex justify-between text-slate-300">
                         <span>{option?.label}</span>
@@ -433,7 +433,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         {/* Progress Steps */}
         <div className="px-6 py-4 border-b border-slate-700/50">
           <div className="flex items-center">
-            {config.steps.map((step: any, index: number) => (
+            {config.steps.map((step: { title: string; description: string }, index: number) => (
               <div key={index} className="flex items-center flex-1">
                 <div className={`flex items-center gap-3 ${index < config.steps.length - 1 ? 'flex-1' : ''}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${

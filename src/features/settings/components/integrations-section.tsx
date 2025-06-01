@@ -205,24 +205,36 @@ export const IntegrationsSection = () => {
     );
   };
 
-   const handleConnect = (templateId, templateName) => {
-     const integrationTemplate = integrationTemplates.find(t => t.id === templateId);
-      if (!integrationTemplate) return;
-      setSelectedIntegration(integrationTemplate);
-      
-      openModal(
-        <IntegrationSetupModal
-          integration={integrationTemplate}
-          onConnect={handleConnectionComplete}
-          onClose={() => {
-            closeModal();
-            setSelectedIntegration(null);
-          }}
-        />
-      );
+
+  const handleConnect = (templateId: string, templateName: string): void => {
+    const integrationTemplate: IntegrationTemplate | undefined = integrationTemplates.find(
+      t => t.id === templateId
+    );
+    if (!integrationTemplate) return;
+    setSelectedIntegration(integrationTemplate);
+    
+    openModal(
+      <IntegrationSetupModal
+        integration={integrationTemplate}
+        onConnect={handleConnectionComplete}
+        onClose={() => {
+          closeModal();
+          setSelectedIntegration(null);
+        }}
+      />
+    );
   };
 
-  const handleConnectionComplete = async (integrationId, integrationName, config) => {
+  interface ConnectionConfig {
+    syncOptions?: Record<string, unknown>[];
+    [key: string]: unknown;
+  }
+
+  interface HandleConnectionComplete {
+    (integrationId: string, integrationName: string, config: ConnectionConfig): Promise<void>;
+  }
+
+  const handleConnectionComplete: HandleConnectionComplete = async (integrationId, integrationName, config) => {
     try {
       await connectMutation.mutateAsync({
         type: integrationId,
@@ -240,12 +252,12 @@ export const IntegrationsSection = () => {
       closeModal();
       setSelectedIntegration(null);
       
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Connection failed:', error);
       addNotification({ 
         type: 'error', 
         title: `Failed to connect ${integrationName}`,
-        message: error.message || 'Please check your credentials and try again'
+        message: error instanceof Error ? error.message : 'Please check your credentials and try again'
       });
       throw error;
     }
