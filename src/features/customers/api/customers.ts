@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { CustomerData } from '@/types/api';
+import { CustomerData, ImportCustomerData, ImportResult } from '@/types/api';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 import { getCustomersData } from '@/utils/mock-data';
 
@@ -129,6 +129,71 @@ type UseDeleteCustomerOptions = {
 export const useDeleteCustomer = ({ mutationConfig }: UseDeleteCustomerOptions = {}) => {
   return useMutation({
     mutationFn: deleteCustomer,
+    ...mutationConfig,
+  });
+};
+
+
+// src/features/customers/api/customers.ts (add these functions)
+
+// Add this interface to your existing types
+
+// Import customers function
+export const importCustomers = async (customers: ImportCustomerData[]): Promise<ImportResult> => {
+  // TODO: Replace with actual API call when backend is ready
+  // return api.post('/customers/import', { customers });
+  
+  // Mock implementation for now
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  return {
+    success: true,
+    importedCount: customers.length,
+    skippedCount: 0,
+    errors: []
+  };
+};
+
+// Validate import data (can be called before actual import)
+export const validateImportData = async (customers: ImportCustomerData[]): Promise<{
+  valid: boolean;
+  duplicateEmails: string[];
+  invalidData: Array<{ index: number; errors: string[] }>;
+}> => {
+  // TODO: Replace with actual API call when backend is ready
+  // return api.post('/customers/validate-import', { customers });
+  
+  // Mock validation
+  const existingEmails = ['existing@example.com']; // This would come from your backend
+  const duplicateEmails = customers
+    .map(c => c.email)
+    .filter(email => existingEmails.includes(email));
+  
+  return {
+    valid: duplicateEmails.length === 0,
+    duplicateEmails,
+    invalidData: []
+  };
+};
+
+type UseImportCustomersOptions = {
+  mutationConfig?: MutationConfig<typeof importCustomers>;
+};
+
+export const useImportCustomers = ({ mutationConfig }: UseImportCustomersOptions = {}) => {
+  return useMutation({
+    mutationFn: importCustomers,
+    ...mutationConfig,
+  });
+};
+
+type UseValidateImportOptions = {
+  mutationConfig?: MutationConfig<typeof validateImportData>;
+};
+
+export const useValidateImport = ({ mutationConfig }: UseValidateImportOptions = {}) => {
+  return useMutation({
+    mutationFn: validateImportData,
     ...mutationConfig,
   });
 };

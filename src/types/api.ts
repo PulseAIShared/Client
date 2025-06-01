@@ -227,3 +227,26 @@ export interface IntegrationStats {
   totalRecordsSynced: number;
   lastSyncTime: string;
 }
+
+
+export interface ImportCustomerData {
+  name: string;
+  email: string;
+  plan: string;
+  monthlyRevenue: number;
+  subscriptionStartDate: string;
+  lastActivity: string;
+  companyName?: string;
+  phoneNumber?: string;
+}
+
+export interface ImportResult {
+  success: boolean;
+  importedCount: number;
+  skippedCount: number;
+  errors: Array<{
+    row: number;
+    email: string;
+    error: string;
+  }>;
+}
