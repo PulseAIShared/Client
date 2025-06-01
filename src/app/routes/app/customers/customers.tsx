@@ -16,13 +16,13 @@ export const CustomersRoute = () => {
               <div>
                 <div className="inline-flex items-center gap-2 bg-purple-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-400/30 mb-4">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-purple-200">Subscriber Management</span>
+                  <span className="text-sm font-medium text-purple-200">Customer Management</span>
                 </div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
-                  Subscribers Overview
+                  Customers Overview
                 </h1>
                 <p className="text-slate-300">
-                  Monitor subscriber behavior, churn risk, and lifetime value
+                  Monitor customer behavior, churn risk, and lifetime value
                 </p>
               </div>
               
@@ -31,7 +31,7 @@ export const CustomersRoute = () => {
                   Export Data
                 </button>
                 <button className="px-4 py-2 bg-slate-700/50 text-white rounded-lg hover:bg-slate-600/50 transition-colors font-medium text-sm border border-slate-600/50">
-                  Add Subscriber
+                  Add Customer
                 </button>
               </div>
             </div>

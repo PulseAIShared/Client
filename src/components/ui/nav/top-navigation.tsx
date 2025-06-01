@@ -13,7 +13,7 @@ const mockNotifications = [
     message: '23 customers entered critical churn risk zone in the last hour',
     timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
     isRead: false,
-    actionUrl: '/app/subscribers?filter=high-risk',
+    actionUrl: '/app/customers?filter=high-risk',
     priority: 'high' as const
   },
   {

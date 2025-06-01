@@ -188,7 +188,7 @@ export const CustomersTable: React.FC = () => {
           <div className="flex-1 relative">
             <input 
               type="text" 
-              placeholder="Search subscribers by name or email..."
+              placeholder="Search customers by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-4 py-3 pl-10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
