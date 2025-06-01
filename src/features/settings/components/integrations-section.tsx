@@ -10,6 +10,8 @@ import {
 } from '../api/integrations';
 import { useNotifications } from '@/components/ui/notifications';
 import { Integration } from '@/types/api';
+import { IntegrationSetupModal } from './integration-setup-modal';
+import { useModal } from '@/app/modal-provider';
 
 interface IntegrationTemplate {
   id: string;
@@ -24,7 +26,9 @@ interface IntegrationTemplate {
 export const IntegrationsSection = () => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'crm' | 'email' | 'payment' | 'analytics'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
+  const [selectedIntegration, setSelectedIntegration] = useState<IntegrationTemplate | null>(null);
+  const { openModal, closeModal } = useModal();
+
   const { addNotification } = useNotifications();
   
   // Hooks
@@ -64,119 +68,119 @@ export const IntegrationsSection = () => {
     }
   });
 
-  const integrationTemplates: IntegrationTemplate[] = [
-    {
-      id: 'salesforce',
-      name: 'Salesforce',
-      description: 'Sync customer data, lead scores, and opportunity information for enhanced churn prediction.',
-      category: 'crm',
-      setupComplexity: 'Medium',
-      features: ['Customer Data Sync', 'Lead Scoring', 'Opportunity Tracking', 'Real-time Updates'],
-      icon: (
-        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-          <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M11.5 0a5.5 5.5 0 00-5.5 5.5v.5H5a5 5 0 00-5 5v8a5 5 0 005 5h14a5 5 0 005-5v-8a5 5 0 00-5-5h-1v-.5A5.5 5.5 0 0012.5 0h-1zm0 2h1a3.5 3.5 0 013.5 3.5V6h-8v-.5A3.5 3.5 0 0111.5 2zM5 8h14a3 3 0 013 3v8a3 3 0 01-3 3H5a3 3 0 01-3-3v-8a3 3 0 013-3z"/>
-          </svg>
-        </div>
-      )
-    },
-    {
-      id: 'hubspot',
-      name: 'HubSpot',
-      description: 'Connect your HubSpot CRM to automatically sync contacts, deals, and engagement metrics.',
-      category: 'crm',
-      setupComplexity: 'Easy',
-      features: ['Contact Management', 'Deal Pipeline', 'Email Tracking', 'Marketing Automation'],
-      icon: (
-        <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-          <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="6" r="4"/>
-            <circle cx="6" cy="18" r="4"/>
-            <circle cx="18" cy="18" r="4"/>
-            <path d="M8.5 14.5l7-7M15.5 14.5l-7-7"/>
-          </svg>
-        </div>
-      )
-    },
-    {
-      id: 'pipedrive',
-      name: 'Pipedrive',
-      description: 'Integrate your sales pipeline data to enhance customer lifecycle predictions.',
-      category: 'crm',
-      setupComplexity: 'Easy',
-      features: ['Pipeline Management', 'Activity Tracking', 'Custom Fields', 'Sales Reporting'],
-      icon: (
-        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-          <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
-          </svg>
-        </div>
-      )
-    },
-    {
-      id: 'zoho',
-      name: 'Zoho CRM',
-      description: 'Sync customer interactions and sales data from your Zoho CRM system.',
-      category: 'crm',
-      setupComplexity: 'Medium',
-      features: ['Contact Management', 'Sales Analytics', 'Workflow Automation', 'Territory Management'],
-      icon: (
-        <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
-          <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-        </div>
-      )
-    },
-    {
-      id: 'mailchimp',
-      name: 'Mailchimp',
-      description: 'Connect email campaign data to analyze customer engagement patterns.',
-      category: 'email',
-      setupComplexity: 'Easy',
-      features: ['Email Campaigns', 'Audience Segmentation', 'Open/Click Tracking', 'Automation Workflows'],
-      icon: (
-        <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
-          <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-          </svg>
-        </div>
-      )
-    },
-    {
-      id: 'stripe',
-      name: 'Stripe',
-      description: 'Sync payment data, subscription status, and billing events for revenue tracking.',
-      category: 'payment',
-      setupComplexity: 'Medium',
-      features: ['Payment Processing', 'Subscription Management', 'Billing Events', 'Revenue Analytics'],
-      icon: (
-        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
-          <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-        </div>
-      )
-    },
-    {
-      id: 'google-analytics',
-      name: 'Google Analytics',
-      description: 'Track user behavior and engagement metrics to improve churn prediction accuracy.',
-      category: 'analytics',
-      setupComplexity: 'Medium',
-      features: ['User Behavior', 'Conversion Tracking', 'Event Analytics', 'Audience Insights'],
-      icon: (
-        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl flex items-center justify-center">
-          <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-        </div>
-      )
-    }
-  ];
+  const integrationTemplates: IntegrationTemplate[] = useMemo(() => [
+      {
+        id: 'salesforce',
+        name: 'Salesforce',
+        description: 'Sync customer data, lead scores, and opportunity information for enhanced churn prediction.',
+        category: 'crm',
+        setupComplexity: 'Medium',
+        features: ['Customer Data Sync', 'Lead Scoring', 'Opportunity Tracking', 'Real-time Updates'],
+        icon: (
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.5 0a5.5 5.5 0 00-5.5 5.5v.5H5a5 5 0 00-5 5v8a5 5 0 005 5h14a5 5 0 005-5v-8a5 5 0 00-5-5h-1v-.5A5.5 5.5 0 0012.5 0h-1zm0 2h1a3.5 3.5 0 013.5 3.5V6h-8v-.5A3.5 3.5 0 0111.5 2zM5 8h14a3 3 0 013 3v8a3 3 0 01-3 3H5a3 3 0 01-3-3v-8a3 3 0 013-3z"/>
+            </svg>
+          </div>
+        )
+      },
+      {
+        id: 'hubspot',
+        name: 'HubSpot',
+        description: 'Connect your HubSpot CRM to automatically sync contacts, deals, and engagement metrics.',
+        category: 'crm',
+        setupComplexity: 'Easy',
+        features: ['Contact Management', 'Deal Pipeline', 'Email Tracking', 'Marketing Automation'],
+        icon: (
+          <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="6" r="4"/>
+              <circle cx="6" cy="18" r="4"/>
+              <circle cx="18" cy="18" r="4"/>
+              <path d="M8.5 14.5l7-7M15.5 14.5l-7-7"/>
+            </svg>
+          </div>
+        )
+      },
+      {
+        id: 'pipedrive',
+        name: 'Pipedrive',
+        description: 'Integrate your sales pipeline data to enhance customer lifecycle predictions.',
+        category: 'crm',
+        setupComplexity: 'Easy',
+        features: ['Pipeline Management', 'Activity Tracking', 'Custom Fields', 'Sales Reporting'],
+        icon: (
+          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+            </svg>
+          </div>
+        )
+      },
+      {
+        id: 'zoho',
+        name: 'Zoho CRM',
+        description: 'Sync customer interactions and sales data from your Zoho CRM system.',
+        category: 'crm',
+        setupComplexity: 'Medium',
+        features: ['Contact Management', 'Sales Analytics', 'Workflow Automation', 'Territory Management'],
+        icon: (
+          <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+        )
+      },
+      {
+        id: 'mailchimp',
+        name: 'Mailchimp',
+        description: 'Connect email campaign data to analyze customer engagement patterns.',
+        category: 'email',
+        setupComplexity: 'Easy',
+        features: ['Email Campaigns', 'Audience Segmentation', 'Open/Click Tracking', 'Automation Workflows'],
+        icon: (
+          <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+          </div>
+        )
+      },
+      {
+        id: 'stripe',
+        name: 'Stripe',
+        description: 'Sync payment data, subscription status, and billing events for revenue tracking.',
+        category: 'payment',
+        setupComplexity: 'Medium',
+        features: ['Payment Processing', 'Subscription Management', 'Billing Events', 'Revenue Analytics'],
+        icon: (
+          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+        )
+      },
+      {
+        id: 'google-analytics',
+        name: 'Google Analytics',
+        description: 'Track user behavior and engagement metrics to improve churn prediction accuracy.',
+        category: 'analytics',
+        setupComplexity: 'Medium',
+        features: ['User Behavior', 'Conversion Tracking', 'Event Analytics', 'Audience Insights'],
+        icon: (
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+          </div>
+        )
+      }
+  ], []);
 
   const categories = [
     { id: 'all' as const, label: 'All Integrations', count: integrationTemplates.length },
@@ -201,12 +205,50 @@ export const IntegrationsSection = () => {
     );
   };
 
-  const handleConnect = async (templateId: string, templateName: string) => {
-    await connectMutation.mutateAsync({
-      type: templateId,
-      name: templateName,
-      configuration: {}
-    });
+   const handleConnect = (templateId, templateName) => {
+     const integrationTemplate = integrationTemplates.find(t => t.id === templateId);
+      if (!integrationTemplate) return;
+      setSelectedIntegration(integrationTemplate);
+      
+      openModal(
+        <IntegrationSetupModal
+          integration={integrationTemplate}
+          onConnect={handleConnectionComplete}
+          onClose={() => {
+            closeModal();
+            setSelectedIntegration(null);
+          }}
+        />
+      );
+  };
+
+  const handleConnectionComplete = async (integrationId, integrationName, config) => {
+    try {
+      await connectMutation.mutateAsync({
+        type: integrationId,
+        name: integrationName,
+        configuration: config
+      });
+      
+      addNotification({ 
+        type: 'success', 
+        title: `${integrationName} connected successfully`,
+        message: `Started syncing ${config.syncOptions?.length || 0} data objects`
+      });
+      
+      refetch();
+      closeModal();
+      setSelectedIntegration(null);
+      
+    } catch (error) {
+      console.error('Connection failed:', error);
+      addNotification({ 
+        type: 'error', 
+        title: `Failed to connect ${integrationName}`,
+        message: error.message || 'Please check your credentials and try again'
+      });
+      throw error;
+    }
   };
 
   const handleDisconnect = async (integrationId: string) => {

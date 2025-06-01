@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Notifications } from '@/components/ui/notifications';
 import { MantineProvider } from '@mantine/core';
 import { MainErrorFallback } from '@/components/errors/main';
+import { ModalProvider } from './modal-provider';
 
 
 type AppProviderProps = {
@@ -34,9 +35,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
         <MantineProvider>
             <QueryClientProvider client={queryClient}>
+               <ModalProvider>
               {import.meta.env.DEV && <ReactQueryDevtools />}
               <Notifications />
               {children}
+              </ModalProvider>
             </QueryClientProvider>
 
         </MantineProvider>
