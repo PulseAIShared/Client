@@ -57,6 +57,7 @@ export const mockIntegrations: Integration[] = [
     status: 'Disconnected',
     lastSyncedAt: undefined,
     syncedRecordCount: 0
+    
   }
 ];
 
