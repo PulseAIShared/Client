@@ -41,6 +41,7 @@ const ChurnRiskBar: React.FC<{ risk: number }> = ({ risk }) => (
 export const CustomersTable: React.FC = () => {
   const navigate = useNavigate();
   const { data: customers = [], isLoading, error } = useGetCustomers();
+  console.log(customers)
   const [sortField, setSortField] = useState<SortField>('churnRisk');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
@@ -62,6 +63,7 @@ export const CustomersTable: React.FC = () => {
 
   // Filter and sort customers
   const filteredAndSortedCustomers = useMemo(() => {
+
     const filtered = customers.filter(customer => {
       const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            customer.email.toLowerCase().includes(searchTerm.toLowerCase());

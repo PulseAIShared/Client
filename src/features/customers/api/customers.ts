@@ -17,8 +17,8 @@ export const getCustomers = async ({
   filterBy?: string; 
 } = {}): Promise<CustomerData[]> => {
   // TODO: Replace with actual API call when backend is ready
-  // return api.get(`/customers?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}&filterBy=${filterBy}`);
-  return getCustomersData();
+  return api.get(`/customers?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}&filterBy=${filterBy}`);
+
 };
 
 export const getCustomersQueryOptions = (params?: { 

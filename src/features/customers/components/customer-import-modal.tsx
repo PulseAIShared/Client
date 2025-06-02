@@ -1,9 +1,9 @@
-// src/features/customers/components/customer-import-modal.tsx (enhanced)
+// src/features/customers/components/customer-import-modal.tsx (updated for background jobs)
 import React, { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/components/ui/notifications';
 import { generateImportInsights } from '@/utils/data-processor';
-
+import { useUploadImport, useConfirmImport } from '@/features/customers/api/import';
 
 interface ImportedCustomer {
   name: string;
@@ -18,12 +18,12 @@ interface ImportedCustomer {
 
 interface CustomerImportModalProps {
   onClose: () => void;
-  onImportComplete: (count: number) => void;
+  onImportStarted: () => void; // Changed from onImportComplete
 }
 
 type ImportMode = 'pulse-template' | 'hubspot' | 'salesforce' | 'pipedrive' | 'csv-mapping';
 
-// Define CRM field mappings
+// Define CRM field mappings (keeping existing templates)
 const CRM_TEMPLATES = {
   'pulse-template': {
     name: 'Pulse AI Template',
@@ -45,30 +45,30 @@ const CRM_TEMPLATES = {
     name: 'HubSpot Contacts Export',
     description: 'Standard HubSpot contacts CSV export format',
     fields: {
-      name: 'Full Name', // HubSpot combines first + last
+      name: 'Full Name',
       email: 'Email',
-      plan: 'Subscription Type', // Custom property
-      monthlyRevenue: 'Monthly Recurring Revenue', // Custom property
-      subscriptionStartDate: 'Subscription Start Date', // Custom property
+      plan: 'Subscription Type',
+      monthlyRevenue: 'Monthly Recurring Revenue',
+      subscriptionStartDate: 'Subscription Start Date',
       lastActivity: 'Last Activity Date',
       companyName: 'Company name',
       phoneNumber: 'Phone Number'
     },
     requiredFields: ['Full Name', 'Email'],
     defaultMappings: {
-      plan: 'Pro', // Default if not mapped
-      monthlyRevenue: '99' // Default if not mapped
+      plan: 'Pro',
+      monthlyRevenue: '99'
     }
   },
   'salesforce': {
     name: 'Salesforce Contacts Export', 
     description: 'Standard Salesforce contacts report format',
     fields: {
-      name: 'Name', // or 'Full Name'
+      name: 'Name',
       email: 'Email',
-      plan: 'Subscription_Type__c', // Custom field
-      monthlyRevenue: 'Monthly_ARR__c', // Custom field
-      subscriptionStartDate: 'Subscription_Start_Date__c', // Custom field
+      plan: 'Subscription_Type__c',
+      monthlyRevenue: 'Monthly_ARR__c',
+      subscriptionStartDate: 'Subscription_Start_Date__c',
       lastActivity: 'LastActivityDate',
       companyName: 'Account.Name',
       phoneNumber: 'Phone'
@@ -85,9 +85,9 @@ const CRM_TEMPLATES = {
     fields: {
       name: 'Name',
       email: 'Email',
-      plan: 'Subscription Plan', // Custom field
-      monthlyRevenue: 'Monthly Value', // Custom field
-      subscriptionStartDate: 'Start Date', // Custom field
+      plan: 'Subscription Plan',
+      monthlyRevenue: 'Monthly Value',
+      subscriptionStartDate: 'Start Date',
       lastActivity: 'Last activity date',
       companyName: 'Organization',
       phoneNumber: 'Phone'
@@ -118,26 +118,23 @@ const CRM_TEMPLATES = {
 
 export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({ 
   onClose, 
-  onImportComplete 
+  onImportStarted 
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [importMode, setImportMode] = useState<ImportMode>('pulse-template');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ImportedCustomer[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [previewData, setPreviewData] = useState<ImportedCustomer[]>([]);
-
-  const [rawCsvData, setRawCsvData] = useState<Record<string, string>[]>([]);
-  const [validationResult, setValidationResult] = useState<{
-    duplicateEmails: string[];
-    invalidData: Array<{ index: number; errors: string[] }>;
-  } | null>(null);
+  const [importJobId, setImportJobId] = useState<string | null>(null);
   
   const { addNotification } = useNotifications();
+  
+  // API hooks for the new flow
+  const uploadImport = useUploadImport();
+  const confirmImport = useConfirmImport();
 
-  // Calculate insights for the import data
+  // Calculate insights for the import data (keeping existing logic)
   interface ImportInsights {
     averageRevenue: number;
     averageTenure: number;
@@ -148,10 +145,11 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
   }
   
   const importInsights = useMemo<ImportInsights | null>(() => {
-      if (parsedData.length === 0) return null;
-      return generateImportInsights(parsedData) as ImportInsights;
-    }, [parsedData]);
+    if (parsedData.length === 0) return null;
+    return generateImportInsights(parsedData) as ImportInsights;
+  }, [parsedData]);
 
+  // Existing parsing functions (keeping them for client-side preview)
   const parseCSV = useCallback((csvText: string, mode: ImportMode): Record<string, string>[] => {
     const lines = csvText.trim().split('\n');
     if (lines.length < 2) {
@@ -165,7 +163,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
       const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
       
       if (values.length !== headers.length) {
-        continue; // Skip malformed rows
+        continue;
       }
 
       const row: Record<string, string> = {};
@@ -188,7 +186,6 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
       try {
         const customer: Partial<ImportedCustomer> = {};
 
-        // Map fields according to template
         Object.entries(template.fields).forEach(([pulseField, sourceField]) => {
           const value = row[sourceField] || ('defaultMappings' in template ? (template.defaultMappings as Record<string, string>)[sourceField] : undefined);
           
@@ -226,13 +223,11 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
           }
         });
 
-        // Validate required fields
         if (!customer.email) {
           parseErrors.push(`Row ${index + 2}: Email is required`);
           return;
         }
 
-        // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(customer.email)) {
           parseErrors.push(`Row ${index + 2}: Invalid email format "${customer.email}"`);
@@ -268,6 +263,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     setCsvFile(file);
     setErrors([]);
 
+    // For preview purposes, still parse on client side
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -275,10 +271,9 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
         const rawData = parseCSV(csvText, importMode);
         const mappedCustomers = mapDataToCustomers(rawData, importMode);
         
-        setRawCsvData(rawData);
         setParsedData(mappedCustomers);
         setPreviewData(mappedCustomers.slice(0, 5));
-        setCurrentStep(3); // Skip to preview step
+        setCurrentStep(3);
       } catch (_error) {
         setErrors([_error instanceof Error ? _error.message : 'Failed to parse CSV']);
       }
@@ -286,67 +281,40 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     reader.readAsText(file);
   };
 
-  const handleValidation = async () => {
-    setIsValidating(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const existingEmails = ['existing@example.com']; 
-      const duplicateEmails = parsedData
-        .map(c => c.email)
-        .filter(email => existingEmails.includes(email));
-      
-      setValidationResult({
-        duplicateEmails,
-        invalidData: []
-      });
-      
-      if (duplicateEmails.length === 0) {
-        await handleImport();
-      }
-    } catch {
-        addNotification({
-          type: 'error',
-          title: 'Validation failed',
-          message: 'Failed to validate customer data. Please try again.'
-        });
-    } finally {
-      setIsValidating(false);
-    }
-  };
-
-  const handleImport = async (skipDuplicates = false) => {
-    setIsUploading(true);
-    try {
-      let customersToImport = parsedData;
-      
-      if (skipDuplicates && validationResult?.duplicateEmails) {
-        customersToImport = parsedData.filter(
-          customer => !validationResult.duplicateEmails.includes(customer.email)
-        );
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const importedCount = customersToImport.length;
-      const skippedCount = parsedData.length - importedCount;
-      
-      addNotification({
-        type: 'success',
-        title: 'Import successful',
-        message: `Successfully imported ${importedCount} customers${skippedCount > 0 ? `, skipped ${skippedCount} duplicates` : ''}`
-      });
-      
-      onImportComplete(importedCount);
-      onClose();
-    } catch {
+  // New upload function using the background job API
+  const handleUpload = async (skipDuplicates = false) => {
+    if (!csvFile) {
       addNotification({
         type: 'error',
-        title: 'Import failed',
-        message: 'Failed to import customers. Please try again.'
+        title: 'No file selected',
+        message: 'Please select a file to upload'
       });
-    } finally {
-      setIsUploading(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', csvFile);
+      formData.append('importSource', importMode);
+      formData.append('skipDuplicates', skipDuplicates.toString());
+
+      const result = await uploadImport.mutateAsync(formData);
+      
+      setImportJobId(result.importJobId);
+      setCurrentStep(4); // Move to status tracking step
+      
+      addNotification({
+        type: 'info',
+        title: 'Upload started',
+        message: 'Your file is being validated. You can track progress in notifications.'
+      });
+
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        title: 'Upload failed',
+        message: error instanceof Error ? error.message : 'Failed to upload file'
+      });
     }
   };
 
@@ -363,7 +331,6 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
         'Mike Johnson,mike.j@techfirm.com,Basic,49.00,2023-08-20,2024-05-28,TechFirm LLC,+1-555-0125'
       ].join('\n');
     } else {
-      // For CRM templates, just provide headers with one example row
       const exampleRow = headers.map(header => {
         if (header.toLowerCase().includes('email')) return 'example@company.com';
         if (header.toLowerCase().includes('name')) return 'John Smith';
@@ -403,7 +370,6 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
               </p>
             </div>
 
-            {/* Import Mode Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(CRM_TEMPLATES).map(([key, template]) => (
                 <button
@@ -446,64 +412,26 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
             </div>
 
             {/* Download Template */}
-     {/* Download Template */}
-        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-lg p-6 rounded-xl border border-blue-500/30 shadow-lg">
-        <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-blue-600/30 rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            </div>
-            <div className="flex-1">
-            <h4 className="text-blue-400 font-semibold mb-2 text-lg">Need a template?</h4>
-            <p className="text-blue-300 text-sm mb-4 leading-relaxed">
-                Download our {CRM_TEMPLATES[importMode].name} template to ensure your data is formatted correctly and includes all required fields.
-            </p>
-            <Button 
-                onClick={() => downloadTemplate(importMode)}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
-            >
-                Download {CRM_TEMPLATES[importMode].name} Template
-            </Button>
-            </div>
-        </div>
-        </div>
-
-            {/* Expected Columns */}
-            <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50">
-              <h4 className="text-white font-medium mb-3">Expected Columns</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                {Object.entries(CRM_TEMPLATES[importMode].fields).map(([pulseField, sourceField]) => (
-                  <div key={pulseField} className="flex items-center gap-2">
-                    <svg className={`w-4 h-4 ${
-                      CRM_TEMPLATES[importMode].requiredFields.includes(sourceField) 
-                        ? 'text-green-400' 
-                        : 'text-yellow-400'
-                    }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
-                        CRM_TEMPLATES[importMode].requiredFields.includes(sourceField)
-                          ? "M5 13l4 4L19 7"
-                          : "M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                      } />
-                    </svg>
-                    <span className="text-slate-300">{sourceField}</span>
-                    {!CRM_TEMPLATES[importMode].requiredFields.includes(sourceField) && (
-                      <span className="text-xs text-slate-500">(optional)</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              {CRM_TEMPLATES[importMode].defaultMappings && (
-                <div className="mt-4 p-3 bg-yellow-600/20 rounded border border-yellow-500/30">
-                  <h5 className="text-yellow-400 font-medium text-sm mb-2">Default Values</h5>
-                  <div className="text-xs text-yellow-300">
-                    {Object.entries((CRM_TEMPLATES[importMode] as { defaultMappings?: Record<string, string> }).defaultMappings || {}).map(([field, value]) => (
-                      <div key={field}>Missing {field} will default to: {value}</div>
-                    ))}
-                  </div>
+            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-lg p-6 rounded-xl border border-blue-500/30 shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-600/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
-              )}
+                <div className="flex-1">
+                  <h4 className="text-blue-400 font-semibold mb-2 text-lg">Need a template?</h4>
+                  <p className="text-blue-300 text-sm mb-4 leading-relaxed">
+                    Download our {CRM_TEMPLATES[importMode].name} template to ensure your data is formatted correctly and includes all required fields.
+                  </p>
+                  <Button 
+                    onClick={() => downloadTemplate(importMode)}
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    Download {CRM_TEMPLATES[importMode].name} Template
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {/* File Upload */}
@@ -530,7 +458,6 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
               </label>
             </div>
 
-            {/* Errors */}
             {errors.length > 0 && (
               <div className="bg-red-600/20 p-4 rounded-lg border border-red-500/30">
                 <h4 className="text-red-400 font-medium mb-2">Errors found:</h4>
@@ -552,7 +479,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                 Preview Import Data
               </h3>
               <p className="text-slate-400">
-                Review the parsed data before importing {parsedData.length} customers
+                Review the parsed data before uploading {parsedData.length} customers
               </p>
             </div>
 
@@ -582,62 +509,6 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                     {importInsights.riskDistribution.high}
                   </div>
                   <div className="text-sm text-slate-400">High Risk</div>
-                </div>
-              </div>
-            )}
-
-            {/* Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-green-600/20 p-4 rounded-lg border border-green-500/30 text-center">
-                <div className="text-2xl font-bold text-green-400">{parsedData.length}</div>
-                <div className="text-sm text-green-300">Total Customers</div>
-              </div>
-              <div className="bg-blue-600/20 p-4 rounded-lg border border-blue-500/30 text-center">
-                <div className="text-2xl font-bold text-blue-400">{CRM_TEMPLATES[importMode].name}</div>
-                <div className="text-sm text-blue-300">Source Format</div>
-              </div>
-              <div className="bg-purple-600/20 p-4 rounded-lg border border-purple-500/30 text-center">
-                <div className="text-2xl font-bold text-purple-400">
-                  {Math.round((csvFile?.size || 0) / 1024)}KB
-                </div>
-                <div className="text-sm text-purple-300">File Size</div>
-              </div>
-            </div>
-
-            {/* Duplicate Warnings */}
-            {validationResult && validationResult.duplicateEmails.length > 0 && (
-              <div className="bg-yellow-600/20 p-4 rounded-lg border border-yellow-500/30">
-                <h4 className="text-yellow-400 font-medium mb-2">
-                  Duplicate Customers Found
-                </h4>
-                <p className="text-yellow-300 text-sm mb-3">
-                  {validationResult.duplicateEmails.length} customers already exist in your database:
-                </p>
-                <div className="space-y-1 text-sm text-yellow-200 max-h-32 overflow-y-auto">
-                  {validationResult.duplicateEmails.map((email, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                      </svg>
-                      {email}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={() => handleImport(true)}
-                    disabled={isUploading}
-                    className="px-3 py-1 bg-yellow-600/20 text-yellow-400 rounded-lg hover:bg-yellow-600/30 transition-colors text-sm border border-yellow-500/30"
-                  >
-                    Skip Duplicates & Import
-                  </button>
-                  <button
-                    onClick={() => handleImport(false)}
-                    disabled={isUploading}
-                    className="px-3 py-1 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors text-sm border border-red-500/30"
-                  >
-                    Import All (Update Existing)
-                  </button>
                 </div>
               </div>
             )}
@@ -686,6 +557,71 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
           </div>
         );
 
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Import Started
+              </h3>
+              <p className="text-slate-400">
+                Your import is being processed in the background
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 backdrop-blur-lg p-8 rounded-xl border border-green-500/30 shadow-lg text-center">
+              <div className="w-16 h-16 bg-green-600/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              
+              <h4 className="text-xl font-bold text-white mb-2">Import Job Created</h4>
+              <p className="text-slate-300 mb-4">
+                Your file has been uploaded and validation is in progress.
+              </p>
+              
+              <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 mb-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-300">Import Job ID:</span>
+                  <code className="text-blue-400 bg-slate-800/50 px-2 py-1 rounded font-mono">
+                    {importJobId}
+                  </code>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-sm text-slate-300">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span>File uploaded and validation started</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                  <span>You'll receive a notification when validation is complete</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <span>Import will process automatically after validation</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                  <span>Final notification will confirm completion status</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-600/20 p-4 rounded-lg border border-blue-500/30">
+              <h5 className="text-blue-400 font-medium mb-2">What happens next?</h5>
+              <div className="text-blue-300 text-sm space-y-1">
+                <p>• Your file is being validated for data quality and duplicates</p>
+                <p>• If validation passes, import will start automatically</p>
+                <p>• You'll receive notifications about the progress</p>
+                <p>• Check your notifications bell for updates</p>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -704,7 +640,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Import Customers</h2>
-              <p className="text-sm text-slate-400">Bulk import from CSV or CRM exports</p>
+              <p className="text-sm text-slate-400">Bulk import with background processing</p>
             </div>
           </div>
           <button
@@ -720,9 +656,9 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
         {/* Progress Steps */}
         <div className="px-6 py-4 border-b border-slate-700/50">
           <div className="flex items-center">
-            {[1, 2, 3].map((step, index) => (
+            {[1, 2, 3, 4].map((step, index) => (
               <div key={step} className="flex items-center flex-1">
-                <div className={`flex items-center gap-3 ${index < 2 ? 'flex-1' : ''}`}>
+                <div className={`flex items-center gap-3 ${index < 3 ? 'flex-1' : ''}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
                     currentStep > step
                       ? 'bg-green-500 border-green-500 text-white'
@@ -742,11 +678,14 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                     <div className={`text-sm font-medium ${
                       currentStep >= step ? 'text-white' : 'text-slate-400'
                     }`}>
-                      {step === 1 ? 'Choose Source' : step === 2 ? 'Upload CSV' : 'Review & Import'}
+                      {step === 1 ? 'Choose Source' : 
+                       step === 2 ? 'Upload CSV' : 
+                       step === 3 ? 'Preview Data' : 
+                       'Processing'}
                     </div>
                   </div>
                 </div>
-                {index < 2 && (
+                {index < 3 && (
                   <div className={`hidden sm:block flex-1 h-px mx-4 ${
                     currentStep > step ? 'bg-green-500' : 'bg-slate-600'
                   }`} />
@@ -765,10 +704,18 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
         <div className="flex items-center justify-between p-6 border-t border-slate-700/50">
           <Button
             variant="outline"
-            onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : onClose()}
+            onClick={() => {
+              if (currentStep === 4) {
+                onClose();
+              } else if (currentStep > 1) {
+                setCurrentStep(currentStep - 1);
+              } else {
+                onClose();
+              }
+            }}
             className="border-slate-600/50 hover:border-slate-500/50"
           >
-            {currentStep > 1 ? 'Previous' : 'Cancel'}
+            {currentStep === 4 ? 'Close' : currentStep > 1 ? 'Previous' : 'Cancel'}
           </Button>
 
           <div className="flex gap-3">
@@ -780,24 +727,22 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                 Continue
               </Button>
             )}
-            {currentStep === 3 && !validationResult && (
+            {currentStep === 3 && (
               <Button
-                onClick={handleValidation}
-                disabled={isValidating || parsedData.length === 0}
-                isLoading={isValidating}
+                onClick={() => handleUpload(false)}
+                disabled={uploadImport.isPending || parsedData.length === 0}
+                isLoading={uploadImport.isPending}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
-                {isValidating ? 'Validating...' : `Validate & Import ${parsedData.length} Customers`}
+                {uploadImport.isPending ? 'Starting Import...' : `Start Import (${parsedData.length} customers)`}
               </Button>
             )}
-            {currentStep === 3 && validationResult && validationResult.duplicateEmails.length === 0 && (
+            {currentStep === 4 && (
               <Button
-                onClick={() => handleImport()}
-                disabled={isUploading}
-                isLoading={isUploading}
+                onClick={() => onClose()}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
               >
-                {isUploading ? 'Importing...' : `Import ${parsedData.length} Customers`}
+                Done
               </Button>
             )}
           </div>
