@@ -66,81 +66,13 @@ export const registerInputSchema = z.object({
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
   
-  // Company fields - conditionally required based on invitation token
+  // Company fields - will be validated conditionally in the form component
   companyName: z.string().optional(),
   companyDomain: z.string().optional(),
   companyCountry: z.string().optional(),
-  companySize: z.coerce.number().optional().refine((val) => 
-    val === undefined || val === 0 || val === 1 || val === 2, 
-    { message: "Invalid company size" }
-  ),
+  companySize: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
   companyIndustry: z.string().optional(),
   invitationToken: z.string().optional(),
-}).superRefine((data, ctx) => {
-  // If no invitation token, company fields are required
-  if (!data.invitationToken) {
-    if (!data.companyName || data.companyName.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Company name is required',
-        path: ['companyName'],
-      });
-    } else if (data.companyName.length > 100) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Company name must be less than 100 characters',
-        path: ['companyName'],
-      });
-    }
-
-    if (!data.companyDomain || data.companyDomain.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Company domain is required',
-        path: ['companyDomain'],
-      });
-    } else {
-      // Validate domain format
-      const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-      if (!domainRegex.test(data.companyDomain)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Please enter a valid domain (e.g., company.com)',
-          path: ['companyDomain'],
-        });
-      }
-    }
-
-    if (!data.companyCountry || data.companyCountry.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Country is required',
-        path: ['companyCountry'],
-      });
-    }
-
-    if (!data.companySize) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Company size is required',
-        path: ['companySize'],
-      });
-    } else if (!Object.values(CompanySize).includes(data.companySize)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid company size selected',
-        path: ['companySize'],
-      });
-    }
-
-    if (!data.companyIndustry || data.companyIndustry.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Industry is required',
-        path: ['companyIndustry'],
-      });
-    }
-  }
 });
 
 export type RegisterInput = z.infer<typeof registerInputSchema>;

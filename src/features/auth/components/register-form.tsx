@@ -116,6 +116,22 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
     <div>
       <Form
         onSubmit={(values: z.infer<typeof registerInputSchema>) => {
+          // Validate company fields if no invitation token
+          if (!invitationToken) {
+            const errors: string[] = [];
+            
+            if (!values.companyName?.trim()) errors.push('Company name is required');
+            if (!values.companyDomain?.trim()) errors.push('Company domain is required');
+            if (!values.companyCountry?.trim()) errors.push('Country is required');
+            if (values.companySize === undefined) errors.push('Company size is required');
+            if (!values.companyIndustry?.trim()) errors.push('Industry is required');
+            
+            if (errors.length > 0) {
+              console.error('Validation errors:', errors);
+              return; // Don't submit if validation fails
+            }
+          }
+
           // Clean up the data before submission
           const submissionData = {
             email: values.email,
@@ -126,11 +142,11 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
             ...(invitationToken ? {
               invitationToken: invitationToken
             } : {
-              companyName: values.companyName || null,
-              companyDomain: values.companyDomain || null,
-              companyCountry: values.companyCountry || null,
-              companySize: values.companySize !== undefined ? values.companySize : null,
-              companyIndustry: values.companyIndustry || null,
+              companyName: values.companyName || undefined,
+              companyDomain: values.companyDomain || undefined,
+              companyCountry: values.companyCountry || undefined,
+              companySize: values.companySize !== undefined ? values.companySize : undefined,
+              companyIndustry: values.companyIndustry || undefined,
             })
           };
           
@@ -196,7 +212,9 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
                   type="text"
                   label="Company Name"
                   error={formState.errors["companyName"] as FieldError | undefined}
-                  registration={register("companyName")}
+                  registration={register("companyName", { 
+                    required: !hasInvitation ? "Company name is required" : false 
+                  })}
                   placeholder="Acme Corporation"
                 />
 
@@ -204,7 +222,13 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
                   type="text"
                   label="Company Domain"
                   error={formState.errors["companyDomain"] as FieldError | undefined}
-                  registration={register("companyDomain")}
+                  registration={register("companyDomain", { 
+                    required: !hasInvitation ? "Company domain is required" : false,
+                    pattern: !hasInvitation ? {
+                      value: /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+                      message: "Please enter a valid domain (e.g., company.com)"
+                    } : undefined
+                  })}
                   placeholder="acmecorp.com"
                 />
 
@@ -213,7 +237,9 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
                     label="Country"
                     options={COUNTRY_OPTIONS}
                     error={formState.errors["companyCountry"] as FieldError | undefined}
-                    registration={register("companyCountry")}
+                    registration={register("companyCountry", { 
+                      required: !hasInvitation ? "Country is required" : false 
+                    })}
                     defaultValue=""
                   />
 
@@ -221,7 +247,10 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
                     label="Company Size"
                     options={COMPANY_SIZE_OPTIONS}
                     error={formState.errors["companySize"] as FieldError | undefined}
-                    registration={register("companySize")}
+                    registration={register("companySize", { 
+                      required: !hasInvitation ? "Company size is required" : false,
+                      valueAsNumber: true
+                    })}
                     defaultValue=""
                   />
                 </div>
@@ -230,7 +259,9 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
                   label="Industry"
                   options={INDUSTRY_OPTIONS}
                   error={formState.errors["companyIndustry"] as FieldError | undefined}
-                  registration={register("companyIndustry")}
+                  registration={register("companyIndustry", { 
+                    required: !hasInvitation ? "Industry is required" : false 
+                  })}
                   defaultValue=""
                 />
               </div>
