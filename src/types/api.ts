@@ -250,3 +250,9 @@ export interface ImportResult {
     error: string;
   }>;
 }
+
+export enum CompanySize {
+  Startup = 0,
+  SMB = 1,
+  Enterprise = 2
+}
