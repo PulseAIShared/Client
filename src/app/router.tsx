@@ -19,13 +19,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
         return { Component: LandingRoute };
       },
     },
-    {
-      path: '/auth/register',
-      lazy: async () => {
-        const { RegisterRoute } = await import('./routes/auth/register');
-        return { Component: RegisterRoute };
-      },
-    },
+    // {
+    //   path: '/auth/register',
+    //   lazy: async () => {
+    //     const { RegisterRoute } = await import('./routes/auth/register');
+    //     return { Component: RegisterRoute };
+    //   },
+    // },
     {
       path: '/auth/login',
       lazy: async () => {
