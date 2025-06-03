@@ -1,32 +1,59 @@
+// src/features/customers/api/customers.ts - Updated to work with your real API
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { CustomerData, ImportCustomerData, ImportResult } from '@/types/api';
+import { 
+  CustomerData, 
+  CustomersApiResponse, 
+  CustomersQueryParams,
+  transformCustomerData,
+  CustomerDisplayData
+} from '@/types/api';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
-import { getCustomersData } from '@/utils/mock-data';
 
-// Get all customers
-export const getCustomers = async ({ 
-  page = 1, 
-  pageSize = 50, 
-  searchTerm, 
-  filterBy 
-}: { 
-  page?: number; 
-  pageSize?: number; 
-  searchTerm?: string; 
-  filterBy?: string; 
-} = {}): Promise<CustomerData[]> => {
-  // TODO: Replace with actual API call when backend is ready
-  return api.get(`/customers?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}&filterBy=${filterBy}`);
+// Get all customers with proper query params
+export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
+  customers: CustomerDisplayData[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}> => {
+  // Build query string from parameters
+  const queryParams = new URLSearchParams();
+  
+  if (params.page) queryParams.append('page', params.page.toString());
+  if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+  if (params.search) queryParams.append('search', params.search);
+  if (params.subscriptionStatus !== undefined) queryParams.append('subscriptionStatus', params.subscriptionStatus.toString());
+  if (params.plan !== undefined) queryParams.append('plan', params.plan.toString());
+  if (params.paymentStatus !== undefined) queryParams.append('paymentStatus', params.paymentStatus.toString());
+  if (params.churnRiskLevel !== undefined) queryParams.append('churnRiskLevel', params.churnRiskLevel.toString());
+  if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+  if (params.sortDescending !== undefined) queryParams.append('sortDescending', params.sortDescending.toString());
 
+  const response = await api.get(`/customers?${queryParams.toString()}`) as CustomersApiResponse;
+  
+  // Transform API data to display format
+  const customers = response.items.map(transformCustomerData);
+  
+  return {
+    customers,
+    pagination: {
+      page: response.page,
+      pageSize: response.pageSize,
+      totalPages: response.totalPages,
+      totalCount: response.totalCount,
+      hasNextPage: response.hasNextPage,
+      hasPreviousPage: response.hasPreviousPage,
+    }
+  };
 };
 
-export const getCustomersQueryOptions = (params?: { 
-  page?: number; 
-  pageSize?: number; 
-  searchTerm?: string; 
-  filterBy?: string; 
-}) => {
+export const getCustomersQueryOptions = (params?: CustomersQueryParams) => {
   return {
     queryKey: ['customers', params],
     queryFn: () => getCustomers(params),
@@ -34,7 +61,7 @@ export const getCustomersQueryOptions = (params?: {
 };
 
 export const useGetCustomers = (
-  params?: { page?: number; pageSize?: number; searchTerm?: string; filterBy?: string },
+  params?: CustomersQueryParams,
   queryConfig?: QueryConfig<typeof getCustomersQueryOptions>
 ) => {
   return useQuery({
@@ -44,15 +71,9 @@ export const useGetCustomers = (
 };
 
 // Get customer by ID
-export const getCustomerById = async ({ customerId }: { customerId: string }): Promise<CustomerData> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get(`/customers/${customerId}`);
-  const customers = getCustomersData();
-  const customer = customers.find(c => c.id === customerId);
-  if (!customer) {
-    throw new Error('Customer not found');
-  }
-  return customer;
+export const getCustomerById = async ({ customerId }: { customerId: string }): Promise<CustomerDisplayData> => {
+  const response = await api.get(`/customers/${customerId}`) as CustomerData;
+  return transformCustomerData(response);
 };
 
 export const getCustomerByIdQueryOptions = (customerId: string) => {
@@ -75,8 +96,10 @@ export const createCustomer = async (data: {
   firstName: string;
   lastName: string;
   email: string;
-  companyId: string;
-  plan: string;
+  phone?: string;
+  companyName?: string;
+  jobTitle?: string;
+  plan: number; // SubscriptionPlan enum value
   monthlyRecurringRevenue: number;
 }): Promise<CustomerData> => {
   return api.post('/customers', data);
@@ -101,7 +124,12 @@ export const updateCustomer = async ({
   customerId: string; 
   firstName: string; 
   lastName: string; 
-  email: string; 
+  email: string;
+  phone?: string;
+  companyName?: string;
+  jobTitle?: string;
+  plan?: number;
+  monthlyRecurringRevenue?: number;
 }): Promise<CustomerData> => {
   return api.put(`/customers/${customerId}`, data);
 };
@@ -133,67 +161,52 @@ export const useDeleteCustomer = ({ mutationConfig }: UseDeleteCustomerOptions =
   });
 };
 
-
-// src/features/customers/api/customers.ts (add these functions)
-
-// Add this interface to your existing types
-
-// Import customers function
-export const importCustomers = async (customers: ImportCustomerData[]): Promise<ImportResult> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.post('/customers/import', { customers });
-  
-  // Mock implementation for now
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  return {
-    success: true,
-    importedCount: customers.length,
-    skippedCount: 0,
-    errors: []
-  };
+// Bulk operations
+export const bulkUpdateCustomers = async (data: {
+  customerIds: string[];
+  updates: Partial<{
+    plan: number;
+    subscriptionStatus: number;
+    paymentStatus: number;
+  }>;
+}): Promise<{ updated: number; errors: string[] }> => {
+  return api.post('/customers/bulk-update', data);
 };
 
-// Validate import data (can be called before actual import)
-export const validateImportData = async (customers: ImportCustomerData[]): Promise<{
-  valid: boolean;
-  duplicateEmails: string[];
-  invalidData: Array<{ index: number; errors: string[] }>;
-}> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.post('/customers/validate-import', { customers });
-  
-  // Mock validation
-  const existingEmails = ['existing@example.com']; // This would come from your backend
-  const duplicateEmails = customers
-    .map(c => c.email)
-    .filter(email => existingEmails.includes(email));
-  
-  return {
-    valid: duplicateEmails.length === 0,
-    duplicateEmails,
-    invalidData: []
-  };
+type UseBulkUpdateCustomersOptions = {
+  mutationConfig?: MutationConfig<typeof bulkUpdateCustomers>;
 };
 
-type UseImportCustomersOptions = {
-  mutationConfig?: MutationConfig<typeof importCustomers>;
-};
-
-export const useImportCustomers = ({ mutationConfig }: UseImportCustomersOptions = {}) => {
+export const useBulkUpdateCustomers = ({ mutationConfig }: UseBulkUpdateCustomersOptions = {}) => {
   return useMutation({
-    mutationFn: importCustomers,
+    mutationFn: bulkUpdateCustomers,
     ...mutationConfig,
   });
 };
 
-type UseValidateImportOptions = {
-  mutationConfig?: MutationConfig<typeof validateImportData>;
+// Export customers
+export const exportCustomers = async (params: CustomersQueryParams = {}): Promise<Blob> => {
+  const queryParams = new URLSearchParams();
+  
+  if (params.search) queryParams.append('search', params.search);
+  if (params.subscriptionStatus !== undefined) queryParams.append('subscriptionStatus', params.subscriptionStatus.toString());
+  if (params.plan !== undefined) queryParams.append('plan', params.plan.toString());
+  if (params.paymentStatus !== undefined) queryParams.append('paymentStatus', params.paymentStatus.toString());
+  if (params.churnRiskLevel !== undefined) queryParams.append('churnRiskLevel', params.churnRiskLevel.toString());
+
+  return api.get(`/customers/export?${queryParams.toString()}`, {
+    responseType: 'blob',
+  });
 };
 
-export const useValidateImport = ({ mutationConfig }: UseValidateImportOptions = {}) => {
+type UseExportCustomersOptions = {
+  mutationConfig?: MutationConfig<typeof exportCustomers>;
+};
+
+export const useExportCustomers = ({ mutationConfig }: UseExportCustomersOptions = {}) => {
   return useMutation({
-    mutationFn: validateImportData,
+    mutationFn: exportCustomers,
     ...mutationConfig,
   });
 };
+

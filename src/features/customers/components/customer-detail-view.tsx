@@ -1,12 +1,12 @@
 // src/features/customers/components/customer-detail-view.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CustomerData } from '@/types/api';
+import {  CustomerDisplayData } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
 
 interface CustomerDetailViewProps {
-  customer: CustomerData;
+  customer: CustomerDisplayData;
 }
 
 // Mock data for customer timeline and engagement

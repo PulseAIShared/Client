@@ -156,7 +156,7 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
         schema={registerInputSchema}
         options={{ shouldUnregister: true }}
       >
-        {({ register, formState, watch }) => (
+        {({ register, formState }) => (
           <>
             {/* Personal Information Section */}
             <div className="space-y-4 mb-6">
