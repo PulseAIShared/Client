@@ -1,6 +1,6 @@
-// src/utils/mock-data.ts
+// src/utils/mock-data.ts (fixed)
 
-import { DashboardStats, ChurnRiskData, CustomerInsight, AtRiskCustomer, CustomerData } from '@/types/api';
+import { DashboardStats, ChurnRiskData, CustomerInsight, AtRiskCustomer, CustomerDisplayData, SubscriptionPlan, SubscriptionStatus, PaymentStatus, ChurnRiskLevel } from '@/types/api';
 
 export const getDashboardStats = (): DashboardStats => ({
   totalUsers: "12,450",
@@ -32,8 +32,8 @@ export const getAtRiskCustomers = (): AtRiskCustomer[] => [
   { name: 'Michael Wilson', daysSince: 50, score: 72 }
 ];
 
-// New function for subscribers data
-export const getCustomersData = (): CustomerData[] => [
+// Updated function for customers data with proper enum values
+export const getCustomersData = (): CustomerDisplayData[] => [
   {
     id: '1',
     name: 'Sarah Chen',
@@ -43,7 +43,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 85,
     activityFrequency: 'Low',
     lastActivity: '2024-05-15',
-    plan: 'Pro'
+    plan: 'Pro',
+    planEnum: SubscriptionPlan.Pro,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Critical
   },
   {
     id: '2',
@@ -54,7 +58,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 35,
     activityFrequency: 'High',
     lastActivity: '2024-05-29',
-    plan: 'Enterprise'
+    plan: 'Enterprise',
+    planEnum: SubscriptionPlan.Enterprise,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Low
   },
   {
     id: '3',
@@ -65,7 +73,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 62,
     activityFrequency: 'Medium',
     lastActivity: '2024-05-28',
-    plan: 'Basic'
+    plan: 'Basic',
+    planEnum: SubscriptionPlan.Basic,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.High
   },
   {
     id: '4',
@@ -76,7 +88,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 15,
     activityFrequency: 'High',
     lastActivity: '2024-05-30',
-    plan: 'Enterprise'
+    plan: 'Enterprise',
+    planEnum: SubscriptionPlan.Enterprise,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Low
   },
   {
     id: '5',
@@ -87,7 +103,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 45,
     activityFrequency: 'Medium',
     lastActivity: '2024-05-27',
-    plan: 'Pro'
+    plan: 'Pro',
+    planEnum: SubscriptionPlan.Pro,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Medium
   },
   {
     id: '6',
@@ -98,7 +118,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 25,
     activityFrequency: 'High',
     lastActivity: '2024-05-30',
-    plan: 'Enterprise'
+    plan: 'Enterprise',
+    planEnum: SubscriptionPlan.Enterprise,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Low
   },
   {
     id: '7',
@@ -109,7 +133,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 78,
     activityFrequency: 'Low',
     lastActivity: '2024-05-20',
-    plan: 'Basic'
+    plan: 'Basic',
+    planEnum: SubscriptionPlan.Basic,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Failed,
+    churnRiskLevel: ChurnRiskLevel.High
   },
   {
     id: '8',
@@ -120,7 +148,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 40,
     activityFrequency: 'Medium',
     lastActivity: '2024-05-29',
-    plan: 'Pro'
+    plan: 'Pro',
+    planEnum: SubscriptionPlan.Pro,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Medium
   },
   {
     id: '9',
@@ -131,7 +163,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 55,
     activityFrequency: 'Medium',
     lastActivity: '2024-05-26',
-    plan: 'Pro'
+    plan: 'Pro',
+    planEnum: SubscriptionPlan.Pro,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Medium
   },
   {
     id: '10',
@@ -142,10 +178,13 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 20,
     activityFrequency: 'High',
     lastActivity: '2024-05-30',
-    plan: 'Enterprise'
+    plan: 'Enterprise',
+    planEnum: SubscriptionPlan.Enterprise,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Low
   },
   {
-
     id: '13',
     name: 'Sophie Williams',
     email: 'sophie.w@ecommerce.com',
@@ -154,7 +193,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 52,
     activityFrequency: 'Medium',
     lastActivity: '2024-05-28',
-    plan: 'Pro'
+    plan: 'Pro',
+    planEnum: SubscriptionPlan.Pro,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Medium
   },
   {
     id: '14',
@@ -165,7 +208,11 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 18,
     activityFrequency: 'High',
     lastActivity: '2024-05-30',
-    plan: 'Enterprise'
+    plan: 'Enterprise',
+    planEnum: SubscriptionPlan.Enterprise,
+    subscriptionStatus: SubscriptionStatus.Active,
+    paymentStatus: PaymentStatus.Current,
+    churnRiskLevel: ChurnRiskLevel.Low
   },
   {
     id: '15',
@@ -176,6 +223,10 @@ export const getCustomersData = (): CustomerData[] => [
     churnRisk: 88,
     activityFrequency: 'Low',
     lastActivity: '2024-05-18',
-    plan: 'Basic'
+    plan: 'Basic',
+    planEnum: SubscriptionPlan.Basic,
+    subscriptionStatus: SubscriptionStatus.PastDue,
+    paymentStatus: PaymentStatus.Failed,
+    churnRiskLevel: ChurnRiskLevel.Critical
   }
 ];

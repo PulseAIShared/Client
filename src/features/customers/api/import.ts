@@ -1,4 +1,4 @@
-// src/features/customers/api/import.ts
+// src/features/customers/api/import.ts (fixed)
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
@@ -100,14 +100,14 @@ export const getImportStatusQueryOptions = (importJobId: string) => {
     queryKey: ['imports', 'status', importJobId],
     queryFn: () => getImportStatus(importJobId),
     enabled: !!importJobId,
-    refetchInterval: (query: ImportJobResponse) => {
-      const data = query as ImportJobResponse;
+    refetchInterval: (query: { state: { data?: ImportJobResponse } }) => {
+      const data = query.state.data;
       // Stop polling when job is completed, failed, or cancelled
       if (!data) return 5000; // Poll every 5 seconds initially
       const terminalStatuses = ['Completed', 'Failed', 'Cancelled'];
       return terminalStatuses.includes(data.status) ? false : 5000;
     },
-  };1
+  };
 };
 
 export const useGetImportStatus = (
