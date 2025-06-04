@@ -77,6 +77,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
             return { Component: CustomerDetailRoute };
           },
         },
+          {
+          path: 'notifications',
+          lazy: async () => {
+            const { NotificationsRoute } = await import('./routes/app/notifications/notifications');
+            return { Component: NotificationsRoute };
+          },
+        },
         {
           path: 'segments',
           lazy: async () => {

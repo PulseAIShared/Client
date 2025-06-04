@@ -1,5 +1,5 @@
-// src/features/notifications/components/notifications-dropdown.tsx (fixed TypeScript errors)
-import React, {  useRef, useEffect } from 'react';
+// src/features/notifications/components/notifications-dropdown.tsx (complete fixed version)
+import React, { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
@@ -81,7 +81,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
 
   const notifications = notificationsData?.notifications || [];
   const totalCount = notificationsData?.totalCount || 0;
-  
+    console.log(notifications)
   // Calculate unread count from the notifications
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -244,7 +244,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     
     // Navigate to action URL if provided
     if (notification.actionUrl) {
-      navigate(notification.actionUrl);
+      navigate(`/app${notification.actionUrl}`);
     }
     
     onClose();
@@ -262,10 +262,10 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 mt-2 w-96 bg-slate-800/95 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-xl py-2 z-50 max-h-96 overflow-hidden"
+      className="absolute right-0 mt-2 w-96 bg-slate-800/95 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-xl z-50 flex flex-col max-h-96"
     >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-slate-700/50">
+      <div className="px-4 py-3 border-b border-slate-700/50 flex-shrink-0">
         <div className="flex items-center justify-between">
           <h3 className="text-white font-semibold">Notifications</h3>
           <div className="flex items-center gap-2">
@@ -285,8 +285,8 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-h-80 overflow-y-auto">
+      {/* Content - Scrollable area */}
+      <div className="flex-1 overflow-y-auto min-h-0">
         {isLoading ? (
           <div className="px-4 py-8 text-center">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
@@ -361,15 +361,15 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         )}
       </div>
 
-      {/* Footer */}
+      {/* Footer - Always visible */}
       {notifications.length > 0 && (
-        <div className="border-t border-slate-700/50 pt-2">
+        <div className="border-t border-slate-700/50 flex-shrink-0">
           <button
             onClick={() => {
               navigate('/app/notifications');
               onClose();
             }}
-            className="block w-full px-4 py-2 text-center text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 text-sm"
+            className="block w-full px-4 py-3 text-center text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 text-sm font-medium"
           >
             View All Notifications ({totalCount})
           </button>
