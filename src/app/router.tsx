@@ -85,6 +85,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
           },
         },
         {
+          path: 'imports/:importJobId',
+          lazy: async () => {
+            const { ImportDetailRoute } = await import('./routes/app/imports/import-detail');
+            return { Component: ImportDetailRoute };
+          },
+        },
+        {
           path: 'segments',
           lazy: async () => {
             const { SegmentsRoute } = await import('./routes/app/segments/segments');

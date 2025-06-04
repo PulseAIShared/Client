@@ -2,6 +2,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
+import { ReactNode } from 'react';
 
 // Types matching the backend responses
 export interface ImportJobResponse {
@@ -23,16 +24,17 @@ export interface ImportJobResponse {
 }
 
 export interface ImportErrorResponse {
-  id: string;
   rowNumber: number;
-  fieldName: string;
+  email: string;
   errorMessage: string;
-  rawValue: string;
-  errorType: 'Validation' | 'Duplicate' | 'Processing';
+  fieldName: string;
+  rawData?: string | null;
+  errorTime: string;
 }
 
+
 export interface ImportJobSummaryResponse {
-  importJobId: string;
+  id: string;
   fileName: string;
   status: string;
   totalRecords: number;
@@ -54,6 +56,52 @@ export interface ConfirmImportResponse {
   status: string;
 }
 
+export interface ImportJobDetailResponse {
+  id: string;
+  fileName: string;
+  status: 'Validating' | 'Validated' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
+  type: string;
+  importSource?: string;
+  totalRecords: number;
+  processedRecords: number;
+  successfulRecords: number;
+  failedRecords: number;
+  skippedRecords: number;
+  updatedRecords: number;
+  newRecords: number;
+  errorMessage?: string;
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  progressPercentage: number;
+  validationErrors: ImportErrorResponse[];
+  updates: ImportUpdateResponse[];
+  summary?: ImportSummaryResponse;
+}
+
+export interface ImportUpdateResponse {
+  rowNumber: number;
+  email: string;
+  customerName: string;
+  updatedFields: ImportFieldUpdate[];
+  updateTime: string;
+}
+
+export interface ImportFieldUpdate {
+  fieldName: string;
+  oldValue: string;
+  newValue: string;
+}
+
+
+export interface ImportSummaryResponse {
+  // Add properties based on your backend structure
+  totalImported: number;
+  duplicatesSkipped: number;
+  errorsEncountered: number;
+  processingTimeMs: number;
+  [key: string]: ReactNode;
+}
 // Upload and validate import file
 export const uploadImport = async (formData: FormData): Promise<UploadImportResponse> => {
   return api.post('/imports/upload', formData, {
@@ -189,6 +237,36 @@ export const useGetImportHistory = (
 ) => {
   return useQuery({
     ...getImportHistoryQueryOptions(params),
+    ...queryConfig,
+  });
+};
+
+
+export const getImportJobDetail = async (importJobId: string): Promise<ImportJobDetailResponse> => {
+  return api.get(`/imports/${importJobId}/status`);
+};
+
+export const getImportJobDetailQueryOptions = (importJobId: string) => {
+  return {
+    queryKey: ['imports', 'detail', importJobId],
+    queryFn: () => getImportJobDetail(importJobId),
+    enabled: !!importJobId,
+    // Refresh every 5 seconds if the job is still processing
+    refetchInterval: (query: { state: { data?: ImportJobDetailResponse } }) => {
+      const data = query.state.data;
+      if (!data) return 5000;
+      const activeStatuses = ['Validating', 'Processing'];
+      return activeStatuses.includes(data.status) ? 5000 : false;
+    },
+  };
+};
+
+export const useGetImportJobDetail = (
+  importJobId: string,
+  queryConfig?: QueryConfig<typeof getImportJobDetailQueryOptions>
+) => {
+  return useQuery({
+    ...getImportJobDetailQueryOptions(importJobId),
     ...queryConfig,
   });
 };

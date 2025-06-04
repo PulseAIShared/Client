@@ -265,7 +265,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                 <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
                   <div>
                     <div className="text-white font-medium">Skip Duplicates</div>
-                    <div className="text-sm text-slate-400">Skip customers that already exist based on email</div>
+                    <div className="text-sm text-slate-400">Skip customers that already exist based on email (if this is off, then this will update the existing users) </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" className="sr-only peer" defaultChecked />
