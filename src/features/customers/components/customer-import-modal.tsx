@@ -1,118 +1,43 @@
-// src/features/customers/components/customer-import-modal.tsx (updated for background jobs)
-import React, { useState, useCallback, useMemo } from 'react';
+// src/features/customers/components/customer-import-modal.tsx
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/components/ui/notifications';
-import { generateImportInsights } from '@/utils/data-processor';
-import { useUploadImport, useConfirmImport } from '@/features/customers/api/import';
-
-interface ImportedCustomer {
-  name: string;
-  email: string;
-  plan: string;
-  monthlyRevenue: number;
-  subscriptionStartDate: string;
-  lastActivity: string;
-  companyName?: string;
-  phoneNumber?: string;
-}
+import { useUploadImport } from '@/features/customers/api/import';
+import { useRealTimeImportUpdates } from '@/hooks/useRealTimeNotifications';
 
 interface CustomerImportModalProps {
   onClose: () => void;
-  onImportStarted: () => void; // Changed from onImportComplete
+  onImportStarted: () => void;
 }
 
 type ImportMode = 'pulse-template' | 'hubspot' | 'salesforce' | 'pipedrive' | 'csv-mapping';
 
-// Define CRM field mappings (keeping existing templates)
+// Define CRM field mappings
 const CRM_TEMPLATES = {
   'pulse-template': {
     name: 'Pulse AI Template',
     description: 'Our standard customer import format',
-    fields: {
-      name: 'name',
-      email: 'email', 
-      plan: 'plan',
-      monthlyRevenue: 'monthlyRevenue',
-      subscriptionStartDate: 'subscriptionStartDate',
-      lastActivity: 'lastActivity',
-      companyName: 'companyName',
-      phoneNumber: 'phoneNumber'
-    },
     requiredFields: ['name', 'email', 'plan', 'monthlyRevenue', 'subscriptionStartDate', 'lastActivity'],
-    defaultMappings: {}
   },
   'hubspot': {
     name: 'HubSpot Contacts Export',
     description: 'Standard HubSpot contacts CSV export format',
-    fields: {
-      name: 'Full Name',
-      email: 'Email',
-      plan: 'Subscription Type',
-      monthlyRevenue: 'Monthly Recurring Revenue',
-      subscriptionStartDate: 'Subscription Start Date',
-      lastActivity: 'Last Activity Date',
-      companyName: 'Company name',
-      phoneNumber: 'Phone Number'
-    },
     requiredFields: ['Full Name', 'Email'],
-    defaultMappings: {
-      plan: 'Pro',
-      monthlyRevenue: '99'
-    }
   },
   'salesforce': {
     name: 'Salesforce Contacts Export', 
     description: 'Standard Salesforce contacts report format',
-    fields: {
-      name: 'Name',
-      email: 'Email',
-      plan: 'Subscription_Type__c',
-      monthlyRevenue: 'Monthly_ARR__c',
-      subscriptionStartDate: 'Subscription_Start_Date__c',
-      lastActivity: 'LastActivityDate',
-      companyName: 'Account.Name',
-      phoneNumber: 'Phone'
-    },
     requiredFields: ['Name', 'Email'],
-    defaultMappings: {
-      plan: 'Pro',
-      monthlyRevenue: '99'
-    }
   },
   'pipedrive': {
     name: 'Pipedrive Persons Export',
     description: 'Standard Pipedrive persons export format',
-    fields: {
-      name: 'Name',
-      email: 'Email',
-      plan: 'Subscription Plan',
-      monthlyRevenue: 'Monthly Value',
-      subscriptionStartDate: 'Start Date',
-      lastActivity: 'Last activity date',
-      companyName: 'Organization',
-      phoneNumber: 'Phone'
-    },
     requiredFields: ['Name', 'Email'],
-    defaultMappings: {
-      plan: 'Pro',
-      monthlyRevenue: '99'
-    }
   },
   'csv-mapping': {
     name: 'CSV Mapping',
     description: 'Custom CSV mapping format',
-    fields: {
-      name: 'name',
-      email: 'email',
-      plan: 'plan',
-      monthlyRevenue: 'monthlyRevenue',
-      subscriptionStartDate: 'subscriptionStartDate',
-      lastActivity: 'lastActivity',
-      companyName: 'companyName',
-      phoneNumber: 'phoneNumber'
-    },
     requiredFields: ['name', 'email'],
-    defaultMappings: {}
   }
 };
 
@@ -123,129 +48,13 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [importMode, setImportMode] = useState<ImportMode>('pulse-template');
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [parsedData, setParsedData] = useState<ImportedCustomer[]>([]);
-  const [errors, setErrors] = useState<string[]>([]);
-  const [previewData, setPreviewData] = useState<ImportedCustomer[]>([]);
   const [importJobId, setImportJobId] = useState<string | null>(null);
   
   const { addNotification } = useNotifications();
-  
-  // API hooks for the new flow
   const uploadImport = useUploadImport();
-  const confirmImport = useConfirmImport();
 
-  // Calculate insights for the import data (keeping existing logic)
-  interface ImportInsights {
-    averageRevenue: number;
-    averageTenure: number;
-    newCustomers: number;
-    riskDistribution: {
-      high: number;
-    };
-  }
-  
-  const importInsights = useMemo<ImportInsights | null>(() => {
-    if (parsedData.length === 0) return null;
-    return generateImportInsights(parsedData) as ImportInsights;
-  }, [parsedData]);
-
-  // Existing parsing functions (keeping them for client-side preview)
-  const parseCSV = useCallback((csvText: string, mode: ImportMode): Record<string, string>[] => {
-    const lines = csvText.trim().split('\n');
-    if (lines.length < 2) {
-      throw new Error('CSV file must contain at least a header and one data row');
-    }
-
-    const headers = lines[0].split(',').map(h => h.trim());
-    const data: Record<string, string>[] = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-      
-      if (values.length !== headers.length) {
-        continue;
-      }
-
-      const row: Record<string, string> = {};
-      headers.forEach((header, index) => {
-        row[header] = values[index];
-      });
-      
-      data.push(row);
-    }
-
-    return data;
-  }, []);
-
-  const mapDataToCustomers = useCallback((rawData: Record<string, string>[], mode: ImportMode): ImportedCustomer[] => {
-    const template = CRM_TEMPLATES[mode];
-    const customers: ImportedCustomer[] = [];
-    const parseErrors: string[] = [];
-
-    rawData.forEach((row, index) => {
-      try {
-        const customer: Partial<ImportedCustomer> = {};
-
-        Object.entries(template.fields).forEach(([pulseField, sourceField]) => {
-          const value = row[sourceField] || ('defaultMappings' in template ? (template.defaultMappings as Record<string, string>)[sourceField] : undefined);
-          
-          switch (pulseField) {
-            case 'name':
-              customer.name = value || `Customer ${index + 1}`;
-              break;
-            case 'email':
-              customer.email = value;
-              break;
-            case 'plan':
-              customer.plan = value || 'Pro';
-              break;
-            case 'monthlyRevenue': {
-              let defaultRevenue = '99';
-              if (template.defaultMappings && 'monthlyRevenue' in template.defaultMappings) {
-                defaultRevenue = template.defaultMappings.monthlyRevenue;
-              }
-              const revenue = parseFloat(value ?? defaultRevenue);
-              customer.monthlyRevenue = isNaN(revenue) ? 99 : revenue;
-              break;
-            }
-            case 'subscriptionStartDate':
-              customer.subscriptionStartDate = value || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-              break;
-            case 'lastActivity':
-              customer.lastActivity = value || new Date().toISOString().split('T')[0];
-              break;
-            case 'companyName':
-              customer.companyName = value;
-              break;
-            case 'phoneNumber':
-              customer.phoneNumber = value;
-              break;
-          }
-        });
-
-        if (!customer.email) {
-          parseErrors.push(`Row ${index + 2}: Email is required`);
-          return;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(customer.email)) {
-          parseErrors.push(`Row ${index + 2}: Invalid email format "${customer.email}"`);
-          return;
-        }
-
-        customers.push(customer as ImportedCustomer);
-      } catch (_error) {
-        parseErrors.push(`Row ${index + 2}: ${_error instanceof Error ? _error.message : 'Parse error'}`);
-      }
-    });
-
-    if (parseErrors.length > 0) {
-      throw new Error(`Parse errors:\n${parseErrors.join('\n')}`);
-    }
-
-    return customers;
-  }, []);
+  // Hook to receive real-time import updates
+  useRealTimeImportUpdates(importJobId || undefined);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -261,27 +70,9 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     }
 
     setCsvFile(file);
-    setErrors([]);
-
-    // For preview purposes, still parse on client side
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const csvText = e.target?.result as string;
-        const rawData = parseCSV(csvText, importMode);
-        const mappedCustomers = mapDataToCustomers(rawData, importMode);
-        
-        setParsedData(mappedCustomers);
-        setPreviewData(mappedCustomers.slice(0, 5));
-        setCurrentStep(3);
-      } catch (_error) {
-        setErrors([_error instanceof Error ? _error.message : 'Failed to parse CSV']);
-      }
-    };
-    reader.readAsText(file);
+    setCurrentStep(3); // Skip preview for now, go straight to upload
   };
 
-  // New upload function using the background job API
   const handleUpload = async (skipDuplicates = false) => {
     if (!csvFile) {
       addNotification({
@@ -301,13 +92,15 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
       const result = await uploadImport.mutateAsync(formData);
       
       setImportJobId(result.importJobId);
-      setCurrentStep(4); // Move to status tracking step
+      setCurrentStep(4);
       
       addNotification({
         type: 'info',
-        title: 'Upload started',
-        message: 'Your file is being validated. You can track progress in notifications.'
+        title: 'Import Started',
+        message: 'Your file is being processed. Real-time updates will show progress automatically.'
       });
+
+      onImportStarted();
 
     } catch (error) {
       addNotification({
@@ -320,29 +113,22 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
 
   const downloadTemplate = (mode: ImportMode) => {
     const template = CRM_TEMPLATES[mode];
-    const headers = Object.values(template.fields);
-    
     let csvContent = '';
+    
     if (mode === 'pulse-template') {
       csvContent = [
-        headers.join(','),
+        'name,email,plan,monthlyRevenue,subscriptionStartDate,lastActivity,companyName,phoneNumber',
         'John Smith,john.smith@company.com,Pro,149.00,2023-01-15,2024-05-30,Acme Corp,+1-555-0123',
         'Jane Doe,jane.doe@startup.io,Enterprise,299.00,2022-06-01,2024-05-29,Startup Inc,+1-555-0124',
         'Mike Johnson,mike.j@techfirm.com,Basic,49.00,2023-08-20,2024-05-28,TechFirm LLC,+1-555-0125'
       ].join('\n');
     } else {
-      const exampleRow = headers.map(header => {
-        if (header.toLowerCase().includes('email')) return 'example@company.com';
-        if (header.toLowerCase().includes('name')) return 'John Smith';
-        if (header.toLowerCase().includes('phone')) return '+1-555-0123';
-        if (header.toLowerCase().includes('company') || header.toLowerCase().includes('organization')) return 'Acme Corp';
-        if (header.toLowerCase().includes('date')) return '2024-01-15';
-        if (header.toLowerCase().includes('revenue') || header.toLowerCase().includes('value')) return '149.00';
-        if (header.toLowerCase().includes('plan') || header.toLowerCase().includes('type')) return 'Pro';
-        return 'Sample Data';
-      });
-      
-      csvContent = [headers.join(','), exampleRow.join(',')].join('\n');
+      // Generic template for other modes
+      csvContent = [
+        'Full Name,Email,Company,Plan,Monthly Revenue,Start Date,Last Activity',
+        'John Smith,john@example.com,Acme Corp,Pro,149.00,2023-01-15,2024-05-30',
+        'Jane Doe,jane@example.com,Startup Inc,Enterprise,299.00,2022-06-01,2024-05-29'
+      ].join('\n');
     }
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -422,7 +208,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                 <div className="flex-1">
                   <h4 className="text-blue-400 font-semibold mb-2 text-lg">Need a template?</h4>
                   <p className="text-blue-300 text-sm mb-4 leading-relaxed">
-                    Download our {CRM_TEMPLATES[importMode].name} template to ensure your data is formatted correctly and includes all required fields.
+                    Download our {CRM_TEMPLATES[importMode].name} template to ensure your data is formatted correctly.
                   </p>
                   <Button 
                     onClick={() => downloadTemplate(importMode)}
@@ -457,17 +243,6 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                 </div>
               </label>
             </div>
-
-            {errors.length > 0 && (
-              <div className="bg-red-600/20 p-4 rounded-lg border border-red-500/30">
-                <h4 className="text-red-400 font-medium mb-2">Errors found:</h4>
-                <div className="space-y-1 text-sm text-red-300 max-h-32 overflow-y-auto">
-                  {errors.map((error, index) => (
-                    <div key={index}>{error}</div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         );
 
@@ -476,83 +251,38 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-white mb-2">
-                Preview Import Data
+                Ready to Import
               </h3>
               <p className="text-slate-400">
-                Review the parsed data before uploading {parsedData.length} customers
+                File selected: {csvFile?.name}
               </p>
             </div>
 
-            {/* Import Insights */}
-            {importInsights && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 text-center">
-                  <div className="text-lg font-bold text-green-400">
-                    ${importInsights.averageRevenue.toFixed(0)}
+            <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+              <h4 className="text-white font-medium mb-4">Import Settings</h4>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                  <div>
+                    <div className="text-white font-medium">Skip Duplicates</div>
+                    <div className="text-sm text-slate-400">Skip customers that already exist based on email</div>
                   </div>
-                  <div className="text-sm text-slate-400">Avg Revenue</div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                    <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
                 </div>
-                <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 text-center">
-                  <div className="text-lg font-bold text-blue-400">
-                    {importInsights.averageTenure.toFixed(1)}mo
-                  </div>
-                  <div className="text-sm text-slate-400">Avg Tenure</div>
-                </div>
-                <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 text-center">
-                  <div className="text-lg font-bold text-orange-400">
-                    {importInsights.newCustomers}
-                  </div>
-                  <div className="text-sm text-slate-400">New (&lt;3mo)</div>
-                </div>
-                <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 text-center">
-                  <div className="text-lg font-bold text-red-400">
-                    {importInsights.riskDistribution.high}
-                  </div>
-                  <div className="text-sm text-slate-400">High Risk</div>
-                </div>
-              </div>
-            )}
 
-            {/* Data Preview */}
-            <div className="bg-slate-700/30 rounded-lg border border-slate-600/50 overflow-hidden">
-              <div className="p-4 border-b border-slate-600/50">
-                <h4 className="text-white font-medium">Data Preview (First 5 rows)</h4>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-600/50">
-                      <th className="text-left p-3 text-sm font-medium text-slate-300">Name</th>
-                      <th className="text-left p-3 text-sm font-medium text-slate-300">Email</th>
-                      <th className="text-left p-3 text-sm font-medium text-slate-300">Plan</th>
-                      <th className="text-left p-3 text-sm font-medium text-slate-300">Revenue</th>
-                      <th className="text-left p-3 text-sm font-medium text-slate-300">Start Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewData.map((customer, index) => (
-                      <tr key={index} className="border-b border-slate-600/30">
-                        <td className="p-3 text-white">{customer.name}</td>
-                        <td className="p-3 text-slate-300">{customer.email}</td>
-                        <td className="p-3">
-                          <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs font-medium border border-blue-500/30">
-                            {customer.plan}
-                          </span>
-                        </td>
-                        <td className="p-3 text-green-400">${customer.monthlyRevenue.toFixed(2)}</td>
-                        <td className="p-3 text-slate-300">
-                          {new Date(customer.subscriptionStartDate).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {parsedData.length > 5 && (
-                <div className="p-3 text-center text-slate-400 text-sm border-t border-slate-600/50">
-                  ... and {parsedData.length - 5} more customers
+                <div className="p-4 bg-blue-600/20 rounded-lg border border-blue-500/30">
+                  <h5 className="text-blue-400 font-medium mb-2">What happens next?</h5>
+                  <div className="text-blue-300 text-sm space-y-1">
+                    <p>• File will be validated for format and data quality</p>
+                    <p>• Real-time progress updates via notifications</p>
+                    <p>• Customer data refreshes automatically when complete</p>
+                    <p>• You can continue working - no need to wait</p>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         );
@@ -562,10 +292,10 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-white mb-2">
-                Import Started
+                Import Started Successfully
               </h3>
               <p className="text-slate-400">
-                Your import is being processed in the background
+                Your import is being processed with real-time updates
               </p>
             </div>
 
@@ -578,17 +308,19 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
               
               <h4 className="text-xl font-bold text-white mb-2">Import Job Created</h4>
               <p className="text-slate-300 mb-4">
-                Your file has been uploaded and validation is in progress.
+                Your file has been uploaded and processing is starting automatically.
               </p>
               
-              <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 mb-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-300">Import Job ID:</span>
-                  <code className="text-blue-400 bg-slate-800/50 px-2 py-1 rounded font-mono">
-                    {importJobId}
-                  </code>
+              {importJobId && (
+                <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-300">Import Job ID:</span>
+                    <code className="text-blue-400 bg-slate-800/50 px-2 py-1 rounded font-mono">
+                      {importJobId}
+                    </code>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-3 text-sm text-slate-300">
                 <div className="flex items-center gap-2">
@@ -596,27 +328,42 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                   <span>File uploaded and validation started</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  <span>You'll receive a notification when validation is complete</span>
-                </div>
-                <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  <span>Import will process automatically after validation</span>
+                  <span>Real-time updates enabled - you'll see progress instantly</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                  <span>Final notification will confirm completion status</span>
+                  <span>Customer data will refresh automatically when complete</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                  <span>Notifications will show progress and completion status</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-blue-600/20 p-4 rounded-lg border border-blue-500/30">
-              <h5 className="text-blue-400 font-medium mb-2">What happens next?</h5>
+              <h5 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Real-Time Updates
+              </h5>
               <div className="text-blue-300 text-sm space-y-1">
-                <p>• Your file is being validated for data quality and duplicates</p>
-                <p>• If validation passes, import will start automatically</p>
-                <p>• You'll receive notifications about the progress</p>
-                <p>• Check your notifications bell for updates</p>
+                <p>• Progress updates appear instantly via SignalR</p>
+                <p>• Customer data refreshes automatically on completion</p>
+                <p>• No need to manually refresh or check status</p>
+                <p>• Notifications will alert you of important milestones</p>
+              </div>
+            </div>
+
+            <div className="bg-purple-600/20 p-4 rounded-lg border border-purple-500/30">
+              <h5 className="text-purple-400 font-medium mb-2">What's happening now?</h5>
+              <div className="text-purple-300 text-sm space-y-1">
+                <p>• File is being validated for data quality and format</p>
+                <p>• Duplicate detection is running based on your settings</p>
+                <p>• Processing will begin automatically after validation</p>
+                <p>• You can safely close this modal - updates continue in the background</p>
               </div>
             </div>
           </div>
@@ -627,9 +374,16 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     }
   };
 
+  const steps = [
+    { id: 1, title: 'Choose Source', description: 'Select import format' },
+    { id: 2, title: 'Upload File', description: 'Upload your CSV' },
+    { id: 3, title: 'Configure', description: 'Set import options' },
+    { id: 4, title: 'Processing', description: 'Import in progress' }
+  ];
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden">
+      <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-700/50">
           <div className="flex items-center gap-4">
@@ -640,7 +394,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Import Customers</h2>
-              <p className="text-sm text-slate-400">Bulk import with background processing</p>
+              <p className="text-sm text-slate-400">Bulk import with real-time processing</p>
             </div>
           </div>
           <button
@@ -656,38 +410,36 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
         {/* Progress Steps */}
         <div className="px-6 py-4 border-b border-slate-700/50">
           <div className="flex items-center">
-            {[1, 2, 3, 4].map((step, index) => (
-              <div key={step} className="flex items-center flex-1">
-                <div className={`flex items-center gap-3 ${index < 3 ? 'flex-1' : ''}`}>
+            {steps.map((step, index) => (
+              <div key={step.id} className="flex items-center flex-1">
+                <div className={`flex items-center gap-3 ${index < steps.length - 1 ? 'flex-1' : ''}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                    currentStep > step
+                    currentStep > step.id
                       ? 'bg-green-500 border-green-500 text-white'
-                      : currentStep === step
+                      : currentStep === step.id
                       ? 'bg-blue-600 border-blue-600 text-white'
                       : 'bg-slate-700 border-slate-600 text-slate-400'
                   }`}>
-                    {currentStep > step ? (
+                    {currentStep > step.id ? (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     ) : (
-                      <span className="text-sm font-medium">{step}</span>
+                      <span className="text-sm font-medium">{step.id}</span>
                     )}
                   </div>
                   <div className="hidden sm:block">
                     <div className={`text-sm font-medium ${
-                      currentStep >= step ? 'text-white' : 'text-slate-400'
+                      currentStep >= step.id ? 'text-white' : 'text-slate-400'
                     }`}>
-                      {step === 1 ? 'Choose Source' : 
-                       step === 2 ? 'Upload CSV' : 
-                       step === 3 ? 'Preview Data' : 
-                       'Processing'}
+                      {step.title}
                     </div>
+                    <div className="text-xs text-slate-500">{step.description}</div>
                   </div>
                 </div>
-                {index < 3 && (
+                {index < steps.length - 1 && (
                   <div className={`hidden sm:block flex-1 h-px mx-4 ${
-                    currentStep > step ? 'bg-green-500' : 'bg-slate-600'
+                    currentStep > step.id ? 'bg-green-500' : 'bg-slate-600'
                   }`} />
                 )}
               </div>
@@ -730,19 +482,19 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
             {currentStep === 3 && (
               <Button
                 onClick={() => handleUpload(false)}
-                disabled={uploadImport.isPending || parsedData.length === 0}
+                disabled={uploadImport.isPending || !csvFile}
                 isLoading={uploadImport.isPending}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
-                {uploadImport.isPending ? 'Starting Import...' : `Start Import (${parsedData.length} customers)`}
+                {uploadImport.isPending ? 'Starting Import...' : 'Start Import'}
               </Button>
             )}
             {currentStep === 4 && (
               <Button
-                onClick={() => onClose()}
+                onClick={onClose}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
               >
-                Done
+                Continue Working
               </Button>
             )}
           </div>

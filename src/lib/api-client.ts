@@ -29,8 +29,8 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
 
 export const api = Axios.create({
  
- baseURL: "https://api.pulseltv.com",
-//baseURL: "https://localhost:7126/",
+ //baseURL: "https://api.pulseltv.com",
+baseURL: "https://localhost:7126/",
 });
 
 api.interceptors.request.use(authRequestInterceptor);

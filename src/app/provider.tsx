@@ -1,4 +1,4 @@
-
+// src/app/provider.tsx (updated with SignalR)
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import * as React from 'react';
@@ -10,7 +10,21 @@ import { Notifications } from '@/components/ui/notifications';
 import { MantineProvider } from '@mantine/core';
 import { MainErrorFallback } from '@/components/errors/main';
 import { ModalProvider } from './modal-provider';
+import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
 
+// Component to handle real-time notifications
+const RealTimeNotificationHandler: React.FC = () => {
+  const { connectionState } = useRealTimeNotifications();
+  
+  // Optional: Show connection status in development
+  React.useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('SignalR Connection State:', connectionState);
+    }
+  }, [connectionState]);
+  
+  return null;
+};
 
 type AppProviderProps = {
   children: React.ReactNode;
@@ -34,14 +48,14 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     >
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
         <MantineProvider>
-            <QueryClientProvider client={queryClient}>
-               <ModalProvider>
+          <QueryClientProvider client={queryClient}>
+            <ModalProvider>
               {import.meta.env.DEV && <ReactQueryDevtools />}
               <Notifications />
+              <RealTimeNotificationHandler />
               {children}
-              </ModalProvider>
-            </QueryClientProvider>
-
+            </ModalProvider>
+          </QueryClientProvider>
         </MantineProvider>
       </ErrorBoundary>
     </React.Suspense>
