@@ -1,4 +1,4 @@
-// src/hooks/useRealTimeNotifications.ts (final version)
+// src/hooks/useRealTimeNotifications.ts (fixed TypeScript errors)
 import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNotifications } from '@/components/ui/notifications/notifications-store';
@@ -16,11 +16,15 @@ interface ImportCompletedData {
   totalRecords?: number;
   successfulRecords?: number;
   failedRecords?: number;
-  metadata?: Record<string, unknown>;
-  // Also support notification format
+  metadata?: Record<string, unknown> | null; 
   id?: string;
   type?: string;
   title?: string;
+  category?: string;
+  isRead?: boolean;
+  createdAt?: string;
+  actionUrl?: string | null;
+  actionText?: string | null;
 }
 
 interface CustomerUpdatedData {
@@ -38,6 +42,21 @@ interface ImportProgressData {
   invalidRecords: number;
   message?: string;
 }
+
+// Type guard to check if data is a complete NotificationResponse
+// Using a more flexible approach - check if it has the core notification properties
+const isNotificationResponse = (data: unknown): data is NotificationResponse => {
+  if (!data || typeof data !== 'object') return false;
+  
+  const obj = data as Record<string, unknown>;
+  return !!(obj.id && 
+           obj.type && 
+           obj.title && 
+           obj.message && 
+           typeof obj.category === 'string' && 
+           typeof obj.isRead === 'boolean' && 
+           typeof obj.createdAt === 'string');
+};
 
 export const useRealTimeNotifications = () => {
   const queryClient = useQueryClient();
@@ -91,9 +110,8 @@ export const useRealTimeNotifications = () => {
   const handleImportCompleted = useCallback((data: ImportCompletedData) => {
     console.log('Import completed:', data);
     
-    // Check if this is a notification object (has id, type, title, message)
-    // or if it's import completion data (has importJobId, status, etc.)
-    if (data.id && data.type && data.title && data.message) {
+    // Check if this is a notification object using type guard
+    if (isNotificationResponse(data)) {
       // This is a notification object from the backend - treat it as a new notification
       console.log('Handling import completion as notification');
       handleNewNotification(data);

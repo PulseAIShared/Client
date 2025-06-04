@@ -1,5 +1,5 @@
-// src/features/notifications/components/notifications-dropdown.tsx (updated for backend)
-import React, { useState, useRef, useEffect } from 'react';
+// src/features/notifications/components/notifications-dropdown.tsx (fixed TypeScript errors)
+import React, {  useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
@@ -252,7 +252,8 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
 
   const handleMarkAllAsRead = () => {
     if (unreadCount > 0) {
-      markAllAsRead.mutate();
+      // Call mutate without parameters since markAllNotificationsAsRead takes no arguments
+      markAllAsRead.mutate(undefined);
     }
   };
 

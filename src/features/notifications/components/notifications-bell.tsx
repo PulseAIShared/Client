@@ -1,4 +1,4 @@
-// src/features/notifications/components/notifications-bell.tsx (updated for backend)
+// src/features/notifications/components/notifications-bell.tsx (fixed TypeScript error)
 import React, { useState, useRef, useEffect } from 'react';
 
 import { NotificationsDropdown } from './notifications-dropdown';
@@ -20,7 +20,8 @@ export const NotificationsBell: React.FC = () => {
 
   // Debug logging for unread count changes
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    // Use import.meta.env instead of process.env for Vite
+    if (import.meta.env.DEV) {
       console.log('Unread count updated:', unreadCount);
     }
   }, [unreadCount]);

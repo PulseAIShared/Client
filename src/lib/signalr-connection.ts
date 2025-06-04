@@ -1,7 +1,7 @@
 // src/lib/signalr-connection.ts (updated for your backend)
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { getToken } from '@/lib/api-client';
-
+import { env } from '@/config/env';
 class SignalRConnectionManager {
   private connection: HubConnection | null = null;
   private reconnectAttempts = 0;
@@ -24,13 +24,12 @@ class SignalRConnectionManager {
 
     // Updated to match your backend hub path exactly
     this.connection = new HubConnectionBuilder()
-      .withUrl('https://localhost:7126/hubs/notifications', {
+      .withUrl(`${env.API_URL}hubs/notifications`, {
         accessTokenFactory: () => token,
         withCredentials: true,
       })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext) => {
-          // Exponential backoff: 1s, 2s, 4s, 8s, 16s
           return Math.min(1000 * Math.pow(2, retryContext.previousRetryCount), 16000);
         }
       })

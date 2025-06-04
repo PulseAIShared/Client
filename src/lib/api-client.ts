@@ -1,5 +1,5 @@
 import Axios, { InternalAxiosRequestConfig } from 'axios';
-
+import { env } from '@/config/env';
 let accessToken: string | null = null;
 
 export const setToken = (token: string | null): void => {
@@ -28,9 +28,7 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
 
 
 export const api = Axios.create({
- 
- //baseURL: "https://api.pulseltv.com",
-baseURL: "https://localhost:7126/",
+  baseURL: env.API_URL,
 });
 
 api.interceptors.request.use(authRequestInterceptor);

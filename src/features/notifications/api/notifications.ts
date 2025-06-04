@@ -1,4 +1,4 @@
-// src/features/notifications/api/notifications.ts (updated to match backend)
+// src/features/notifications/api/notifications.ts (fixed TypeScript errors)
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
@@ -40,9 +40,10 @@ export const getNotifications = async (params: NotificationsQueryParams = {}): P
   if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
   if (params.unreadOnly !== undefined) queryParams.append('unreadOnly', params.unreadOnly.toString());
 
-  const response = await api.get(`notifications?${queryParams.toString()}`);
+  // Type the response properly since api.get returns the processed data
+  const response = await api.get(`notifications?${queryParams.toString()}`) as NotificationsApiResponse;
   
-  // Your backend returns the response structure directly
+  // Your backend returns the response structure directly after the interceptor processes it
   return {
     notifications: response.notifications,
     totalCount: response.totalCount,
@@ -105,7 +106,7 @@ export const useMarkNotificationAsRead = ({ mutationConfig }: UseMarkNotificatio
   });
 };
 
-// Mark all notifications as read
+// Mark all notifications as read - no parameters needed
 export const markAllNotificationsAsRead = async (): Promise<void> => {
   return api.post('notifications/mark-all-read');
 };
@@ -116,7 +117,7 @@ type UseMarkAllNotificationsAsReadOptions = {
 
 export const useMarkAllNotificationsAsRead = ({ mutationConfig }: UseMarkAllNotificationsAsReadOptions = {}) => {
   return useMutation({
-    mutationFn: markAllNotificationsAsRead,
+    mutationFn: markAllNotificationsAsRead, // This function takes no parameters
     ...mutationConfig,
   });
 };
