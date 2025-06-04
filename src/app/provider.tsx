@@ -1,4 +1,4 @@
-// src/app/provider.tsx (updated with SignalR)
+// src/app/provider.tsx (updated with proper SignalR handling)
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import * as React from 'react';
@@ -14,14 +14,15 @@ import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
 
 // Component to handle real-time notifications
 const RealTimeNotificationHandler: React.FC = () => {
-  const { connectionState } = useRealTimeNotifications();
+  const { connectionState, isAuthenticated } = useRealTimeNotifications();
   
   // Optional: Show connection status in development
   React.useEffect(() => {
     if (import.meta.env.DEV) {
       console.log('SignalR Connection State:', connectionState);
+      console.log('User Authenticated:', isAuthenticated);
     }
-  }, [connectionState]);
+  }, [connectionState, isAuthenticated]);
   
   return null;
 };

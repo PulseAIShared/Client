@@ -1,22 +1,23 @@
-// src/features/notifications/api/notifications.ts (updated to match your API)
+// src/features/notifications/api/notifications.ts (updated to match backend)
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 
+// Updated to match your backend NotificationResponse exactly
 export interface NotificationResponse {
-  id: string; // Changed from Guid to string for frontend
+  id: string; // Guid from backend gets serialized as string
   title: string;
   message: string;
-  type: string;
-  category: string;
-  actionUrl?: string;
-  actionText?: string;
+  type: string; // Success, Error, Warning, Info, etc.
+  category: string; // Import, Customer, System, etc.
+  actionUrl?: string | null;
+  actionText?: string | null;
   isRead: boolean;
-  createdAt: string; // ISO string format
-  metadata?: Record<string, unknown>;
+  createdAt: string; // DateTime serialized as ISO string
+  metadata?: Record<string, unknown> | null;
 }
 
-// This matches your actual API response structure
+// This matches your backend API response structure exactly
 export interface NotificationsApiResponse {
   notifications: NotificationResponse[];
   totalCount: number;
@@ -31,7 +32,7 @@ export interface NotificationsQueryParams {
   unreadOnly?: boolean;
 }
 
-// Get notifications - matches your endpoint structure exactly
+// Get notifications - matches your endpoint exactly
 export const getNotifications = async (params: NotificationsQueryParams = {}): Promise<NotificationsApiResponse> => {
   const queryParams = new URLSearchParams();
   
@@ -39,7 +40,16 @@ export const getNotifications = async (params: NotificationsQueryParams = {}): P
   if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
   if (params.unreadOnly !== undefined) queryParams.append('unreadOnly', params.unreadOnly.toString());
 
-  return api.get(`/notifications?${queryParams.toString()}`);
+  const response = await api.get(`notifications?${queryParams.toString()}`);
+  
+  // Your backend returns the response structure directly
+  return {
+    notifications: response.notifications,
+    totalCount: response.totalCount,
+    page: response.page,
+    pageSize: response.pageSize,
+    totalPages: response.totalPages,
+  };
 };
 
 export const getNotificationsQueryOptions = (params?: NotificationsQueryParams) => {
@@ -79,9 +89,9 @@ export const useGetUnreadCount = (queryConfig?: QueryConfig<typeof getUnreadCoun
   });
 };
 
-
+// Mark notification as read
 export const markNotificationAsRead = async (notificationId: string): Promise<void> => {
-  return api.post(`/notifications/${notificationId}/mark-read`);
+  return api.post(`notifications/${notificationId}/mark-read`);
 };
 
 type UseMarkNotificationAsReadOptions = {
@@ -97,9 +107,8 @@ export const useMarkNotificationAsRead = ({ mutationConfig }: UseMarkNotificatio
 
 // Mark all notifications as read
 export const markAllNotificationsAsRead = async (): Promise<void> => {
-  return api.post('/notifications/mark-all-read');
+  return api.post('notifications/mark-all-read');
 };
-
 
 type UseMarkAllNotificationsAsReadOptions = {
   mutationConfig?: MutationConfig<typeof markAllNotificationsAsRead>;
@@ -111,4 +120,3 @@ export const useMarkAllNotificationsAsRead = ({ mutationConfig }: UseMarkAllNoti
     ...mutationConfig,
   });
 };
-

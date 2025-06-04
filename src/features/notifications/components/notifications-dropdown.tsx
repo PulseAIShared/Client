@@ -1,6 +1,7 @@
-// src/components/ui/notifications/notifications-dropdown.tsx
+// src/features/notifications/components/notifications-dropdown.tsx (updated for backend)
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   useGetNotifications, 
   useMarkNotificationAsRead, 
@@ -23,6 +24,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { addNotification } = useNotifications();
+  const queryClient = useQueryClient();
   
   // Fetch notifications (first page, 10 items)
   const { 
@@ -42,6 +44,9 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     mutationConfig: {
       onSuccess: () => {
         refetch(); // Refresh notifications after marking as read
+        
+        // Update unread count immediately
+        queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
       },
       onError: () => {
         addNotification({
@@ -56,6 +61,10 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     mutationConfig: {
       onSuccess: () => {
         refetch(); // Refresh notifications after marking all as read
+        
+        // Update unread count to 0 immediately
+        queryClient.setQueryData(['notifications', 'unread-count'], { count: 0 });
+        
         addNotification({
           type: 'success',
           title: 'All notifications marked as read',
@@ -71,7 +80,10 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   });
 
   const notifications = notificationsData?.notifications || [];
-  const unreadCount = notificationsData?.unreadCount || 0;
+  const totalCount = notificationsData?.totalCount || 0;
+  
+  // Calculate unread count from the notifications
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -95,7 +107,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   }, [isOpen, onClose]);
 
   const getNotificationIcon = (type: string, category: string) => {
-    // Map your backend types and categories to appropriate icons
+    // Enhanced icon mapping based on your backend types and categories
     const getIconForTypeAndCategory = (type: string, category: string) => {
       // Handle Import category specifically
       if (category === 'Import') {
@@ -111,11 +123,42 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
           return (
             <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
               <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+          );
+        } else if (type === 'Information' || type === 'Info') {
+          return (
+            <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
           );
         }
+      }
+
+      // Handle Customer category
+      if (category === 'Customer') {
+        return (
+          <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        );
+      }
+
+      // Handle System category
+      if (category === 'System') {
+        return (
+          <div className="w-8 h-8 bg-gray-500/20 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+        );
       }
 
       // Handle other categories by type
@@ -146,6 +189,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
             </div>
           );
         case 'Info':
+        case 'Information':
           return (
             <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
               <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +229,17 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   const handleNotificationClick = async (notification: NotificationResponse) => {
     // Mark as read if not already read
     if (!notification.isRead) {
-      await markAsRead.mutateAsync(notification.id);
+      try {
+        await markAsRead.mutateAsync(notification.id);
+        
+        // Update unread count immediately by decreasing it by 1
+        queryClient.setQueryData(['notifications', 'unread-count'], (oldData: { count: number } | undefined) => {
+          const currentCount = oldData?.count || 0;
+          return { count: Math.max(0, currentCount - 1) };
+        });
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+      }
     }
     
     // Navigate to action URL if provided
@@ -288,6 +342,13 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                         </span>
                       </div>
                     )}
+                    {notification.category && (
+                      <div className="mt-1">
+                        <span className="text-xs text-slate-500 bg-slate-700/50 px-2 py-1 rounded">
+                          {notification.category}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {!notification.isRead && (
                     <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
@@ -309,7 +370,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
             }}
             className="block w-full px-4 py-2 text-center text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 text-sm"
           >
-            View All Notifications
+            View All Notifications ({totalCount})
           </button>
         </div>
       )}
