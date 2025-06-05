@@ -12,6 +12,7 @@ import { useNotifications } from '@/components/ui/notifications';
 import { Integration } from '@/types/api';
 import { IntegrationSetupModal } from './integration-setup-modal';
 import { useModal } from '@/app/modal-provider';
+import { api } from '@/lib/api-client';
 
 interface IntegrationTemplate {
   id: string;
@@ -33,12 +34,14 @@ export const IntegrationsSection = () => {
   
   // Hooks
   const { data: integrations = [], isLoading, error, refetch } = useGetIntegrations();
+
+  console.log(integrations);
   const { data: stats } = useGetIntegrationStats();
   const connectMutation = useConnectIntegration({
     mutationConfig: {
       onSuccess: () => {
         addNotification({ type: 'success', title: 'Integration connected successfully' });
-        refetch();
+        refetch(); // This will refresh the integrations from the server
       },
       onError: () => {
         addNotification({ type: 'error', title: 'Failed to connect integration' });
@@ -49,7 +52,7 @@ export const IntegrationsSection = () => {
     mutationConfig: {
       onSuccess: () => {
         addNotification({ type: 'success', title: 'Integration disconnected successfully' });
-        refetch();
+        refetch(); // This will refresh the integrations from the server
       },
       onError: () => {
         addNotification({ type: 'error', title: 'Failed to disconnect integration' });
@@ -60,13 +63,29 @@ export const IntegrationsSection = () => {
     mutationConfig: {
       onSuccess: () => {
         addNotification({ type: 'success', title: 'Integration synced successfully' });
-        refetch();
+        refetch(); // This will refresh the integrations from the server
       },
       onError: () => {
         addNotification({ type: 'error', title: 'Failed to sync integration' });
       }
     }
   });
+
+  // Add real-time refresh capabilities
+  const refreshIntegrations = () => {
+    refetch();
+  };
+
+  // Auto-refresh every 30 seconds when user is active
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refetch();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   const integrationTemplates: IntegrationTemplate[] = useMemo(() => [
       {
@@ -87,10 +106,10 @@ export const IntegrationsSection = () => {
       {
         id: 'hubspot',
         name: 'HubSpot',
-        description: 'Connect your HubSpot CRM to automatically sync contacts, deals, and engagement metrics.',
+        description: 'Connect your HubSpot CRM to automatically sync contacts, deals, and engagement metrics using secure OAuth authentication.',
         category: 'crm',
         setupComplexity: 'Easy',
-        features: ['Contact Management', 'Deal Pipeline', 'Email Tracking', 'Marketing Automation'],
+        features: ['OAuth Security', 'Contact Management', 'Deal Pipeline', 'Email Tracking', 'Marketing Automation'],
         icon: (
           <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
             <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -118,14 +137,14 @@ export const IntegrationsSection = () => {
         )
       },
       {
-        id: 'zoho',
-        name: 'Zoho CRM',
-        description: 'Sync customer interactions and sales data from your Zoho CRM system.',
-        category: 'crm',
+        id: 'stripe',
+        name: 'Stripe',
+        description: 'Sync payment data, subscription status, and billing events for revenue tracking.',
+        category: 'payment',
         setupComplexity: 'Medium',
-        features: ['Contact Management', 'Sales Analytics', 'Workflow Automation', 'Territory Management'],
+        features: ['Payment Processing', 'Subscription Management', 'Billing Events', 'Revenue Analytics'],
         icon: (
-          <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
             <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
@@ -143,21 +162,6 @@ export const IntegrationsSection = () => {
           <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
             <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-            </svg>
-          </div>
-        )
-      },
-      {
-        id: 'stripe',
-        name: 'Stripe',
-        description: 'Sync payment data, subscription status, and billing events for revenue tracking.',
-        category: 'payment',
-        setupComplexity: 'Medium',
-        features: ['Payment Processing', 'Subscription Management', 'Billing Events', 'Revenue Analytics'],
-        icon: (
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
         )
@@ -205,14 +209,58 @@ export const IntegrationsSection = () => {
     );
   };
 
+  // HubSpot-specific test connection function
+  const testHubSpotConnection = async (integrationId: string) => {
+    try {
+      const result = await api.post(`/integrations/hubspot/${integrationId}/test`);
+      
+      addNotification({
+        type: result.isConnected ? 'success' : 'warning',
+        title: result.isConnected ? 'Connection successful' : 'Connection test failed',
+        message: `Status: ${result.status}`
+      });
+      
+      if (result.isConnected) {
+        refetch(); // Refresh integrations to update status
+      }
+    } catch (error: unknown) {
+      console.error('Test connection failed:', error);
+      addNotification({
+        type: 'error',
+        title: 'Failed to test connection',
+        message: error instanceof Error ? error.message : 'Please try again'
+      });
+    }
+  };
 
-  const handleConnect = (templateId: string, templateName: string): void => {
+  const handleConnect = async (templateId: string, templateName: string): Promise<void> => {
     const integrationTemplate: IntegrationTemplate | undefined = integrationTemplates.find(
       t => t.id === templateId
     );
     if (!integrationTemplate) return;
+
+    // Handle HubSpot OAuth flow differently
+    if (templateId === 'hubspot') {
+      try {
+        // Start OAuth flow
+        const response = await api.post('/integrations/hubspot/connect');
+        
+        // Redirect to HubSpot OAuth
+        window.location.href = response.authorizationUrl;
+        
+      } catch (error: unknown) {
+        console.error('Failed to start HubSpot OAuth:', error);
+        addNotification({
+          type: 'error',
+          title: 'Failed to connect HubSpot',
+          message: error instanceof Error ? error.message : 'OAuth flow failed to start'
+        });
+      }
+      return;
+    }
+
+    // For other integrations, use the modal flow
     setSelectedIntegration(integrationTemplate);
-    
     openModal(
       <IntegrationSetupModal
         integration={integrationTemplate}
@@ -264,11 +312,67 @@ export const IntegrationsSection = () => {
   };
 
   const handleDisconnect = async (integrationId: string) => {
-    await disconnectMutation.mutateAsync({ integrationId });
+    try {
+      // Find the integration to determine the type
+      const integration = integrations.find(i => i.id === integrationId);
+      if (!integration) return;
+
+      if (integration.type.toLowerCase() === 'hubspot') {
+        // Use HubSpot-specific disconnect endpoint
+        await api.delete(`/integrations/hubspot/${integrationId}`);
+      } else {
+        // Use generic disconnect endpoint for other integrations
+        await disconnectMutation.mutateAsync({ integrationId });
+      }
+      
+      addNotification({
+        type: 'success',
+        title: `${integration.name} disconnected successfully`
+      });
+      
+      refetch();
+    } catch (error: unknown) {
+      console.error('Disconnect failed:', error);
+      addNotification({
+        type: 'error',
+        title: 'Failed to disconnect integration',
+        message: error instanceof Error ? error.message : 'Please try again'
+      });
+    }
   };
 
   const handleSync = async (integrationId: string) => {
-    await syncMutation.mutateAsync({ integrationId });
+    try {
+      // Find the integration to determine the type
+      const integration = integrations.find(i => i.id === integrationId);
+      if (!integration) return;
+
+      if (integration.type.toLowerCase() === 'hubspot') {
+        // Use HubSpot-specific sync endpoint
+        const response = await api.post(`/integrations/hubspot/${integrationId}/sync`, {
+          incrementalSync: true,
+          syncFromDate: null
+        });
+        
+        addNotification({
+          type: 'success',
+          title: 'HubSpot sync started',
+          message: `Processing ${response.totalRecords} records...`
+        });
+      } else {
+        // Use generic sync endpoint for other integrations
+        await syncMutation.mutateAsync({ integrationId });
+      }
+      
+      refetch();
+    } catch (error: unknown) {
+      console.error('Sync failed:', error);
+      addNotification({
+        type: 'error',
+        title: 'Failed to sync integration',
+        message: error instanceof Error ? error.message : 'Please try again'
+      });
+    }
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -368,7 +472,7 @@ export const IntegrationsSection = () => {
               </svg>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-400">{stats?.totalRecordsSynced.toLocaleString() || '0'}</div>
+              <div className="text-2xl font-bold text-blue-400">{stats?.totalRecordsSynced?.toLocaleString() || '0'}</div>
               <div className="text-sm text-blue-300">Total Records Synced</div>
             </div>
           </div>
@@ -405,20 +509,33 @@ export const IntegrationsSection = () => {
             </svg>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                  selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-400 border border-blue-500/30'
-                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
-                }`}
-              >
-                {category.label} ({category.count})
-              </button>
-            ))}
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={refreshIntegrations}
+              disabled={isLoading}
+              className="px-3 py-2 bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-all duration-200 border border-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh integrations"
+            >
+              <svg className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+            
+            <div className="flex gap-2 overflow-x-auto">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                    selectedCategory === category.id
+                      ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-400 border border-blue-500/30'
+                      : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
+                  }`}
+                >
+                  {category.label} ({category.count})
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -464,24 +581,57 @@ export const IntegrationsSection = () => {
                 <div className="flex gap-2">
                   {isConnected ? (
                     <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSync(integration!.id)}
-                        disabled={syncMutation.isPending}
-                        className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
-                      >
-                        {syncMutation.isPending ? 'Syncing...' : 'Sync'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDisconnect(integration!.id)}
-                        disabled={disconnectMutation.isPending}
-                        className="border-slate-600/50 hover:border-red-500/50 hover:text-red-400"
-                      >
-                        {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
-                      </Button>
+                      {template.id === 'hubspot' ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => testHubSpotConnection(integration!.id)}
+                            className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                          >
+                            Test Connection
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSync(integration!.id)}
+                            disabled={syncMutation.isPending}
+                            className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                          >
+                            {syncMutation.isPending ? 'Syncing...' : 'Sync'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDisconnect(integration!.id)}
+                            disabled={disconnectMutation.isPending}
+                            className="border-slate-600/50 hover:border-red-500/50 hover:text-red-400"
+                          >
+                            {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSync(integration!.id)}
+                            disabled={syncMutation.isPending}
+                            className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                          >
+                            {syncMutation.isPending ? 'Syncing...' : 'Sync'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDisconnect(integration!.id)}
+                            disabled={disconnectMutation.isPending}
+                            className="border-slate-600/50 hover:border-red-500/50 hover:text-red-400"
+                          >
+                            {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
+                          </Button>
+                        </>
+                      )}
                     </>
                   ) : (
                     <Button

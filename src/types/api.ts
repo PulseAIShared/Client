@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 
 
 
@@ -523,4 +524,100 @@ export enum CompanySize {
   Startup = 0,
   SMB = 1,
   Enterprise = 2
+}
+export interface ImportJobResponse {
+  importJobId: string;
+  status: 'Validating' | 'Validated' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
+  totalRecords: number;
+  processedRecords: number;
+  validRecords: number;
+  invalidRecords: number;
+  duplicateRecords: number;
+  errorCount: number;
+  fileName: string;
+  importSource: string;
+  skipDuplicates: boolean;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  message?: string;
+}
+
+export interface ImportErrorResponse {
+  rowNumber: number;
+  email: string;
+  errorMessage: string;
+  fieldName: string;
+  rawData?: string | null;
+  errorTime: string;
+}
+
+
+export interface ImportJobSummaryResponse {
+  id: string;
+  fileName: string;
+  status: string;
+  totalRecords: number;
+  successfulRecords: number;
+  errorCount: number;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface UploadImportResponse {
+  importJobId: string;
+  message: string;
+  status: string;
+}
+
+export interface ConfirmImportResponse {
+  importJobId: string;
+  message: string;
+  status: string;
+}
+
+export interface ImportJobDetailResponse {
+  id: string;
+  fileName: string;
+  status: 'Validating' | 'Validated' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
+  type: string;
+  importSource?: string;
+  totalRecords: number;
+  processedRecords: number;
+  successfulRecords: number;
+  failedRecords: number;
+  skippedRecords: number;
+  updatedRecords: number;
+  newRecords: number;
+  errorMessage?: string;
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  progressPercentage: number;
+  validationErrors: ImportErrorResponse[];
+  updates: ImportUpdateResponse[];
+  summary?: ImportSummaryResponse;
+}
+
+export interface ImportUpdateResponse {
+  rowNumber: number;
+  email: string;
+  customerName: string;
+  updatedFields: ImportFieldUpdate[];
+  updateTime: string;
+}
+
+export interface ImportFieldUpdate {
+  fieldName: string;
+  oldValue: string;
+  newValue: string;
+}
+
+
+export interface ImportSummaryResponse {
+  totalImported: number;
+  duplicatesSkipped: number;
+  errorsEncountered: number;
+  processingTimeMs: number;
+  [key: string]: ReactNode;
 }

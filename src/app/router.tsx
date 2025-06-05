@@ -112,6 +112,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
             return { Component: SettingsRoute };
           },
         },
+      {
+          path: 'oauth/hubspot/callback',
+          lazy: async () => {
+            const { HubSpotOAuthCallback } = await import('../features/settings/components/hubspot-oauth-callback');
+            return { Component: HubSpotOAuthCallback };
+          },
+        },
       ],
     },
     

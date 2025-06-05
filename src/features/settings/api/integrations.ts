@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 import { Integration, IntegrationStats } from '@/types/api';
-import { mockIntegrations, mockIntegrationStats } from './mock-data';
+import { mockIntegrations } from './mock-data';
 
 // API Functions
 export const getIntegrations = async ({ 
@@ -13,31 +13,32 @@ export const getIntegrations = async ({
   type?: string; 
   status?: string; 
 } = {}): Promise<Integration[]> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get(`/integrations?type=${type}&status=${status}`);
-  
-  let filtered = mockIntegrations;
+  const queryParams = new URLSearchParams();
   
   if (type && type !== 'all') {
-    filtered = filtered.filter(integration => 
-      integration.type.toLowerCase() === type.toLowerCase()
-    );
+    queryParams.append('type', type);
   }
   
   if (status && status !== 'all') {
-    filtered = filtered.filter(integration => 
-      integration.status.toLowerCase() === status.toLowerCase()
-    );
+    queryParams.append('status', status);
   }
+
+  const queryString = queryParams.toString();
+  const url = queryString ? `/integrations?${queryString}` : '/integrations';
   
-  return filtered;
+  const response = await api.get(url) as Integration[];
+
+  return response;
 };
 
 export const getIntegrationStats = async (): Promise<IntegrationStats> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get('/integrations/stats');
-  return mockIntegrationStats;
+  const response = await api.get('/integrations') as { 
+    integrations: Integration[]; 
+    stats: IntegrationStats 
+  };
+  return response.stats;
 };
+
 
 export const getIntegrationById = async ({ integrationId }: { integrationId: string }): Promise<Integration> => {
   // TODO: Replace with actual API call when backend is ready
