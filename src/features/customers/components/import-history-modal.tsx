@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGetImportHistory } from "../api/import";
 import { useNavigate } from "react-router-dom";
+import { ImportJobStatus } from "@/types/api";
 
 // Import History Modal Component
 interface ImportHistoryModalProps {
@@ -10,6 +11,8 @@ interface ImportHistoryModalProps {
 export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose }) => {
   const [page, setPage] = useState(1);
   const { data: importHistory, isLoading } = useGetImportHistory({ page, pageSize: 10 });
+
+  console.log(importHistory);
   const navigate = useNavigate();
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -76,8 +79,8 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
                         {new Date(job.createdAt).toLocaleTimeString()}
                       </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(job.status)}`}>
-                      {job.status}
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(ImportJobStatus[job.status])}`}>
+                      {ImportJobStatus[job.status]}
                     </span>
                   </div>
                   

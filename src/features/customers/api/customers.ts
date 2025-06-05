@@ -6,7 +6,8 @@ import {
   CustomersApiResponse, 
   CustomersQueryParams,
   transformCustomerData,
-  CustomerDisplayData
+  CustomerDisplayData,
+  CustomerDetailData
 } from '@/types/api';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 
@@ -71,9 +72,10 @@ export const useGetCustomers = (
 };
 
 // Get customer by ID
-export const getCustomerById = async ({ customerId }: { customerId: string }): Promise<CustomerDisplayData> => {
-  const response = await api.get(`/customers/${customerId}`) as CustomerData;
-  return transformCustomerData(response);
+export const getCustomerById = async ({ customerId }: { customerId: string }): Promise<CustomerDetailData> => {
+  const response = await api.get(`/customers/${customerId}`) as CustomerDetailData;
+
+  return response;
 };
 
 export const getCustomerByIdQueryOptions = (customerId: string) => {
@@ -145,22 +147,42 @@ export const useUpdateCustomer = ({ mutationConfig }: UseUpdateCustomerOptions =
   });
 };
 
-// Delete customer
-export const deleteCustomer = async ({ customerId }: { customerId: string }): Promise<void> => {
-  return api.delete(`/customers/${customerId}`);
-};
+export interface CustomerDeletionError {
+  customerId: string;
+  email: string;
+  errorMessage: string;
+}
 
-type UseDeleteCustomerOptions = {
-  mutationConfig?: MutationConfig<typeof deleteCustomer>;
-};
+export interface DeleteCustomersResponse {
+  message: string;
+  totalRequested: number;
+  successfullyDeleted: number;
+  failed: number;
+  errors: CustomerDeletionError[];
+  hasMoreErrors: boolean;
+}
 
-export const useDeleteCustomer = ({ mutationConfig }: UseDeleteCustomerOptions = {}) => {
-  return useMutation({
-    mutationFn: deleteCustomer,
-    ...mutationConfig,
+export interface DeleteCustomersRequest {
+  customerIds: string[];
+}
+
+
+export const deleteCustomers = async (request: DeleteCustomersRequest): Promise<DeleteCustomersResponse> => {
+  return api.delete('/customers', {
+    data: request, 
   });
 };
 
+type UseDeleteCustomersOptions = {
+  mutationConfig?: MutationConfig<typeof deleteCustomers>;
+};
+
+export const useDeleteCustomers = ({ mutationConfig }: UseDeleteCustomersOptions = {}) => {
+  return useMutation({
+    mutationFn: deleteCustomers,
+    ...mutationConfig,
+  });
+};
 // Bulk operations
 export const bulkUpdateCustomers = async (data: {
   customerIds: string[];

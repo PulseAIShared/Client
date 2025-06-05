@@ -1,0 +1,143 @@
+// src/features/customers/components/customer-detail-view.tsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { calculateTenure, getHealthScoreColor } from '@/utils/customer-helpers';
+import { CustomerOverviewTab } from './overview-tab';
+import { CustomerDetailData } from '@/types/api';
+import { CustomerAnalyticsTab } from './analytics-tab';
+
+
+interface CustomerDetailViewProps {
+  customer: CustomerDetailData;
+}
+
+
+export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer }) => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'overview' | 'data-sources' | 'analytics'>('overview');
+
+  const customerName = `${customer.firstName} ${customer.lastName}`.trim();
+  const tenure = calculateTenure(customer.subscriptionStartDate);
+  
+  const tabs = [
+    { 
+      id: 'overview' as const, 
+      label: 'Overview', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      )
+    },
+    { 
+      id: 'data-sources' as const, 
+      label: 'Data Sources', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+        </svg>
+      )
+    },
+    { 
+      id: 'analytics' as const, 
+      label: 'Analytics', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      )
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl blur-3xl"></div>
+        
+        <div className="relative bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/app/customers')}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                {customerName.split(' ').map(n => n[0]).join('')}
+              </div>
+              
+              <div>
+                <div className="inline-flex items-center gap-2 bg-purple-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-400/30 mb-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-purple-200">Customer Profile</span>
+                  <span className={`text-xs px-2 py-1 rounded-full border ${getHealthScoreColor(customer.quickMetrics.overallHealthScore)}`}>
+                    {customer.quickMetrics.overallHealthScore}
+                  </span>
+                </div>
+                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                  {customerName}
+                </h1>
+                <div className="flex items-center gap-4 mt-1">
+                  <p className="text-slate-300">{customer.email}</p>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm text-slate-400">Data Quality:</span>
+                    <span className="text-sm font-medium text-blue-400">
+                      {Math.round(customer.dataQuality.completenessScore)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline"
+                className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+              >
+                Send Message
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                Launch Campaign
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg overflow-hidden">
+        <div className="flex flex-wrap border-b border-slate-700/50">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-3 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
+                activeTab === tab.id
+                  ? 'border-blue-500 bg-blue-600/10 text-blue-400'
+                  : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/30'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        
+        {/* Content Area - We'll add components for each tab */}
+        <div className="p-6">
+          {activeTab === 'overview' && <CustomerOverviewTab customer={customer} />}
+          {activeTab === 'data-sources' && <div>Data sources content will go here</div>}
+          {activeTab === 'analytics' && <CustomerAnalyticsTab customer={customer} />}
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -556,12 +556,21 @@ export interface ImportErrorResponse {
 export interface ImportJobSummaryResponse {
   id: string;
   fileName: string;
-  status: string;
+  status: ImportJobStatus;
   totalRecords: number;
   successfulRecords: number;
   errorCount: number;
   createdAt: string;
   completedAt?: string;
+}
+
+export enum ImportJobStatus {
+  Pending = 0,
+  Validating = 1,
+  Processing = 2,
+  Completed = 3,
+  Failed = 4,
+  Cancelled = 5
 }
 
 export interface UploadImportResponse {
@@ -620,4 +629,127 @@ export interface ImportSummaryResponse {
   errorsEncountered: number;
   processingTimeMs: number;
   [key: string]: ReactNode;
+}
+
+interface DataSource {
+  source: string;
+  externalId: string;
+  isPrimarySource: boolean;
+  lastSyncedAt: string;
+  importBatchId?: string;
+  importedByUserName?: string;
+  sourcePriority: number;
+  isActive: boolean;
+  syncVersion?: string | null;
+  syncStatus: string;
+  daysSinceLastSync: number;
+  priorityLevel: string;
+}
+
+interface PaymentInfo {
+  source: string;
+  isPrimarySource: boolean;
+  importBatchId?: string;
+  importedByUserName?: string;
+  subscriptionStatus: number;
+  plan: number;
+  monthlyRecurringRevenue: number;
+  lifetimeValue: number;
+  subscriptionStartDate: string;
+  subscriptionEndDate?: string | null;
+  paymentStatus: number;
+  nextBillingDate?: string | null;
+  lastPaymentDate?: string | null;
+  paymentFailureCount: number;
+  lastSyncedAt: string;
+  isActive: boolean;
+}
+
+interface QuickMetrics {
+  totalDataSources: number;
+  lastActivityDate?: string | null;
+  lastDataSync: string;
+  totalActivities: number;
+  totalChurnPredictions: number;
+  hasRecentActivity: boolean;
+  hasMultipleSources: boolean;
+  dataCompletenessScore: number;
+  daysSinceLastActivity: number;
+  daysSinceLastSync: number;
+  activityStatus: string;
+  dataFreshnessStatus: string;
+  overallHealthScore: string;
+}
+
+interface DataQuality {
+  completenessScore: number;
+  hasMultipleSources: boolean;
+  lastDataSync: string;
+  missingCriticalData: string[];
+  dataFreshness: string;
+  recommendedActions: string[];
+  overallQuality: number;
+  qualityIssues: string[];
+}
+
+export interface CustomerDetailData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  companyName?: string;
+  jobTitle?: string | null;
+  location?: string | null;
+  country?: string | null;
+  churnRiskScore: number;
+  churnRiskLevel: number;
+  churnPredictionDate: string;
+  subscriptionStatus: number;
+  plan: number;
+  monthlyRecurringRevenue: number;
+  lifetimeValue: number;
+  subscriptionStartDate: string;
+  subscriptionEndDate?: string | null;
+  lastLoginDate?: string | null;
+  weeklyLoginFrequency: number;
+  featureUsagePercentage: number;
+  supportTicketCount: number;
+  paymentStatus: number;
+  lastPaymentDate?: string | null;
+  nextBillingDate?: string | null;
+  paymentFailureCount: number;
+  dateCreated: string;
+  lastSyncedAt: string;
+  primaryPaymentInfo?: PaymentInfo | null;
+  primaryCrmInfo?: unknown | null;
+  primaryMarketingInfo?: unknown | null;
+  primarySupportInfo?: unknown | null;
+  primaryEngagementInfo?: unknown | null;
+  quickMetrics: QuickMetrics;
+  dataQuality: DataQuality;
+  dataSourceDetails: {
+    crmSources: DataSource[];
+    paymentSources: DataSource[];
+    marketingSources: DataSource[];
+    supportSources: DataSource[];
+    engagementSources: DataSource[];
+    totalActiveSources: number;
+    lastOverallSync: string;
+    uniqueSourceNames: string[];
+  };
+  sourceSummary: {
+    crmSourceCount: number;
+    paymentSourceCount: number;
+    marketingSourceCount: number;
+    supportSourceCount: number;
+    engagementSourceCount: number;
+    totalSources: number;
+    hasMultipleSources: boolean;
+    hasPaymentData: boolean;
+    hasCrmData: boolean;
+    hasMarketingData: boolean;
+    hasSupportData: boolean;
+    hasEngagementData: boolean;
+  };
 }

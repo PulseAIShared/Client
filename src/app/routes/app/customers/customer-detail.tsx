@@ -2,7 +2,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
-import { CustomerDetailView } from '@/features/customers/components/customer-detail-view';
+import { CustomerDetailView } from '@/features/customers/components/details/customer-detail-view';
 import { useGetCustomerById } from '@/features/customers/api/customers';
 import { Spinner } from '@/components/ui/spinner';
 

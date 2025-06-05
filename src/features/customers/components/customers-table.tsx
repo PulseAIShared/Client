@@ -1,7 +1,10 @@
-// src/features/customers/components/customers-table.tsx - Updated for your API
+// src/features/customers/components/customers-table.tsx - Complete with delete functionality
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGetCustomers } from '@/features/customers/api/customers';
+
+import { useNotifications } from '@/components/ui/notifications';
 import { 
   SubscriptionStatus, 
   SubscriptionPlan, 
@@ -9,38 +12,15 @@ import {
   ChurnRiskLevel,
   CustomersQueryParams,
   formatSubscriptionStatus,
+  CustomerDisplayData,
 } from '@/types/api';
+import { DeleteCustomersModal } from './customers-delete-modal';
+import { getActivityColor, getRiskColor, getSubscriptionStatusColor } from '@/utils/customer-helpers';
 
 type SortField = 'name' | 'monthsSubbed' | 'ltv' | 'churnRisk' | 'activityFrequency' | 'email' | 'plan';
-type SortDirection = 'asc' | 'desc';
 
-const getRiskColor = (risk: number) => {
-  if (risk >= 80) return 'text-red-400 bg-red-500/20 border-red-500/30';
-  if (risk >= 60) return 'text-orange-400 bg-orange-500/20 border-orange-500/30';
-  if (risk >= 40) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
-  return 'text-green-400 bg-green-500/20 border-green-500/30';
-};
 
-const getActivityColor = (frequency: string) => {
-  if (frequency === 'High') return 'text-green-400 bg-green-500/20 border-green-500/30';
-  if (frequency === 'Medium') return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
-  return 'text-red-400 bg-red-500/20 border-red-500/30';
-};
 
-const getSubscriptionStatusColor = (status: SubscriptionStatus) => {
-  switch (status) {
-    case SubscriptionStatus.Active:
-      return 'text-green-400 bg-green-500/20 border-green-500/30';
-    case SubscriptionStatus.Cancelled:
-      return 'text-red-400 bg-red-500/20 border-red-500/30';
-    case SubscriptionStatus.PastDue:
-      return 'text-orange-400 bg-orange-500/20 border-orange-500/30';
-    case SubscriptionStatus.Paused:
-      return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
-    default:
-      return 'text-slate-400 bg-slate-500/20 border-slate-500/30';
-  }
-};
 
 const ChurnRiskBar: React.FC<{ risk: number }> = ({ risk }) => (
   <div className="flex items-center gap-3">
@@ -63,8 +43,9 @@ const ChurnRiskBar: React.FC<{ risk: number }> = ({ risk }) => (
 
 export const CustomersTable: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { addNotification } = useNotifications();
   
-  // State for filtering and pagination
   const [queryParams, setQueryParams] = useState<CustomersQueryParams>({
     page: 1,
     pageSize: 50,
@@ -75,8 +56,9 @@ export const CustomersTable: React.FC = () => {
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [customersToDelete, setCustomersToDelete] = useState<CustomerDisplayData[]>([]);
 
-  // Fetch customers data
   const { data, isLoading, error } = useGetCustomers(queryParams);
   const customers = useMemo(() => data?.customers || [], [data]);
   const pagination = data?.pagination;
@@ -87,7 +69,7 @@ export const CustomersTable: React.FC = () => {
       ...prev,
       sortBy: field,
       sortDescending: isCurrentField ? !prev.sortDescending : true,
-      page: 1, // Reset to first page when sorting
+      page: 1,
     }));
   };
 
@@ -96,7 +78,7 @@ export const CustomersTable: React.FC = () => {
     setQueryParams(prev => ({
       ...prev,
       search: search || undefined,
-      page: 1, // Reset to first page when searching
+      page: 1,
     }));
   };
 
@@ -105,7 +87,7 @@ export const CustomersTable: React.FC = () => {
     
     const newParams: CustomersQueryParams = {
       ...queryParams,
-      page: 1, // Reset to first page when filtering
+      page: 1,
       subscriptionStatus: undefined,
       churnRiskLevel: undefined,
       paymentStatus: undefined,
@@ -124,7 +106,6 @@ export const CustomersTable: React.FC = () => {
       case 'cancelled':
         newParams.subscriptionStatus = SubscriptionStatus.Cancelled;
         break;
-      // 'all' case keeps all filters undefined
     }
 
     setQueryParams(newParams);
@@ -138,7 +119,35 @@ export const CustomersTable: React.FC = () => {
     setQueryParams(prev => ({ ...prev, page: newPage }));
   };
 
-  // Calculate filter counts (this would ideally come from a separate API endpoint)
+  const handleBulkDelete = () => {
+    const selectedCustomerData = customers.filter(customer => 
+      selectedCustomers.has(customer.id)
+    );
+    setCustomersToDelete(selectedCustomerData);
+    setShowDeleteModal(true);
+  };
+
+  const handleSingleDelete = (customer: CustomerDisplayData, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setCustomersToDelete([customer]);
+    setShowDeleteModal(true);
+  };
+
+  interface DeleteCustomersResponse {
+    failed: number;
+    message: string;
+  }
+
+  const handleDeleteSuccess = (response: DeleteCustomersResponse) => {
+    setSelectedCustomers(new Set());
+    queryClient.invalidateQueries({ queryKey: ['customers'] });
+    addNotification({
+      type: response.failed === 0 ? 'success' : 'warning',
+      title: response.failed === 0 ? 'Customers deleted successfully' : 'Deletion completed with some errors',
+      message: response.message,
+    });
+  };
+
   const filterCounts = useMemo(() => ({
     all: pagination?.totalCount || 0,
     active: customers.filter(c => c.subscriptionStatus === SubscriptionStatus.Active).length,
@@ -185,7 +194,6 @@ export const CustomersTable: React.FC = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {/* Filters Loading */}
         <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 h-12 bg-slate-700 rounded"></div>
@@ -196,8 +204,6 @@ export const CustomersTable: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Table Loading */}
         <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
           <div className="p-6 border-b border-slate-700/50">
             <div className="h-6 bg-slate-700 rounded w-48"></div>
@@ -225,10 +231,8 @@ export const CustomersTable: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Filters and Search */}
       <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
           <div className="flex-1 relative">
             <input 
               type="text" 
@@ -241,8 +245,6 @@ export const CustomersTable: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-
-          {/* Filter buttons */}
           <div className="flex gap-2 flex-wrap">
             {[
               { key: 'all', label: 'All Customers', count: filterCounts.all },
@@ -267,9 +269,7 @@ export const CustomersTable: React.FC = () => {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg overflow-hidden">
-        {/* Table Header with Actions */}
         <div className="p-6 border-b border-slate-700/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -281,8 +281,14 @@ export const CustomersTable: React.FC = () => {
                   <span className="text-sm text-slate-400">
                     {selectedCustomers.size} selected
                   </span>
-                  <button className="px-3 py-1 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors text-sm border border-red-500/30">
-                    Send Recovery Campaign
+                  <button 
+                    onClick={handleBulkDelete}
+                    className="px-3 py-1 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors text-sm border border-red-500/30 flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Selected
                   </button>
                   <button className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors text-sm border border-blue-500/30">
                     Export Selected
@@ -290,14 +296,12 @@ export const CustomersTable: React.FC = () => {
                 </div>
               )}
             </div>
-            
             <div className="text-sm text-slate-400">
               Page {pagination?.page || 1} of {pagination?.totalPages || 1}
             </div>
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -375,10 +379,9 @@ export const CustomersTable: React.FC = () => {
               {customers.map((customer) => (
                 <tr 
                   key={customer.id} 
-                  className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-all duration-200 group cursor-pointer"
-                  onClick={() => handleCustomerClick(customer.id)}
+                  className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-all duration-200 group"
                 >
-                  <td className="p-4">
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedCustomers.has(customer.id)}
@@ -386,7 +389,10 @@ export const CustomersTable: React.FC = () => {
                       className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
                     />
                   </td>
-                  <td className="p-4">
+                  <td 
+                    className="p-4 cursor-pointer"
+                    onClick={() => handleCustomerClick(customer.id)}
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
                         {customer.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
@@ -399,7 +405,10 @@ export const CustomersTable: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td 
+                    className="p-4 cursor-pointer"
+                    onClick={() => handleCustomerClick(customer.id)}
+                  >
                     <div className="space-y-1">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
                         customer.planEnum === SubscriptionPlan.Enterprise 
@@ -417,16 +426,28 @@ export const CustomersTable: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td 
+                    className="p-4 cursor-pointer"
+                    onClick={() => handleCustomerClick(customer.id)}
+                  >
                     <span className="text-white font-medium">{customer.monthsSubbed}mo</span>
                   </td>
-                  <td className="p-4">
+                  <td 
+                    className="p-4 cursor-pointer"
+                    onClick={() => handleCustomerClick(customer.id)}
+                  >
                     <span className="text-green-400 font-semibold">{customer.ltv}</span>
                   </td>
-                  <td className="p-4">
+                  <td 
+                    className="p-4 cursor-pointer"
+                    onClick={() => handleCustomerClick(customer.id)}
+                  >
                     <ChurnRiskBar risk={customer.churnRisk} />
                   </td>
-                  <td className="p-4">
+                  <td 
+                    className="p-4 cursor-pointer"
+                    onClick={() => handleCustomerClick(customer.id)}
+                  >
                     <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getActivityColor(customer.activityFrequency)}`}>
                       {customer.activityFrequency}
                     </span>
@@ -447,12 +468,12 @@ export const CustomersTable: React.FC = () => {
                         </svg>
                       </button>
                       <button 
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-2 text-slate-400 hover:bg-slate-600/20 rounded-lg transition-colors border border-slate-600/30"
-                        title="More Actions"
+                        onClick={(e) => handleSingleDelete(customer, e)}
+                        className="p-2 text-red-400 hover:bg-red-600/20 rounded-lg transition-colors border border-red-500/30"
+                        title="Delete Customer"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                     </div>
@@ -463,7 +484,6 @@ export const CustomersTable: React.FC = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
           <div className="flex items-center justify-between p-6 border-t border-slate-700/50">
             <div className="text-sm text-slate-400">
@@ -477,8 +497,6 @@ export const CustomersTable: React.FC = () => {
               >
                 Previous
               </button>
-              
-              {/* Page numbers */}
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                   const pageNum = Math.max(1, pagination.page - 2) + i;
@@ -499,7 +517,6 @@ export const CustomersTable: React.FC = () => {
                   );
                 })}
               </div>
-              
               <button
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={!pagination.hasNextPage}
@@ -518,6 +535,17 @@ export const CustomersTable: React.FC = () => {
           </div>
         )}
       </div>
+
+      {showDeleteModal && (
+        <DeleteCustomersModal
+          customers={customersToDelete}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setCustomersToDelete([]);
+          }}
+          onSuccess={handleDeleteSuccess}
+        />
+      )}
     </div>
   );
 };
