@@ -24,6 +24,21 @@ interface IntegrationTemplate {
   setupComplexity: 'Easy' | 'Medium' | 'Advanced';
 }
 
+// Define API response types
+interface HubSpotTestConnectionResponse {
+  isConnected: boolean;
+  status: string;
+}
+
+interface HubSpotConnectResponse {
+  authorizationUrl: string;
+}
+
+interface HubSpotSyncResponse {
+  totalRecords: number;
+  message: string;
+}
+
 export const IntegrationsSection = () => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'crm' | 'email' | 'payment' | 'analytics'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -212,7 +227,7 @@ export const IntegrationsSection = () => {
   // HubSpot-specific test connection function
   const testHubSpotConnection = async (integrationId: string) => {
     try {
-      const result = await api.post(`/integrations/hubspot/${integrationId}/test`);
+      const result = await api.post(`/integrations/hubspot/${integrationId}/test`) as HubSpotTestConnectionResponse;
       
       addNotification({
         type: result.isConnected ? 'success' : 'warning',
@@ -243,7 +258,7 @@ export const IntegrationsSection = () => {
     if (templateId === 'hubspot') {
       try {
         // Start OAuth flow
-        const response = await api.post('/integrations/hubspot/connect');
+        const response = await api.post('/integrations/hubspot/connect') as HubSpotConnectResponse;
         
         // Redirect to HubSpot OAuth
         window.location.href = response.authorizationUrl;
@@ -352,7 +367,7 @@ export const IntegrationsSection = () => {
         const response = await api.post(`/integrations/hubspot/${integrationId}/sync`, {
           incrementalSync: true,
           syncFromDate: null
-        });
+        }) as HubSpotSyncResponse;
         
         addNotification({
           type: 'success',

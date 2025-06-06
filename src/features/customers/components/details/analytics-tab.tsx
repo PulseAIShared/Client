@@ -1,5 +1,6 @@
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { mockActivityTimeline, mockChurnRiskTrend, mockEngagementData } from "../../api/mock-data";
+import { CustomerDetailData } from "@/types/api";
 
 const getActivityIcon = (type: string) => {
   switch (type) {
@@ -47,8 +48,9 @@ const getActivityIcon = (type: string) => {
 };
 
 interface CustomerAnalyticsTabProps {
-  customer: unknown; // We'll use mock data for analytics
+  customer: CustomerDetailData;
 }
+
 export const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({ customer }) => {
   return (
     <div className="space-y-8">
@@ -149,19 +151,19 @@ export const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({ cust
             </div>
           </div>
           <div className="text-3xl font-bold text-blue-400 mb-2">
-            {customer?.quickMetrics?.activityStatus === 'Active' ? '85' : 
-             customer?.quickMetrics?.activityStatus === 'Low' ? '45' : '25'}
+            {customer.quickMetrics.activityStatus === 'Active' ? '85' : 
+             customer.quickMetrics.activityStatus === 'Low' ? '45' : '25'}
           </div>
           <div className="flex items-center gap-2">
             <div className={`w-full bg-slate-700/50 rounded-full h-2 ${
-              customer?.quickMetrics?.activityStatus === 'Active' ? 'bg-gradient-to-r from-green-500 to-green-600' :
-              customer?.quickMetrics?.activityStatus === 'Low' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+              customer.quickMetrics.activityStatus === 'Active' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+              customer.quickMetrics.activityStatus === 'Low' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
               'bg-gradient-to-r from-red-500 to-red-600'
             }`}>
               <div 
                 className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${customer?.quickMetrics?.activityStatus === 'Active' ? 85 : 
-                  customer?.quickMetrics?.activityStatus === 'Low' ? 45 : 25}%` }}
+                style={{ width: `${customer.quickMetrics.activityStatus === 'Active' ? 85 : 
+                  customer.quickMetrics.activityStatus === 'Low' ? 45 : 25}%` }}
               />
             </div>
           </div>
@@ -196,12 +198,12 @@ export const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({ cust
             </div>
           </div>
           <div className="text-3xl font-bold text-orange-400 mb-2">
-            {customer?.churnRiskScore >= 70 ? '30 days' : 
-             customer?.churnRiskScore >= 40 ? '90 days' : '180+ days'}
+            {customer.churnRiskScore >= 70 ? '30 days' : 
+             customer.churnRiskScore >= 40 ? '90 days' : '180+ days'}
           </div>
           <p className="text-orange-300 text-sm">
-            {customer?.churnRiskScore >= 70 ? 'High risk - immediate action needed' :
-             customer?.churnRiskScore >= 40 ? 'Medium risk - monitor closely' : 'Low risk - maintain engagement'}
+            {customer.churnRiskScore >= 70 ? 'High risk - immediate action needed' :
+             customer.churnRiskScore >= 40 ? 'Medium risk - monitor closely' : 'Low risk - maintain engagement'}
           </p>
         </div>
       </div>
