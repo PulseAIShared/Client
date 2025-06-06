@@ -168,7 +168,7 @@ export interface DeleteCustomersRequest {
 
 
 export const deleteCustomers = async (request: DeleteCustomersRequest): Promise<DeleteCustomersResponse> => {
-  return api.delete('/customers', {
+  return api.post('/customers', {
     data: request, 
   });
 };
