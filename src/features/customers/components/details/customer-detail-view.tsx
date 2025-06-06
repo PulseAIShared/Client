@@ -6,6 +6,7 @@ import { calculateTenure, getHealthScoreColor } from '@/utils/customer-helpers';
 import { CustomerOverviewTab } from './overview-tab';
 import { CustomerDetailData } from '@/types/api';
 import { CustomerAnalyticsTab } from './analytics-tab';
+import { CustomerDataSourcesTab } from './data-sources-tab';
 
 
 interface CustomerDetailViewProps {
@@ -134,7 +135,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
         {/* Content Area - We'll add components for each tab */}
         <div className="p-6">
           {activeTab === 'overview' && <CustomerOverviewTab customer={customer} />}
-          {activeTab === 'data-sources' && <div>Data sources content will go here</div>}
+          {activeTab === 'data-sources' && <CustomerDataSourcesTab customer={customer} />}
           {activeTab === 'analytics' && <CustomerAnalyticsTab customer={customer} />}
         </div>
       </div>

@@ -100,3 +100,29 @@ export const getSubscriptionStatusColor = (status: SubscriptionStatus) => {
   }
 };
 
+// Helper function to format sync status
+export const getSyncStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'current':
+    case 'active':
+      return 'text-green-400 bg-green-500/20 border-green-500/30';
+    case 'stale':
+    case 'outdated':
+      return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
+    case 'error':
+    case 'failed':
+      return 'text-red-400 bg-red-500/20 border-red-500/30';
+    default:
+      return 'text-slate-400 bg-slate-500/20 border-slate-500/30';
+  }
+};
+
+export const formatDateTime = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
