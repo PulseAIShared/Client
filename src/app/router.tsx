@@ -112,6 +112,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
             return { Component: SettingsRoute };
           },
         },
+        {
+        path: 'analytics/run-churn-analysis',
+        lazy: async () => {
+          const { RunChurnAnalysisRoute } = await import('./routes/app/analytics/run-churn-analysis');
+          return { Component: RunChurnAnalysisRoute };
+        },
+      },
       {
           path: 'oauth/hubspot/callback',
           lazy: async () => {

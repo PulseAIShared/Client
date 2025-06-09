@@ -212,7 +212,7 @@ export const NotificationsRoute = () => {
     }
     
     if (notification.actionUrl) {
-      navigate(notification.actionUrl);
+      navigate(`/app${notification.actionUrl}`);
     }
   };
 

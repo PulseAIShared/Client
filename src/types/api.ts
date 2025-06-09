@@ -753,3 +753,47 @@ export interface CustomerDetailData {
     hasEngagementData: boolean;
   };
 }
+
+
+export interface CategoryScores {
+  coreProfile: number;
+  paymentData: number;
+  engagementData: number;
+  supportData: number;
+  historicalData: number;
+}
+
+export interface EligibleCustomer {
+  customerId: string;
+  customerEmail: string;
+  customerName: string;
+  overallCompletenessScore: number;
+  categoryScores: CategoryScores;
+}
+
+export interface IneligibleCustomer {
+  customerId: string;
+  customerEmail: string;
+  customerName: string;
+  overallCompletenessScore: number;
+  missingDataCategories: string[];
+  recommendedActions: string[];
+}
+
+export interface CompletenessDataResponse {
+  overallEligibility: boolean;
+  summary: {
+    totalCustomers: number;
+    eligibleCustomersCount: number;
+    ineligibleCustomersCount: number;
+    averageCompletenessScore: number;
+  };
+  recommendedActions: string[];
+  eligibleCustomers: EligibleCustomer[];
+  ineligibleCustomers: IneligibleCustomer[];
+}
+
+export interface RunChurnAnalysisResponse {
+  analysisId: string;
+  status: string;
+}

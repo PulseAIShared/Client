@@ -1,10 +1,12 @@
 // src/features/dashboard/components/dashboard-header.tsx
 import { useUser } from '@/lib/auth';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const DashboardHeader = () => {
 
     const user = useUser();
+    const navigate = useNavigate();
   return (
     <div className="relative">
       {/* Background gradient effect */}
@@ -41,7 +43,7 @@ export const DashboardHeader = () => {
         
         {/* Quick action buttons */}
         <div className="flex flex-wrap gap-3 mt-6">
-          <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm">
+          <button  onClick={() => navigate('/app/analytics/run-churn-analysis')} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm">
             Run Churn Analysis
           </button>
           <button className="px-4 py-2 bg-slate-700/50 text-white rounded-lg hover:bg-slate-600/50 transition-colors font-medium text-sm border border-slate-600/50">
