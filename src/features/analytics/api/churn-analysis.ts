@@ -1,7 +1,7 @@
 import { api } from "@/lib/api-client";
 import { MutationConfig, QueryConfig } from "@/lib/react-query";
 import { CompletenessDataResponse, RunChurnAnalysisResponse, ChurnAnalysisResultResponse } from "@/types/api";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, Query } from "@tanstack/react-query";
 
 export const checkChurnDataCompleteness = async (data: {
   customerIds: string[];
@@ -43,8 +43,9 @@ export const getChurnAnalysisResultsQueryOptions = (analysisId: string) => {
     queryKey: ['analytics', 'churn', 'results', analysisId],
     queryFn: () => getChurnAnalysisResults(analysisId),
     enabled: !!analysisId,
-    refetchInterval: (data: ChurnAnalysisResultResponse | undefined) => {
+    refetchInterval: (query: Query<ChurnAnalysisResultResponse, Error, ChurnAnalysisResultResponse, string[]>) => {
       // Poll every 5 seconds if analysis is still running
+      const data = query.state.data as ChurnAnalysisResultResponse | undefined;
       if (data?.status === 'Processing' || data?.status === 'Validating') {
         return 5000;
       }

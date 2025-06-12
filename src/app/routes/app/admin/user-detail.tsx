@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
@@ -30,17 +30,19 @@ export const AdminUserDetailRoute = () => {
     isCompanyOwner: false,
   });
 
-  const { data: user, isLoading, error } = useGetUserById(userId!, {
-    onSuccess: (userData) => {
+  const { data: user, isLoading, error } = useGetUserById(userId!);
+
+  useEffect(() => {
+    if (user) {
       setFormData({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        role: userData.role,
-        isCompanyOwner: userData.isCompanyOwner,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        isCompanyOwner: user.isCompanyOwner,
       });
-    },
-  });
+    }
+  }, [user]);
 
   const updateUserMutation = useUpdateUser({
     mutationConfig: {
@@ -172,10 +174,10 @@ export const AdminUserDetailRoute = () => {
                     </button>
                     <button
                       onClick={handleSave}
-                      disabled={updateUserMutation.isLoading}
+                      disabled={updateUserMutation.isPending}
                       className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                      {updateUserMutation.isLoading && <Spinner size="sm" />}
+                      {updateUserMutation.isPending && <Spinner size="sm" />}
                       Save Changes
                     </button>
                   </div>

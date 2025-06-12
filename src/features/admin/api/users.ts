@@ -74,9 +74,9 @@ export const useUpdateUser = (options?: {
     mutationFn: updateUser,
     onSuccess: (_, variables) => {
       // Invalidate the users list
-      queryClient.invalidateQueries(['admin', 'users']);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
       // Update the specific user cache
-      queryClient.invalidateQueries(['admin', 'users', variables.id]);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users', variables.id] });
     },
     ...options?.mutationConfig,
   });
@@ -91,7 +91,7 @@ export const useDeleteUser = (options?: {
     mutationFn: deleteUser,
     onSuccess: () => {
       // Invalidate the users list to refetch after deletion
-      queryClient.invalidateQueries(['admin', 'users']);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
     },
     ...options?.mutationConfig,
   });

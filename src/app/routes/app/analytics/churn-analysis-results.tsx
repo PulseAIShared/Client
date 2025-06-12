@@ -304,10 +304,10 @@ export const ChurnAnalysisResultsRoute = () => {
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
                   Analysis Results
                 </h1>
-                <p className="text-slate-300">Analysis ID: {analysis.analysisId}</p>
+                <p className="text-slate-300">Analysis ID: {analysis?.analysisId}</p>
               </div>
               
-              {analysis.status === 'Processing' && (
+              {analysis?.status === 'Processing' && (
                 <div className="flex items-center gap-3 px-4 py-2 bg-blue-500/20 border border-blue-400/30 rounded-xl">
                   <Spinner size="sm" />
                   <span className="font-medium text-blue-300">Analysis in progress...</span>
@@ -317,30 +317,30 @@ export const ChurnAnalysisResultsRoute = () => {
           </div>
         </div>
 
-        <AnalysisOverview analysis={analysis} />
+        {analysis && <AnalysisOverview analysis={analysis} />}
 
-        {analysis.results && (
+        {analysis?.results && (
           <>
             <ResultsSummary results={analysis.results} />
             
-            {analysis.results.customerResults && analysis.results.customerResults.length > 0 && (
+            {analysis.results?.customerResults && analysis.results.customerResults.length > 0 && (
               <CustomerResults customers={analysis.results.customerResults} />
             )}
           </>
         )}
 
-        {analysis.status === 'Processing' && (
+        {analysis?.status === 'Processing' && (
           <div className="bg-blue-500/20 border border-blue-400/30 rounded-2xl p-6">
             <div className="flex items-center gap-4">
               <Spinner size="sm" />
               <div>
                 <p className="font-medium text-blue-300 mb-1">Analysis in Progress</p>
                 <p className="text-blue-400 text-sm">
-                  {analysis.processedCustomers.toLocaleString()} of {analysis.totalCustomers.toLocaleString()} customers processed 
-                  ({analysis.progressPercentage.toFixed(1)}%)
+                  {analysis?.processedCustomers?.toLocaleString()} of {analysis?.totalCustomers?.toLocaleString()} customers processed 
+                  ({analysis?.progressPercentage?.toFixed(1)}%)
                 </p>
                 <div className="w-full bg-slate-700/50 rounded-full h-2 mt-2 max-w-md">
-                  <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-1000 ease-out" style={{ width: `${analysis.progressPercentage}%` }}></div>
+                  <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-1000 ease-out" style={{ width: `${analysis?.progressPercentage || 0}%` }}></div>
                 </div>
               </div>
             </div>
