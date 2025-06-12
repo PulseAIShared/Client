@@ -1,9 +1,8 @@
 // src/features/customers/components/customer-import-modal.tsx
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/components/ui/notifications';
 import { useUploadImport } from '@/features/customers/api/import';
-import { useRealTimeImportUpdates } from '@/hooks/useRealTimeNotifications';
 import pulseTemplateUrl from '@/assets/pulse-template.csv?url';
 interface CustomerImportModalProps {
   onClose: () => void;
@@ -53,8 +52,6 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
   const { addNotification } = useNotifications();
   const uploadImport = useUploadImport();
 
-  // Hook to receive real-time import updates
-  useRealTimeImportUpdates(importJobId || undefined);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
