@@ -30,6 +30,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.15.0",
     "fs": "^0.0.1-security",
+    "lodash": "^4.17.21",
     "postcss": "^8.5.4",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
