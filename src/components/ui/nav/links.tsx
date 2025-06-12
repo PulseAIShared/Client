@@ -32,9 +32,9 @@ export function LinksGroup({
       to={link}
       onClick={onClick}
       className={`
-        group relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 
+        group relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 focus:outline-none
         ${isActive 
-          ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 text-white' 
+          ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-white' 
           : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
         }
       `}

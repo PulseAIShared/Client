@@ -797,3 +797,158 @@ export interface RunChurnAnalysisResponse {
   analysisId: string;
   status: string;
 }
+
+export interface UserSummary {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface ChurnAnalysisResultResponse {
+  analysisId: string;
+  status: string;
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  requestedBy: UserSummary;
+  totalCustomers: number;
+  processedCustomers: number;
+  progressPercentage: number;
+  modelVersion: string;
+  includeRecommendations: boolean;
+  includeRiskFactors: boolean;
+  errorMessage?: string;
+  results?: ChurnAnalysisResults;
+}
+
+export interface ChurnAnalysisResults {
+  overallChurnRate: number;
+  averageRiskScore: number;
+  riskDistribution: RiskDistributionResponse;
+  keyInsights: string[];
+  recommendations: string[];
+  customerResults: CustomerChurnResultResponse[];
+}
+
+export interface CustomerChurnResultResponse {
+  customerId: string;
+  customerEmail: string;
+  customerName: string;
+  churnRiskScore: number;
+  riskLevel: string;
+  analyzedAt: string;
+  riskFactors: Record<string, number>;
+  recommendations: string[];
+}
+
+export interface RiskDistributionResponse {
+  criticalRisk: number;
+  highRisk: number;
+  mediumRisk: number;
+  lowRisk: number;
+}
+
+export interface ChurnTrendsResponse {
+  trends: ChurnTrendDataPoint[];
+  periodComparison: PeriodComparisonResponse;
+  summary: ChurnTrendsSummary;
+}
+
+export interface ChurnTrendDataPoint {
+  date: string;
+  churnRate: number;
+  averageRiskScore: number;
+  totalCustomers: number;
+  highRiskCustomers: number;
+  criticalRiskCustomers: number;
+}
+
+export interface PeriodComparisonResponse {
+  churnRateChange: number;
+  churnRateChangePercentage: number;
+  riskScoreChange: number;
+  riskScoreChangePercentage: number;
+  trend: string;
+}
+
+export interface ChurnTrendsSummary {
+  averageChurnRate: number;
+  peakChurnRate: number;
+  lowestChurnRate: number;
+  totalAnalysisPeriodDays: number;
+  dataPoints: number;
+}
+
+export interface CustomerChurnDetailsResponse {
+  customerId: string;
+  customerEmail: string;
+  customerName: string;
+  currentRiskScore: number;
+  currentRiskLevel: string;
+  lastAnalyzedAt: string;
+  riskFactors: Record<string, number>;
+  recommendations: string[];
+  historicalPredictions: ChurnPredictionHistoryResponse[];
+  recentActivities: CustomerActivitySummary[];
+  riskTrend: string;
+  summary: CustomerChurnSummary;
+}
+
+export interface ChurnPredictionHistoryResponse {
+  predictionDate: string;
+  riskScore: number;
+  riskLevel: string;
+  modelVersion?: string;
+}
+
+export interface CustomerActivitySummary {
+  type: string;
+  description: string;
+  activityDate: string;
+}
+
+export interface CustomerChurnSummary {
+  daysAsCustomer: number;
+  totalPredictions: number;
+  highestRiskScore: number;
+  lowestRiskScore: number;
+  recentActivityCount: number;
+}
+
+// Admin User Management Types
+export interface AdminUserResponse {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  dateCreated: string;
+  role: string;
+  isCompanyOwner: boolean;
+  companyId: string;
+  avatar?: string;
+}
+
+export interface UpdateUserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  isCompanyOwner: boolean;
+}
+
+export interface AdminUsersQueryParams {
+  page?: number;
+  pageSize?: number;
+  searchTerm?: string;
+  role?: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}

@@ -3,20 +3,26 @@ import React, { useState, useRef, useEffect } from 'react';
 
 import { NotificationsDropdown } from './notifications-dropdown';
 import { useGetUnreadCount } from '../api/notifications';
+import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
 
 export const NotificationsBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Fetch unread count with real-time updates
+  // Set up real-time notifications
+  const { connectionState, isAuthenticated } = useRealTimeNotifications();
+
+  // Fetch unread count - rely primarily on SignalR with minimal fallback polling
   const { data: unreadData } = useGetUnreadCount({
-    refetchInterval: 30000, // Refresh every 30 seconds as fallback
-    refetchIntervalInBackground: true,
-    staleTime: 10000, // Consider data stale after 10 seconds for more responsive updates
-    refetchOnWindowFocus: true, // Refetch when user focuses the window
+    refetchInterval: 5 * 60 * 1000, // Fallback refresh every 5 minutes only
+    refetchIntervalInBackground: false, // Don't poll in background
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    refetchOnWindowFocus: false, // Don't refetch on focus - SignalR handles real-time updates
+    refetchOnMount: true, // Only refetch on component mount
   });
 
   const unreadCount = unreadData?.count || 0;
+  const isConnected = connectionState === 'Connected';
 
   // Debug logging for unread count changes
   useEffect(() => {
@@ -41,10 +47,18 @@ export const NotificationsBell: React.FC = () => {
         onClick={toggleDropdown}
         className="relative p-2 rounded-lg bg-slate-800/50 border border-slate-600/50 hover:bg-slate-700/50 transition-all group"
         aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}
+        title={isConnected ? 'Real-time notifications active' : 'Real-time notifications connecting...'}
       >
         <svg className="w-5 h-5 text-slate-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5V9a6 6 0 10-12 0v3L8 17h7zM13 21a2 2 0 01-4 0" />
         </svg>
+        
+        {/* SignalR connection status indicator */}
+        {isAuthenticated && (
+          <div className={`absolute -top-0.5 -left-0.5 w-2 h-2 rounded-full transition-colors ${
+            isConnected ? 'bg-green-400' : 'bg-orange-400 animate-pulse'
+          }`} />
+        )}
         
         {/* Unread count badge */}
         {unreadCount > 0 && (

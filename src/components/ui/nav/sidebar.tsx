@@ -59,15 +59,20 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
     }
   };
 
-  const adminLink = (
+  const adminSection = (
     <Authorization allowedRoles={[ROLES.Admin]}>
-      <LinksGroup
-        name="Admin Panel"
-        icon={FaUsersCog}
-        link="/app/admin/users"
-        onClick={handleLinkClick}
-        key="admin-panel"
-      />
+      <div className="mt-6 pt-6 border-t border-slate-700/50">
+        <div className="px-4 mb-3">
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Admin</h3>
+        </div>
+        <LinksGroup
+          name="Users"
+          icon={FaUsersCog}
+          link="/app/admin/users"
+          onClick={handleLinkClick}
+          key="admin-users"
+        />
+      </div>
     </Authorization>
   );
 
@@ -88,7 +93,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
               onClick={handleLinkClick}
             />
           ))}
-          {adminLink}
+          {adminSection}
         </div>
       </ScrollArea>
 
@@ -167,7 +172,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
                 onClick={handleLinkClick}
               />
             ))}
-            {adminLink}
+            {adminSection}
           </div>
         </ScrollArea>
       </Drawer>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/components/ui/notifications';
 import { useUploadImport } from '@/features/customers/api/import';
 import { useRealTimeImportUpdates } from '@/hooks/useRealTimeNotifications';
-
+import pulseTemplateUrl from '@/assets/pulse-template.csv?url';
 interface CustomerImportModalProps {
   onClose: () => void;
   onImportStarted: () => void;
@@ -111,37 +111,35 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     }
   };
 
-  const downloadTemplate = (mode: ImportMode) => {
-    const template = CRM_TEMPLATES[mode];
-    let csvContent = '';
-    
-    if (mode === 'pulse-template') {
-      csvContent = [
-        'name,email,plan,monthlyRevenue,subscriptionStartDate,lastActivity,companyName,phoneNumber',
-        'John Smith,john.smith@company.com,Pro,149.00,2023-01-15,2024-05-30,Acme Corp,+1-555-0123',
-        'Jane Doe,jane.doe@startup.io,Enterprise,299.00,2022-06-01,2024-05-29,Startup Inc,+1-555-0124',
-        'Mike Johnson,mike.j@techfirm.com,Basic,49.00,2023-08-20,2024-05-28,TechFirm LLC,+1-555-0125'
-      ].join('\n');
-    } else {
-      // Generic template for other modes
-      csvContent = [
-        'Full Name,Email,Company,Plan,Monthly Revenue,Start Date,Last Activity',
-        'John Smith,john@example.com,Acme Corp,Pro,149.00,2023-01-15,2024-05-30',
-        'Jane Doe,jane@example.com,Startup Inc,Enterprise,299.00,2022-06-01,2024-05-29'
-      ].join('\n');
-    }
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
+const downloadTemplate = (mode: ImportMode) => {
+  if (mode === 'pulse-template') {
+    // For pulse template, directly download the file from assets
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `${mode}-import-template.csv`;
+    a.href = pulseTemplateUrl;
+    a.download = 'pulse-template-import-template.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  };
+    return;
+  }
 
+  // For other modes, generate CSV content
+  const csvContent = [
+    'Full Name,Email,Company,Plan,Monthly Revenue,Start Date,Last Activity',
+    'John Smith,john@example.com,Acme Corp,Pro,149.00,2023-01-15,2024-05-30',
+    'Jane Doe,jane@example.com,Startup Inc,Enterprise,299.00,2022-06-01,2024-05-29'
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${mode}-import-template.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+};
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:

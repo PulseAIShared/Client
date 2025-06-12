@@ -19,13 +19,13 @@ export const createAppRouter = (queryClient: QueryClient) =>
         return { Component: LandingRoute };
       },
     },
-    // {
-    //   path: '/auth/register',
-    //   lazy: async () => {
-    //     const { RegisterRoute } = await import('./routes/auth/register');
-    //     return { Component: RegisterRoute };
-    //   },
-    // },
+     {
+      path: '/auth/register',
+      lazy: async () => {
+        const { RegisterRoute } = await import('./routes/auth/register');
+        return { Component: RegisterRoute };
+     },
+    },
     {
       path: '/auth/login',
       lazy: async () => {
@@ -117,6 +117,27 @@ export const createAppRouter = (queryClient: QueryClient) =>
         lazy: async () => {
           const { RunChurnAnalysisRoute } = await import('./routes/app/analytics/run-churn-analysis');
           return { Component: RunChurnAnalysisRoute };
+        },
+      },
+      {
+        path: 'analytics/churn-analysis/:analysisId',
+        lazy: async () => {
+          const { ChurnAnalysisResultsRoute } = await import('./routes/app/analytics/churn-analysis-results');
+          return { Component: ChurnAnalysisResultsRoute };
+        },
+      },
+      {
+        path: 'admin/users',
+        lazy: async () => {
+          const { AdminUsersRoute } = await import('./routes/app/admin/users');
+          return { Component: AdminUsersRoute };
+        },
+      },
+      {
+        path: 'admin/users/:userId',
+        lazy: async () => {
+          const { AdminUserDetailRoute } = await import('./routes/app/admin/user-detail');
+          return { Component: AdminUserDetailRoute };
         },
       },
       {

@@ -20,27 +20,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       name: 'Dashboard',
       icon: BiSolidDashboard,
-      link:  '/app'
+      link: '/app'
     },
     {
       name: 'Customers',
       icon: FaUser,
-      link: './customers'
+      link: '/app/customers'
     },
     {
       name: 'Segments',
       icon: MdSegment,
-      link: './segments'
+      link: '/app/segments'
     },
     {
       name: 'Insights',
       icon: GiProgression,
-      link: './insights'
+      link: '/app/insights'
     },
     {
       name: 'Settings',
       icon: IoMdSettings,
-      link: './settings'
+      link: '/app/settings'
     },
   ];
 

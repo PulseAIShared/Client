@@ -26,7 +26,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   const { addNotification } = useNotifications();
   const queryClient = useQueryClient();
   
-  // Fetch notifications (first page, 10 items)
+  // Fetch notifications (first page, 10 items) - minimal polling, rely on SignalR
   const { 
     data: notificationsData, 
     isLoading, 
@@ -37,7 +37,9 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     pageSize: 10 
   }, {
     enabled: isOpen, // Only fetch when dropdown is open
-    refetchInterval: isOpen ? 30000 : false, // Refetch every 30 seconds when open
+    refetchInterval: false, // No polling - SignalR handles real-time updates
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    refetchOnWindowFocus: false, // Don't refetch on focus
   });
 
   const markAsRead = useMarkNotificationAsRead({
@@ -274,6 +276,15 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                 {unreadCount} new
               </span>
             )}
+            <button 
+              onClick={() => refetch()}
+              className="text-slate-400 hover:text-white text-sm p-1 rounded hover:bg-slate-700/50"
+              title="Refresh notifications"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
             <button 
               onClick={handleMarkAllAsRead}
               disabled={unreadCount === 0 || markAllAsRead.isPending}
