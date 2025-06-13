@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import { LinksGroup } from './links';
 
 import { Authorization, ROLES } from '@/lib/authorization';
-import { FaUsersCog } from 'react-icons/fa';
+import { FaUsersCog, FaNetworkWired } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 
 export type SideNavigationItem = {
@@ -71,6 +71,13 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
           link="/app/admin/users"
           onClick={handleLinkClick}
           key="admin-users"
+        />
+        <LinksGroup
+          name="Connection Diagnostics"
+          icon={FaNetworkWired}
+          link="/app/admin/connection-diagnostics"
+          onClick={handleLinkClick}
+          key="admin-connection-diagnostics"
         />
       </div>
     </Authorization>

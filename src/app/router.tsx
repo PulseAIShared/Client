@@ -141,6 +141,20 @@ export const createAppRouter = (queryClient: QueryClient) =>
         },
       },
       {
+        path: 'admin/connection-diagnostics',
+        lazy: async () => {
+          const { ConnectionDiagnosticsRoute } = await import('./routes/app/admin/connection-diagnostics');
+          return { Component: ConnectionDiagnosticsRoute };
+        },
+      },
+      {
+        path: 'docs/getting-started',
+        lazy: async () => {
+          const { GettingStartedDocsRoute } = await import('./routes/app/docs/getting-started');
+          return { Component: GettingStartedDocsRoute };
+        },
+      },
+      {
           path: 'oauth/hubspot/callback',
           lazy: async () => {
             const { HubSpotOAuthCallback } = await import('../features/settings/components/hubspot-oauth-callback');

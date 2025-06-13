@@ -8,7 +8,8 @@ import {
   ChurnRiskChart,
   CustomerInsightsPie,
   AtRiskCustomersTable,
-  CustomerInsightsTable
+  CustomerInsightsTable,
+  GettingStarted
 } from '@/features/dashboard/components';
 import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
 import { Spinner } from '@/components/ui/spinner';
@@ -40,6 +41,24 @@ export const DashboardRoute = () => {
               {error instanceof Error ? error.message : 'Unable to load dashboard data'}
             </p>
           </div>
+        </div>
+      </ContentLayout>
+    );
+  }
+
+  // Check if there are no customers (totalUsers is "0" or empty arrays)
+  const hasNoCustomers = !dashboardData || 
+    dashboardData.stats?.totalUsers === '0' || 
+    (dashboardData.atRiskCustomers?.length === 0 && 
+     dashboardData.customerInsights?.length === 0 &&
+     dashboardData.churnRiskTrend?.length === 0);
+
+  if (hasNoCustomers) {
+    return (
+      <ContentLayout>
+        <div className="space-y-8">
+          <DashboardHeader />
+          <GettingStarted />
         </div>
       </ContentLayout>
     );
