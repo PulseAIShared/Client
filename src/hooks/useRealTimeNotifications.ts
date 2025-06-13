@@ -16,6 +16,8 @@ export const useRealTimeNotifications = () => {
     console.log('Analysis completed - refreshing relevant queries');
     
     queryClient.invalidateQueries({ queryKey: ['analytics'] });
+    queryClient.invalidateQueries({ queryKey: ['customers'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
     queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
   }, [queryClient]);
