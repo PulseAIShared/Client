@@ -1,33 +1,34 @@
 import React from 'react';
 
 export const TestimonialsSection = () => {
-  const testimonials = [
+  const steps = [
     {
-      content: "Pulse AI reduced our churn rate by 47% in just 3 months. The AI-generated recovery messages feel so natural, our customers don't even realize they're automated. It's like having a customer success team that never sleeps.",
-      name: "Sarah Chen",
-      role: "Head of Growth",
-      company: "TechFlow SaaS",
-      stats: "47% churn reduction",
-      avatar: "SC",
-      color: "from-blue-500 to-purple-500"
+      number: "01",
+      title: "Import Your Data",
+      description: "Upload customer data via CSV or connect integrations like HubSpot and Stripe. Our platform automatically validates and processes your data.",
+      icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12",
+      color: "from-blue-500 to-cyan-500"
     },
     {
-      content: "We were manually handling payment failures and losing thousands in revenue. Pulse AI's automated dunning management recovered $180K for us last quarter alone. The ROI is incredible.",
-      name: "Marcus Rodriguez",
-      role: "VP of Revenue",
-      company: "LearnHub Pro",
-      stats: "$180K recovered",
-      avatar: "MR",
+      number: "02", 
+      title: "Run Churn Analysis",
+      description: "AI analyzes customer behavior, payment patterns, and engagement to identify at-risk customers and assign risk scores.",
+      icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+      color: "from-orange-500 to-red-500"
+    },
+    {
+      number: "03",
+      title: "Create Segments",
+      description: "Group customers by risk level, behavior, and value. Build targeted segments for focused retention strategies.",
+      icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+      color: "from-purple-500 to-violet-500"
+    },
+    {
+      number: "04",
+      title: "Take Action",
+      description: "Use insights and segment data to launch targeted retention campaigns, improve onboarding, and reduce churn.",
+      icon: "M13 10V3L4 14h7v7l9-11h-7z",
       color: "from-green-500 to-emerald-500"
-    },
-    {
-      content: "The predictive analytics are game-changing. We can now see which customers are likely to churn weeks before it happens and take proactive action. Our customer lifetime value has increased by 35%.",
-      name: "Emily Foster",
-      role: "Customer Success Director",
-      company: "FitnessPro",
-      stats: "35% LTV increase",
-      avatar: "EF",
-      color: "from-purple-500 to-pink-500"
     }
   ];
 
@@ -35,97 +36,75 @@ export const TestimonialsSection = () => {
     <section className="py-24 bg-gradient-to-b from-slate-50 to-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-green-100 px-4 py-2 rounded-full mb-6">
-            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-            <span className="text-sm font-medium text-green-700">Customer Success Stories</span>
+          <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full mb-6">
+            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+            <span className="text-sm font-medium text-blue-700">How It Works</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-            Real results from real businesses
+            From data to insights in four simple steps
           </h2>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-            See how subscription businesses are using Pulse AI to reduce churn, recover revenue, and grow their customer lifetime value.
+            PulseAI makes it easy to turn your customer data into actionable retention strategies. Here's how it works.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {testimonials.map((testimonial, index) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+          {steps.map((step, index) => (
             <div 
               key={index}
-              className="group bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:shadow-xl hover:border-slate-300 transition-all duration-300 relative overflow-hidden"
+              className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
             >
               {/* Gradient background that appears on hover */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${testimonial.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+              <div className={`absolute inset-0 bg-gradient-to-br ${step.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
               
               <div className="relative">
-                {/* Quote icon */}
-                <div className="mb-6">
-                  <svg className="w-10 h-10 text-slate-300 group-hover:text-slate-400 transition-colors duration-300" fill="currentColor" viewBox="0 0 32 32">
-                    <path d="M10 8c-3.3 0-6 2.7-6 6v10h10V14H8c0-1.1.9-2 2-2V8zm12 0c-3.3 0-6 2.7-6 6v10h10V14h-6c0-1.1.9-2 2-2V8z"/>
-                  </svg>
-                </div>
-                
-                {/* Testimonial content */}
-                <blockquote className="text-slate-700 leading-relaxed mb-8 text-lg">
-                  "{testimonial.content}"
-                </blockquote>
-                
-                {/* Stats highlight */}
-                <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${testimonial.color} text-white px-4 py-2 rounded-full text-sm font-semibold mb-6`}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  {testimonial.stats}
-                </div>
-                
-                {/* Author info */}
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${testimonial.color} flex items-center justify-center text-white font-bold`}>
-                    {testimonial.avatar}
+                {/* Step number and icon */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center`}>
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={step.icon} />
+                    </svg>
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900">{testimonial.name}</div>
-                    <div className="text-slate-600 text-sm">{testimonial.role}</div>
-                    <div className="text-slate-500 text-sm">{testimonial.company}</div>
+                    <div className={`text-sm font-bold bg-gradient-to-r ${step.color} bg-clip-text text-transparent`}>
+                      STEP {step.number}
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">{step.title}</h3>
                   </div>
                 </div>
+                
+                {/* Description */}
+                <p className="text-slate-600 leading-relaxed">
+                  {step.description}
+                </p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Additional social proof */}
+        {/* CTA Section */}
         <div className="mt-20 text-center">
-          <div className="bg-slate-900 rounded-2xl p-12 max-w-5xl mx-auto">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-8">
-              Join 500+ subscription businesses growing with Pulse AI
+          <div className="bg-slate-900 rounded-2xl p-12 max-w-4xl mx-auto">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              Ready to start reducing churn?
             </h3>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-2">$2.4M+</div>
-                <div className="text-slate-400 text-sm">Revenue Recovered</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-400 mb-2">47%</div>
-                <div className="text-slate-400 text-sm">Avg. Churn Reduction</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-400 mb-2">73%</div>
-                <div className="text-slate-400 text-sm">Recovery Success Rate</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-orange-400 mb-2">20hrs</div>
-                <div className="text-slate-400 text-sm">Weekly Time Saved</div>
-              </div>
-            </div>
+            <p className="text-slate-300 mb-8 text-lg">
+              Join subscription businesses using PulseAI to turn customer insights into revenue growth.
+            </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-1 transition-all duration-200">
-                Start Your Free Trial
-              </button>
-              <button className="px-6 py-3 text-white border border-slate-600 rounded-lg hover:bg-slate-800 transition-colors duration-200">
-                Schedule a Demo
-              </button>
+              <a
+                href="/auth"
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-1 transition-all duration-200"
+              >
+                Get Started Free
+              </a>
+              <a
+                href="#features"
+                className="px-8 py-4 text-white border border-slate-600 rounded-xl hover:bg-slate-800 transition-colors duration-200"
+              >
+                Learn More
+              </a>
             </div>
           </div>
         </div>

@@ -6,203 +6,50 @@ export const FeaturesSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-purple-100 px-4 py-2 rounded-full mb-6">
-            <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-            <span className="text-sm font-medium text-purple-700">AI-Powered Platform</span>
+          <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full mb-6">
+            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+            <span className="text-sm font-medium text-blue-700">Core Platform Features</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-            Everything you need to stop churn
+            Turn customer data into
             <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-              before it happens
+              actionable insights
             </span>
           </h2>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            Pulse AI combines advanced machine learning with automated workflows to predict, prevent, and recover from customer churn.
+            Import your customer data, analyze churn risk with AI, create targeted segments, and get actionable recommendations to improve retention.
           </p>
         </div>
 
-        {/* Feature 1 - Churn Prediction */}
+        {/* Feature 1 - Data Import & Analysis */}
         <div className="grid md:grid-cols-2 gap-16 items-center mb-32">
           <div className="order-2 md:order-1">
             <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-              <div className="bg-gradient-to-br from-red-50 to-orange-50 p-6 rounded-xl">
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-xl">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold text-slate-800">Churn Risk Analysis</h4>
-                  <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
-                    High Risk
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-slate-800">Sarah Chen</div>
-                        <div className="text-sm text-slate-500">Pro Plan • 23 days inactive</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-red-600">92%</div>
-                      <div className="text-xs text-slate-500">risk score</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-slate-800">TechStart Inc</div>
-                        <div className="text-sm text-slate-500">Enterprise • Payment failed</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-orange-600">78%</div>
-                      <div className="text-xs text-slate-500">risk score</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="order-1 md:order-2">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-gradient-to-br from-red-500 to-orange-500 p-3 rounded-xl">
-                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-3xl font-bold text-slate-900">Predictive Churn Detection</h3>
-            </div>
-            <p className="text-lg text-slate-600 mb-8">
-              Our AI analyzes user behavior, payment patterns, and engagement metrics to identify at-risk customers before they churn. Get ahead of the problem with predictive insights.
-            </p>
-            <ul className="space-y-4">
-              {[
-                'AI-powered risk scoring for every customer',
-                'Real-time behavior and usage pattern analysis',
-                'Payment failure and billing issue detection',
-                'Demographic and engagement factor weighting'
-              ].map((feature, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center mt-0.5">
-                    <div className="h-2 w-2 rounded-full bg-gradient-to-br from-red-500 to-orange-500"></div>
-                  </div>
-                  <span className="text-slate-700 leading-relaxed">{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Feature 2 - AI Recovery */}
-        <div className="grid md:grid-cols-2 gap-16 items-center mb-32">
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-gradient-to-br from-purple-500 to-blue-500 p-3 rounded-xl">
-                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <h3 className="text-3xl font-bold text-slate-900">AI-Generated Recovery Messages</h3>
-            </div>
-            <p className="text-lg text-slate-600 mb-8">
-              Automatically generate personalized, on-brand recovery messages that feel natural and human. Our AI adapts tone, content, and timing to maximize re-engagement success.
-            </p>
-            <ul className="space-y-4">
-              {[
-                'GPT-powered personalized message generation',
-                'A/B testing for optimal message performance',
-                'Multi-channel outreach (email, SMS, in-app)',
-                'Brand voice and tone customization'
-              ].map((feature, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center mt-0.5">
-                    <div className="h-2 w-2 rounded-full bg-gradient-to-br from-purple-500 to-blue-500"></div>
-                  </div>
-                  <span className="text-slate-700 leading-relaxed">{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold text-slate-800">AI Recovery Campaign</h4>
+                  <h4 className="font-semibold text-slate-800">Import Progress</h4>
                   <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                    Active
+                    Completed
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="bg-white p-4 rounded-lg border border-purple-100">
-                    <div className="text-sm text-slate-500 mb-2">Subject: We miss you, Sarah!</div>
-                    <div className="text-slate-800 leading-relaxed">
-                      "Hi Sarah, I noticed you haven't been using our analytics dashboard lately. 
-                      Since you're working on scaling TechStart, I thought you might find our new 
-                      customer insights feature helpful..."
-                    </div>
-                    <div className="mt-3 flex items-center gap-2 text-sm text-purple-600">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                      </svg>
-                      <span>Personalized for user behavior</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="bg-white px-3 py-2 rounded-lg border text-sm">
-                      <span className="text-slate-500">Open Rate:</span>
-                      <span className="font-semibold text-green-600 ml-1">84%</span>
-                    </div>
-                    <div className="bg-white px-3 py-2 rounded-lg border text-sm">
-                      <span className="text-slate-500">Click Rate:</span>
-                      <span className="font-semibold text-blue-600 ml-1">32%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Feature 3 - Revenue Recovery */}
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div className="order-2 md:order-1">
-            <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <h4 className="font-semibold text-slate-800">Revenue Recovery Dashboard</h4>
-                  <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                    This Month
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-white p-4 rounded-lg border">
-                    <div className="text-2xl font-bold text-green-600">$47.2K</div>
-                    <div className="text-sm text-slate-500">Revenue Recovered</div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-slate-800">customer_data.csv</span>
+                      <span className="text-xs text-green-600">✓ Processed</span>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-600 mb-1">1,247</div>
+                    <div className="text-sm text-slate-500">customers imported</div>
                   </div>
                   <div className="bg-white p-4 rounded-lg border">
-                    <div className="text-2xl font-bold text-blue-600">89%</div>
-                    <div className="text-sm text-slate-500">Success Rate</div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Failed Payment Recovery</span>
-                    <span className="font-semibold text-green-600">+$18.4K</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Win-back Campaigns</span>
-                    <span className="font-semibold text-green-600">+$12.8K</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Upgrade Conversions</span>
-                    <span className="font-semibold text-green-600">+$16.0K</span>
+                    <div className="text-sm text-slate-600 mb-2">Data Quality Score</div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 bg-slate-200 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full w-[85%]"></div>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-800">85%</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -211,26 +58,179 @@ export const FeaturesSection = () => {
 
           <div className="order-1 md:order-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-3 rounded-xl">
+              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-3 rounded-xl">
                 <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
               </div>
-              <h3 className="text-3xl font-bold text-slate-900">Automated Revenue Recovery</h3>
+              <h3 className="text-3xl font-bold text-slate-900">Easy Data Import</h3>
             </div>
             <p className="text-lg text-slate-600 mb-8">
-              Turn failed payments and churned customers into recovered revenue. Our automated workflows handle dunning management, payment retries, and win-back campaigns without manual intervention.
+              Get started quickly by importing your customer data via CSV upload or connecting integrations like HubSpot and Stripe. Our platform validates and processes your data automatically.
             </p>
             <ul className="space-y-4">
               {[
-                'Smart payment retry logic and dunning management',
-                'Automated win-back sequences for churned customers',
-                'Real-time revenue recovery tracking and reporting',
-                'Integration with billing systems and payment processors'
+                'CSV upload with guided field mapping',
+                'Direct integrations with CRM and billing systems',
+                'Automatic data validation and quality scoring',
+                'Real-time processing with detailed feedback'
               ].map((feature, index) => (
                 <li key={index} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mt-0.5">
-                    <div className="h-2 w-2 rounded-full bg-gradient-to-br from-green-500 to-emerald-500"></div>
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mt-0.5">
+                    <div className="h-2 w-2 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500"></div>
+                  </div>
+                  <span className="text-slate-700 leading-relaxed">{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Feature 2 - Churn Analysis */}
+        <div className="grid md:grid-cols-2 gap-16 items-center mb-32">
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-gradient-to-br from-orange-500 to-red-500 p-3 rounded-xl">
+                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-3xl font-bold text-slate-900">AI-Powered Churn Analysis</h3>
+            </div>
+            <p className="text-lg text-slate-600 mb-8">
+              Run comprehensive churn analysis to identify at-risk customers before they leave. Our AI analyzes behavior patterns, payment history, and engagement metrics to predict churn risk.
+            </p>
+            <ul className="space-y-4">
+              {[
+                'Machine learning models analyze customer behavior',
+                'Risk scoring from Low to Critical levels',
+                'Actionable recommendations for each customer',
+                'Historical trend analysis and insights'
+              ].map((feature, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center mt-0.5">
+                    <div className="h-2 w-2 rounded-full bg-gradient-to-br from-orange-500 to-red-500"></div>
+                  </div>
+                  <span className="text-slate-700 leading-relaxed">{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-br from-orange-50 to-red-50 p-6 rounded-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold text-slate-800">Analysis Results</h4>
+                  <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                    Completed
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-3 rounded-lg border">
+                      <div className="text-lg font-bold text-orange-600">23</div>
+                      <div className="text-xs text-slate-500">High Risk</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border">
+                      <div className="text-lg font-bold text-blue-600">8.2%</div>
+                      <div className="text-xs text-slate-500">Avg Risk Score</div>
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-sm font-medium text-slate-800 mb-2">Key Risk Factors</div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Low login frequency</span>
+                        <span className="text-red-600 font-medium">High impact</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Payment issues</span>
+                        <span className="text-orange-600 font-medium">Medium impact</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature 3 - Customer Segmentation */}
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="order-2 md:order-1">
+            <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <h4 className="font-semibold text-slate-800">Customer Segments</h4>
+                  <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                    4 Active
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="bg-white p-3 rounded-lg border border-red-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-slate-800">High Risk Customers</span>
+                      </div>
+                      <span className="text-sm font-bold text-red-600">23</span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-orange-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-slate-800">Payment Issues</span>
+                      </div>
+                      <span className="text-sm font-bold text-orange-600">12</span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-green-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-slate-800">High Value</span>
+                      </div>
+                      <span className="text-sm font-bold text-green-600">89</span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-blue-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-slate-800">New Customers</span>
+                      </div>
+                      <span className="text-sm font-bold text-blue-600">156</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="order-1 md:order-2">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-gradient-to-br from-purple-500 to-violet-500 p-3 rounded-xl">
+                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-3xl font-bold text-slate-900">Smart Customer Segmentation</h3>
+            </div>
+            <p className="text-lg text-slate-600 mb-8">
+              Create targeted customer segments based on behavior, risk level, subscription value, and engagement patterns. Use these segments to build focused retention strategies.
+            </p>
+            <ul className="space-y-4">
+              {[
+                'Automatic segmentation based on churn analysis',
+                'Custom segments with flexible criteria',
+                'Real-time segment performance tracking',
+                'Export segments for targeted campaigns'
+              ].map((feature, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center mt-0.5">
+                    <div className="h-2 w-2 rounded-full bg-gradient-to-br from-purple-500 to-violet-500"></div>
                   </div>
                   <span className="text-slate-700 leading-relaxed">{feature}</span>
                 </li>
