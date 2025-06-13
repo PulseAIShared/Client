@@ -1,10 +1,15 @@
 // src/features/dashboard/components/charts/churn-risk-chart.tsx
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { useGetChurnRiskData } from '@/features/dashboard/api/dashboard';
+import { ChurnRiskData } from '@/types/api';
 
-export const ChurnRiskChart: React.FC = () => {
-  const { data: churnRiskData, isLoading, error } = useGetChurnRiskData();
+interface ChurnRiskChartProps {
+  data?: ChurnRiskData[];
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
+export const ChurnRiskChart: React.FC<ChurnRiskChartProps> = ({ data: churnRiskData, isLoading, error }) => {
 
   if (isLoading) {
     return (

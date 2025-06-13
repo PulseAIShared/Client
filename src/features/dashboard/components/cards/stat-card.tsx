@@ -1,9 +1,14 @@
 // src/features/dashboard/components/cards/stat-card.tsx
 import React from 'react';
-import { useGetDashboardStats } from '@/features/dashboard/api/dashboard';
+import { DashboardStats } from '@/types/api';
 
-export const StatCard: React.FC = () => {
-  const { data: stats, isLoading, error } = useGetDashboardStats();
+interface StatCardProps {
+  stats?: DashboardStats;
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
+export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) => {
 
   if (isLoading) {
     return (

@@ -1,10 +1,15 @@
 // src/features/dashboard/components/charts/customer-insights-pie.tsx
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { useGetCustomerInsights } from '@/features/dashboard/api/dashboard';
+import { CustomerInsight } from '@/types/api';
 
-export const CustomerInsightsPie: React.FC = () => {
-  const { data: customerInsightsData, isLoading, error } = useGetCustomerInsights();
+interface CustomerInsightsPieProps {
+  data?: CustomerInsight[];
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
+export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data: customerInsightsData, isLoading, error }) => {
 
   if (isLoading) {
     return (

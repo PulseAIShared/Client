@@ -41,11 +41,37 @@ export type AuthResponse = {
 };
 
 
+/**
+ * Dashboard response containing all dashboard data
+ */
+export interface DashboardResponse {
+  stats: DashboardStats;
+  churnRiskTrend: ChurnRiskData[];
+  customerInsights: CustomerInsight[];
+  atRiskCustomers: AtRiskCustomer[];
+}
+
+/**
+ * Dashboard statistics for the main dashboard overview
+ */
+export interface DashboardStats {
+  totalUsers: string;
+  churnRisk: string;
+  recoveredRevenue: string;
+  avgLTV: string;
+}
+
+/**
+ * Churn risk data for trend charts
+ */
 export interface ChurnRiskData {
   week: string;
   risk: number;
 }
 
+/**
+ * Customer insight data for pie charts and analytics
+ */
 export interface CustomerInsight {
   name: string;
   value: number;
@@ -53,17 +79,13 @@ export interface CustomerInsight {
   color: string;
 }
 
+/**
+ * At-risk customer data for tables and lists
+ */
 export interface AtRiskCustomer {
   name: string;
   daysSince: number;
   score: number;
-}
-
-export interface DashboardStats {
-  totalUsers: string;
-  churnRisk: string;
-  recoveredRevenue: string;
-  avgLTV: string;
 }
 
 
@@ -274,31 +296,6 @@ export const transformCustomerData = (customer: CustomerData): CustomerDisplayDa
   };
 };
 
-// Keep existing interfaces for backward compatibility
-export interface ChurnRiskData {
-  week: string;
-  risk: number;
-}
-
-export interface CustomerInsight {
-  name: string;
-  value: number;
-  revenue: number;
-  color: string;
-}
-
-export interface AtRiskCustomer {
-  name: string;
-  daysSince: number;
-  score: number;
-}
-
-export interface DashboardStats {
-  totalUsers: string;
-  churnRisk: string;
-  recoveredRevenue: string;
-  avgLTV: string;
-}
 
 // Rest of your existing types remain the same...
 export interface CustomerSegment {

@@ -1,6 +1,6 @@
 // src/features/dashboard/components/tables/at-risk-customers-table.tsx
 import React from 'react';
-import { useGetAtRiskCustomers } from '@/features/dashboard/api/dashboard';
+import { AtRiskCustomer } from '@/types/api';
 
 const ChurnScoreBar: React.FC<{ score: number }> = ({ score }) => (
   <div className="flex items-center gap-3">
@@ -14,8 +14,13 @@ const ChurnScoreBar: React.FC<{ score: number }> = ({ score }) => (
   </div>
 );
 
-export const AtRiskCustomersTable: React.FC = () => {
-  const { data: customers, isLoading, error } = useGetAtRiskCustomers();
+interface AtRiskCustomersTableProps {
+  data?: AtRiskCustomer[];
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
+export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ data: customers, isLoading, error }) => {
 
   if (isLoading) {
     return (

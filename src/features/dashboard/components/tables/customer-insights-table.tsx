@@ -1,9 +1,14 @@
 // src/features/dashboard/components/tables/customer-insights-table.tsx
 import React from 'react';
-import { useGetCustomerInsights } from '@/features/dashboard/api/dashboard';
+import { CustomerInsight } from '@/types/api';
 
-export const CustomerInsightsTable: React.FC = () => {
-  const { data: insights, isLoading, error } = useGetCustomerInsights();
+interface CustomerInsightsTableProps {
+  data?: CustomerInsight[];
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
+export const CustomerInsightsTable: React.FC<CustomerInsightsTableProps> = ({ data: insights, isLoading, error }) => {
 
   if (isLoading) {
     return (
