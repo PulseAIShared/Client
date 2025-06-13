@@ -54,9 +54,9 @@ export const HeroSection = () => {
         </div>
         
         <p className="text-xl md:text-2xl mb-12 max-w-4xl mx-auto text-slate-300 font-light leading-relaxed">
-          Turn customer data into actionable insights. Identify at-risk customers before they churn, 
+          Turn customer data into actionable insights. Identify at-risk customers, create targeted segments, 
           <br className="hidden md:block" />
-          create targeted segments, and recover revenue with AI-driven analytics.
+          and launch personalized campaigns to reduce churn and recover revenue.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
@@ -102,11 +102,11 @@ export const HeroSection = () => {
           <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 border border-slate-700/50">
             <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4 mx-auto">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Actionable Insights</h3>
-            <p className="text-slate-400 text-sm">Get real-time dashboards and recommendations to improve retention</p>
+            <h3 className="text-lg font-semibold mb-2">Targeted Campaigns</h3>
+            <p className="text-slate-400 text-sm">Launch personalized retention campaigns based on customer segments</p>
           </div>
         </div>
 

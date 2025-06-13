@@ -238,6 +238,77 @@ export const FeaturesSection = () => {
             </ul>
           </div>
         </div>
+
+        {/* Feature 4 - Campaign Management */}
+        <div className="grid md:grid-cols-2 gap-16 items-center mt-32">
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-3 rounded-xl">
+                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-3xl font-bold text-slate-900">Targeted Campaign Management</h3>
+            </div>
+            <p className="text-lg text-slate-600 mb-8">
+              Use your customer segments to launch targeted retention campaigns. Send personalized messages to the right customers at the right time to maximize engagement and reduce churn.
+            </p>
+            <ul className="space-y-4">
+              {[
+                'Campaign creation based on customer segments',
+                'Multi-channel outreach (email, SMS, in-app)',
+                'Automated drip sequences and follow-ups',
+                'Real-time campaign performance tracking'
+              ].map((feature, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mt-0.5">
+                    <div className="h-2 w-2 rounded-full bg-gradient-to-br from-green-500 to-emerald-500"></div>
+                  </div>
+                  <span className="text-slate-700 leading-relaxed">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+          </div>
+
+          <div>
+            <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <h4 className="font-semibold text-slate-800">Campaign Dashboard</h4>
+                  <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                    3 Active
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-lg border border-green-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-slate-800">High-Risk Win-Back</span>
+                      <span className="text-xs text-green-600">●  Active</span>
+                    </div>
+                    <div className="text-xs text-slate-500 mb-2">Target: High Risk Customers (23 recipients)</div>
+                    <div className="flex gap-3 text-xs">
+                      <span className="text-slate-600">Open: <strong className="text-green-600">68%</strong></span>
+                      <span className="text-slate-600">Click: <strong className="text-blue-600">24%</strong></span>
+                      <span className="text-slate-600">Convert: <strong className="text-purple-600">12%</strong></span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border border-orange-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-slate-800">Payment Recovery</span>
+                      <span className="text-xs text-orange-600">●  Running</span>
+                    </div>
+                    <div className="text-xs text-slate-500 mb-2">Target: Payment Issues (12 recipients)</div>
+                    <div className="flex gap-3 text-xs">
+                      <span className="text-slate-600">Open: <strong className="text-green-600">89%</strong></span>
+                      <span className="text-slate-600">Response: <strong className="text-blue-600">45%</strong></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

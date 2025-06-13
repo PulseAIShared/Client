@@ -25,9 +25,9 @@ export const TestimonialsSection = () => {
     },
     {
       number: "04",
-      title: "Take Action",
-      description: "Use insights and segment data to launch targeted retention campaigns, improve onboarding, and reduce churn.",
-      icon: "M13 10V3L4 14h7v7l9-11h-7z",
+      title: "Launch Campaigns",
+      description: "Create targeted retention campaigns using your customer segments. Send personalized messages to high-risk customers, payment failures, and other specific groups.",
+      icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
       color: "from-green-500 to-emerald-500"
     }
   ];
