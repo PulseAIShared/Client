@@ -65,7 +65,11 @@ export const getCampaigns = async ({
   pageSize?: number; 
 } = {}): Promise<{ data: Campaign[]; total: number }> => {
   // TODO: Replace with actual API call when backend is ready
+  // These parameters will be used for filtering once the API is implemented
   // return api.get(`/campaigns?status=${status}&type=${type}&page=${page}&pageSize=${pageSize}`);
+  
+  // For now, return mock data (parameters unused until API is implemented)
+  console.log('Filters received:', { status, type, page, pageSize });
   return { data: mockCampaigns, total: mockCampaigns.length };
 };
 

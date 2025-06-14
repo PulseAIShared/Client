@@ -123,11 +123,11 @@ export const useGetSegmentById = (segmentId: string, queryConfig?: QueryConfig<t
 export const createSegment = async (data: {
   name: string;
   description: string;
-  type: string;
+  type: 'behavioral' | 'demographic' | 'geographic' | 'psychographic' | 'ai-generated';
   criteria: Array<{
     field: string;
-    operator: string;
-    value: string | number;
+    operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in' | 'not_in';
+    value: string | number | string[];
     label: string;
   }>;
 }): Promise<CustomerSegment> => {

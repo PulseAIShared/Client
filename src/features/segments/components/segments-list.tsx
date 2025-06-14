@@ -1,5 +1,6 @@
 // src/features/segments/components/segments-list.tsx
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useGetSegments } from '@/features/segments/api/segments';
 
 interface SegmentsListProps {
@@ -249,9 +250,13 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
 
               {/* Actions */}
               <div className="flex gap-2 mt-4 pt-4 border-t border-slate-600/50">
-                <button className="flex-1 px-3 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors text-sm border border-blue-500/30">
+                <Link
+                  to={`/app/campaigns/create?segmentId=${segment.id}`}
+                  className="flex-1 px-3 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors text-sm border border-blue-500/30 text-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   Launch Campaign
-                </button>
+                </Link>
                 <button className="px-3 py-2 bg-slate-600/50 text-slate-300 rounded-lg hover:bg-slate-600/70 transition-colors text-sm border border-slate-600/50">
                   Edit
                 </button>
@@ -323,9 +328,12 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
                 </div>
 
                 <div className="flex gap-3 mt-6">
-                  <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold">
+                  <Link
+                    to={`/app/campaigns/create?segmentId=${segment.id}`}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold"
+                  >
                     Create Recovery Campaign
-                  </button>
+                  </Link>
                   <button className="px-6 py-3 bg-slate-700/50 text-white rounded-lg hover:bg-slate-600/50 transition-colors font-medium border border-slate-600/50">
                     Export Segment Data
                   </button>

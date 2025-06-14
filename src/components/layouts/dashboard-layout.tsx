@@ -6,7 +6,7 @@ import { IoMdSettings } from "react-icons/io";
 import { GiProgression } from "react-icons/gi";
 import { FaUser } from "react-icons/fa";
 import { useMediaQuery } from "@mantine/hooks";
-import { MdSegment } from "react-icons/md";
+import { MdSegment, MdCampaign } from "react-icons/md";
 
 
 type DashboardLayoutProps = {
@@ -31,6 +31,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       name: 'Segments',
       icon: MdSegment,
       link: '/app/segments'
+    },
+    {
+      name: 'Campaigns',
+      icon: MdCampaign,
+      link: '/app/campaigns'
     },
     {
       name: 'Insights',

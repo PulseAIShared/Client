@@ -99,6 +99,20 @@ export const createAppRouter = (queryClient: QueryClient) =>
           },
         },
         {
+          path: 'campaigns',
+          lazy: async () => {
+            const { Component } = await import('./routes/app/campaigns/campaigns');
+            return { Component };
+          },
+        },
+        {
+          path: 'campaigns/create',
+          lazy: async () => {
+            const { Component } = await import('./routes/app/campaigns/create');
+            return { Component };
+          },
+        },
+        {
           path: 'insights',
           lazy: async () => {
             const { InsightsRoute } = await import('./routes/app/insights/insights');
