@@ -297,7 +297,95 @@ export const transformCustomerData = (customer: CustomerData): CustomerDisplayDa
 };
 
 
-// Rest of your existing types remain the same...
+// Segment enums to match backend
+export enum SegmentType {
+  Behavioral = 0,
+  Demographic = 1,
+  Geographic = 2,
+  Psychographic = 3,
+  AiGenerated = 4
+}
+
+export enum SegmentStatus {
+  Draft = 0,
+  Active = 1,
+  Inactive = 2
+}
+
+export enum CriteriaOperator {
+  Equals = 0,
+  NotEquals = 1,
+  GreaterThan = 2,
+  LessThan = 3,
+  Contains = 4,
+  In = 5,
+  NotIn = 6
+}
+
+// Updated types to match backend DTOs
+export interface SegmentCriteriaDto {
+  field: string;
+  operator: CriteriaOperator;
+  value: string;
+  label: string;
+}
+
+export interface SegmentCriteriaResponse {
+  id: string;
+  field: string;
+  operator: CriteriaOperator;
+  value: string;
+  label: string;
+}
+
+export interface SegmentResponse {
+  id: string;
+  companyId: string;
+  name: string;
+  description: string;
+  type: SegmentType;
+  status: SegmentStatus;
+  color: string;
+  customerCount: number;
+  averageChurnRate: number;
+  averageLifetimeValue: number;
+  averageRevenue: number;
+  criteria: SegmentCriteriaResponse[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSegmentRequest {
+  name: string;
+  description: string;
+  type: SegmentType;
+  color: string;
+  criteria: SegmentCriteriaDto[];
+}
+
+export interface UpdateSegmentRequest {
+  name: string;
+  description: string;
+  type: SegmentType;
+  color: string;
+  status: SegmentStatus;
+  criteria: SegmentCriteriaDto[];
+}
+
+export interface SegmentPreviewRequest {
+  criteria: SegmentCriteriaDto[];
+  type: SegmentType;
+}
+
+export interface SegmentPreviewResponse {
+  estimatedCustomerCount: number;
+  averageChurnRate: number;
+  averageLifetimeValue: number;
+  averageRevenue: number;
+  matchingSampleCustomers: string[];
+}
+
+// Legacy types for backward compatibility (can be removed once all components are updated)
 export interface CustomerSegment {
   id: string;
   name: string;
@@ -346,53 +434,81 @@ export interface SegmentPerformanceMetrics {
   };
 }
 
-export interface CustomerSegment {
-  id: string;
-  name: string;
-  description: string;
-  criteria: SegmentCriteria[];
-  customerCount: number;
-  churnRate: number;
-  avgLTV: number;
-  avgRevenue: number;
-  createdAt: string;
-  updatedAt: string;
-  status: 'active' | 'inactive' | 'draft';
-  type: 'behavioral' | 'demographic' | 'geographic' | 'psychographic' | 'ai-generated';
-  color: string;
-  campaigns?: SegmentCampaign[];
-}
+// Helper functions for segments
+export const formatSegmentType = (type: SegmentType): string => {
+  switch (type) {
+    case SegmentType.Behavioral:
+      return 'Behavioral';
+    case SegmentType.Demographic:
+      return 'Demographic';
+    case SegmentType.Geographic:
+      return 'Geographic';
+    case SegmentType.Psychographic:
+      return 'Psychographic';
+    case SegmentType.AiGenerated:
+      return 'AI-Generated';
+    default:
+      return 'Unknown';
+  }
+};
 
-export interface SegmentCriteria {
-  field: string;
-  operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in' | 'not_in';
-  value: string | number | string[];
-  label: string;
-}
+export const formatSegmentStatus = (status: SegmentStatus): string => {
+  switch (status) {
+    case SegmentStatus.Draft:
+      return 'Draft';
+    case SegmentStatus.Active:
+      return 'Active';
+    case SegmentStatus.Inactive:
+      return 'Inactive';
+    default:
+      return 'Unknown';
+  }
+};
 
-export interface SegmentCampaign {
-  id: string;
-  name: string;
-  type: 'email' | 'sms' | 'in-app' | 'push';
-  status: 'active' | 'paused' | 'completed';
-  sentCount: number;
-  openRate: number;
-  clickRate: number;
-  conversionRate: number;
-  createdAt: string;
-}
+export const formatCriteriaOperator = (operator: CriteriaOperator): string => {
+  switch (operator) {
+    case CriteriaOperator.Equals:
+      return 'equals';
+    case CriteriaOperator.NotEquals:
+      return 'not equals';
+    case CriteriaOperator.GreaterThan:
+      return 'greater than';
+    case CriteriaOperator.LessThan:
+      return 'less than';
+    case CriteriaOperator.Contains:
+      return 'contains';
+    case CriteriaOperator.In:
+      return 'in';
+    case CriteriaOperator.NotIn:
+      return 'not in';
+    default:
+      return 'unknown';
+  }
+};
 
-export interface SegmentPerformanceMetrics {
-  totalSegments: number;
-  activeSegments: number;
-  totalCustomersSegmented: number;
-  avgChurnReduction: number;
-  revenueImpact: string;
-  topPerformingSegment: {
-    name: string;
-    churnReduction: number;
+// Transform new API response to legacy format for backward compatibility
+export const transformSegmentResponse = (segment: SegmentResponse): CustomerSegment => {
+  return {
+    id: segment.id,
+    name: segment.name,
+    description: segment.description,
+    criteria: segment.criteria.map(c => ({
+      field: c.field,
+      operator: formatCriteriaOperator(c.operator) as any,
+      value: c.value,
+      label: c.label
+    })),
+    customerCount: segment.customerCount,
+    churnRate: segment.averageChurnRate,
+    avgLTV: segment.averageLifetimeValue,
+    avgRevenue: segment.averageRevenue,
+    createdAt: segment.createdAt,
+    updatedAt: segment.updatedAt,
+    status: formatSegmentStatus(segment.status).toLowerCase() as any,
+    type: formatSegmentType(segment.type).toLowerCase().replace('-', '') as any,
+    color: segment.color
   };
-}
+};
 
 // Types for insights data
 export interface ChurnPredictionData {

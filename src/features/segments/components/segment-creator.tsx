@@ -2,16 +2,19 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
+import { useCreateSegment, usePreviewSegment } from '../api/segments';
+import { SegmentType, CriteriaOperator, SegmentStatus } from '@/types/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
-type SegmentType = 'behavioral' | 'demographic' | 'geographic' | 'ai-generated';
 type CriteriaField = 'age' | 'ltv' | 'churn_risk' | 'plan_type' | 'login_frequency' | 'feature_usage' | 'payment_status' | 'support_tickets';
-type CriteriaOperator = 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in';
 
 interface Criteria {
   id: string;
   field: CriteriaField;
   operator: CriteriaOperator;
-  value: string | number;
+  value: string;
+  label: string;
 }
 
 const availableFields = [
@@ -26,51 +29,51 @@ const availableFields = [
 ];
 
 const operators = [
-  { value: 'equals', label: 'Equals' },
-  { value: 'not_equals', label: 'Does not equal' },
-  { value: 'greater_than', label: 'Greater than' },
-  { value: 'less_than', label: 'Less than' },
-  { value: 'contains', label: 'Contains' },
-  { value: 'in', label: 'Is one of' },
+  { value: CriteriaOperator.Equals, label: 'Equals' },
+  { value: CriteriaOperator.NotEquals, label: 'Does not equal' },
+  { value: CriteriaOperator.GreaterThan, label: 'Greater than' },
+  { value: CriteriaOperator.LessThan, label: 'Less than' },
+  { value: CriteriaOperator.Contains, label: 'Contains' },
+  { value: CriteriaOperator.In, label: 'Is one of' },
 ];
 
 const segmentTemplates = [
   {
     name: 'High-Value Customers',
     description: 'Customers with high LTV and low churn risk',
-    type: 'behavioral' as const,
+    type: SegmentType.Behavioral,
     criteria: [
-      { field: 'ltv', operator: 'greater_than', value: 500 },
-      { field: 'churn_risk', operator: 'less_than', value: 20 }
+      { field: 'ltv', operator: CriteriaOperator.GreaterThan, value: '500', label: 'LTV > $500' },
+      { field: 'churn_risk', operator: CriteriaOperator.LessThan, value: '20', label: 'Churn Risk < 20%' }
     ]
   },
   {
     name: 'At-Risk Trial Users',
     description: 'Trial users with low engagement',
-    type: 'behavioral' as const,
+    type: SegmentType.Behavioral,
     criteria: [
-      { field: 'plan_type', operator: 'equals', value: 'Trial' },
-      { field: 'login_frequency', operator: 'less_than', value: 2 },
-      { field: 'feature_usage', operator: 'less_than', value: 30 }
+      { field: 'plan_type', operator: CriteriaOperator.Equals, value: 'Trial', label: 'Plan = Trial' },
+      { field: 'login_frequency', operator: CriteriaOperator.LessThan, value: '2', label: 'Weekly Logins < 2' },
+      { field: 'feature_usage', operator: CriteriaOperator.LessThan, value: '30', label: 'Feature Usage < 30%' }
     ]
   },
   {
     name: 'Enterprise Power Users',
     description: 'Enterprise customers with high engagement',
-    type: 'behavioral' as const,
+    type: SegmentType.Behavioral,
     criteria: [
-      { field: 'plan_type', operator: 'equals', value: 'Enterprise' },
-      { field: 'feature_usage', operator: 'greater_than', value: 70 },
-      { field: 'login_frequency', operator: 'greater_than', value: 10 }
+      { field: 'plan_type', operator: CriteriaOperator.Equals, value: 'Enterprise', label: 'Plan = Enterprise' },
+      { field: 'feature_usage', operator: CriteriaOperator.GreaterThan, value: '70', label: 'Feature Usage > 70%' },
+      { field: 'login_frequency', operator: CriteriaOperator.GreaterThan, value: '10', label: 'Weekly Logins > 10' }
     ]
   },
   {
     name: 'Payment Recovery Needed',
     description: 'Customers with recent payment failures',
-    type: 'behavioral' as const,
+    type: SegmentType.Behavioral,
     criteria: [
-      { field: 'payment_status', operator: 'equals', value: 'failed' },
-      { field: 'churn_risk', operator: 'greater_than', value: 60 }
+      { field: 'payment_status', operator: CriteriaOperator.Equals, value: 'failed', label: 'Payment Status = Failed' },
+      { field: 'churn_risk', operator: CriteriaOperator.GreaterThan, value: '60', label: 'Churn Risk > 60%' }
     ]
   }
 ];
@@ -78,26 +81,64 @@ const segmentTemplates = [
 export const SegmentCreator = () => {
   const [segmentName, setSegmentName] = useState('');
   const [segmentDescription, setSegmentDescription] = useState('');
-  const [segmentType, setSegmentType] = useState<SegmentType>('behavioral');
+  const [segmentType, setSegmentType] = useState<SegmentType>(SegmentType.Behavioral);
+  const [segmentColor, setSegmentColor] = useState('#8b5cf6');
   const [criteria, setCriteria] = useState<Criteria[]>([]);
   const [isAIMode, setIsAIMode] = useState(false);
   const [aiPrompt, setAIPrompt] = useState('');
-  const [estimatedSize, setEstimatedSize] = useState<number | null>(null);
+  const [previewData, setPreviewData] = useState<{ estimatedCustomerCount: number; averageChurnRate: number; averageLifetimeValue: number; averageRevenue: number; matchingSampleCustomers: string[] } | null>(null);
+  
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  
+  const createSegmentMutation = useCreateSegment({
+    mutationConfig: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['segments'] });
+        navigate('/app/segments');
+      },
+      onError: (error) => {
+        console.error('Failed to create segment:', error);
+      }
+    }
+  });
+  
+  const previewSegmentMutation = usePreviewSegment({
+    mutationConfig: {
+      onSuccess: (data) => {
+        setPreviewData(data);
+      },
+      onError: (error) => {
+        console.error('Failed to preview segment:', error);
+      }
+    }
+  });
 
   const addCriteria = () => {
     const newCriteria: Criteria = {
       id: Date.now().toString(),
       field: 'age',
-      operator: 'greater_than',
-      value: ''
+      operator: CriteriaOperator.GreaterThan,
+      value: '',
+      label: ''
     };
     setCriteria([...criteria, newCriteria]);
   };
 
-  const updateCriteria = (id: string, field: keyof Criteria, value: string | number) => {
-    setCriteria(criteria.map(c => 
-      c.id === id ? { ...c, [field]: value } : c
-    ));
+  const updateCriteria = (id: string, field: keyof Criteria, value: string | number | CriteriaOperator) => {
+    setCriteria(criteria.map(c => {
+      if (c.id === id) {
+        const updatedCriteria = { ...c, [field]: value };
+        // Auto-generate label when criteria changes
+        if (field === 'field' || field === 'operator' || field === 'value') {
+          const fieldLabel = availableFields.find(f => f.value === updatedCriteria.field)?.label || updatedCriteria.field;
+          const operatorLabel = operators.find(o => o.value === updatedCriteria.operator)?.label || '';
+          updatedCriteria.label = `${fieldLabel} ${operatorLabel} ${updatedCriteria.value}`;
+        }
+        return updatedCriteria;
+      }
+      return c;
+    }));
   };
 
   const removeCriteria = (id: string) => {
@@ -111,39 +152,68 @@ export const SegmentCreator = () => {
     setCriteria(template.criteria.map((c, index) => ({
       id: Date.now().toString() + index,
       field: c.field as CriteriaField,
-      operator: c.operator as CriteriaOperator,
-      value: c.value
+      operator: c.operator,
+      value: c.value,
+      label: c.label
     })));
-    // Simulate size estimation
-    setEstimatedSize(Math.floor(Math.random() * 5000) + 500);
+    // Clear previous preview data
+    setPreviewData(null);
   };
 
   const generateAISegment = () => {
-    // Simulate AI generation
+    // TODO: Implement AI generation when backend endpoint is available
     setSegmentName('AI Generated: ' + aiPrompt.slice(0, 30) + '...');
     setSegmentDescription('AI-generated segment based on: ' + aiPrompt);
-    setSegmentType('ai-generated');
-    // Add some mock criteria
+    setSegmentType(SegmentType.AiGenerated);
+    // Add some mock criteria for now
     setCriteria([
       {
         id: '1',
         field: 'churn_risk',
-        operator: 'greater_than',
-        value: 40
+        operator: CriteriaOperator.GreaterThan,
+        value: '40',
+        label: 'Churn Risk > 40%'
       },
       {
         id: '2',
         field: 'ltv',
-        operator: 'less_than',
-        value: 200
+        operator: CriteriaOperator.LessThan,
+        value: '200',
+        label: 'LTV < $200'
       }
     ]);
-    setEstimatedSize(Math.floor(Math.random() * 3000) + 200);
+    setPreviewData(null);
   };
 
   const estimateSegmentSize = () => {
-    // Simulate API call to estimate segment size
-    setEstimatedSize(Math.floor(Math.random() * 5000) + 100);
+    if (criteria.length === 0) return;
+    
+    previewSegmentMutation.mutate({
+      criteria: criteria.map(c => ({
+        field: c.field,
+        operator: c.operator,
+        value: c.value,
+        label: c.label
+      })),
+      type: segmentType
+    });
+  };
+  
+  const handleCreateSegment = () => {
+    if (!segmentName || criteria.length === 0) return;
+    
+    createSegmentMutation.mutate({
+      name: segmentName,
+      description: segmentDescription,
+      type: segmentType,
+      color: segmentColor,
+      criteria: criteria.map(c => ({
+        field: c.field,
+        operator: c.operator,
+        value: c.value,
+        label: c.label
+      }))
+    });
   };
 
   return (
@@ -248,7 +318,7 @@ export const SegmentCreator = () => {
           <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
             <h3 className="text-lg font-semibold text-white mb-6">Segment Details</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <Input
                 label="Segment Name"
                 value={segmentName}
@@ -260,14 +330,32 @@ export const SegmentCreator = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Segment Type</label>
                 <select
                   value={segmentType}
-                  onChange={(e) => setSegmentType(e.target.value as SegmentType)}
+                  onChange={(e) => setSegmentType(Number(e.target.value) as SegmentType)}
                   className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                 >
-                  <option value="behavioral">Behavioral</option>
-                  <option value="demographic">Demographic</option>
-                  <option value="geographic">Geographic</option>
-                  <option value="ai-generated">AI Generated</option>
+                  <option value={SegmentType.Behavioral}>Behavioral</option>
+                  <option value={SegmentType.Demographic}>Demographic</option>
+                  <option value={SegmentType.Geographic}>Geographic</option>
+                  <option value={SegmentType.AiGenerated}>AI Generated</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Segment Color</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={segmentColor}
+                    onChange={(e) => setSegmentColor(e.target.value)}
+                    className="w-12 h-10 bg-slate-700/50 border border-slate-600/50 rounded-lg cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={segmentColor}
+                    onChange={(e) => setSegmentColor(e.target.value)}
+                    placeholder="#8b5cf6"
+                    className="flex-1 bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  />
+                </div>
               </div>
             </div>
 
@@ -316,7 +404,7 @@ export const SegmentCreator = () => {
 
                     <select
                       value={criterion.operator}
-                      onChange={(e) => updateCriteria(criterion.id, 'operator', e.target.value)}
+                      onChange={(e) => updateCriteria(criterion.id, 'operator', Number(e.target.value) as CriteriaOperator)}
                       className="bg-slate-600/50 border border-slate-500/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                     >
                       {operators.map(op => (
@@ -344,7 +432,7 @@ export const SegmentCreator = () => {
                           <input
                             type={field?.type === 'number' ? 'number' : 'text'}
                             value={criterion.value}
-                            onChange={(e) => updateCriteria(criterion.id, 'value', field?.type === 'number' ? Number(e.target.value) : e.target.value)}
+                            onChange={(e) => updateCriteria(criterion.id, 'value', e.target.value)}
                             placeholder="Enter value..."
                             className="bg-slate-600/50 border border-slate-500/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-slate-400"
                           />
@@ -370,15 +458,19 @@ export const SegmentCreator = () => {
                 <div className="flex items-center justify-between">
                   <Button 
                     onClick={estimateSegmentSize}
+                    disabled={previewSegmentMutation.isPending || criteria.length === 0}
                     variant="outline" 
                     className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
                   >
-                    Estimate Segment Size
+                    {previewSegmentMutation.isPending ? 'Estimating...' : 'Estimate Segment Size'}
                   </Button>
-                  {estimatedSize && (
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-400">{estimatedSize.toLocaleString()}</div>
+                  {previewData && (
+                    <div className="text-right space-y-1">
+                      <div className="text-2xl font-bold text-blue-400">{previewData.estimatedCustomerCount.toLocaleString()}</div>
                       <div className="text-sm text-slate-400">estimated customers</div>
+                      <div className="text-xs text-slate-500">
+                        Avg Churn: {previewData.averageChurnRate.toFixed(1)}% | Avg LTV: ${previewData.averageLifetimeValue.toLocaleString()}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -394,10 +486,11 @@ export const SegmentCreator = () => {
           Save as Draft
         </Button>
         <Button 
-          disabled={!segmentName || criteria.length === 0}
+          onClick={handleCreateSegment}
+          disabled={!segmentName || criteria.length === 0 || createSegmentMutation.isPending}
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
         >
-          Create Segment
+          {createSegmentMutation.isPending ? 'Creating...' : 'Create Segment'}
         </Button>
       </div>
     </div>

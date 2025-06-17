@@ -1,30 +1,20 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { CustomerSegment, SegmentPerformanceMetrics } from '@/types/api';
+import { 
+  CustomerSegment, 
+  SegmentPerformanceMetrics, 
+  SegmentResponse, 
+  CreateSegmentRequest, 
+  UpdateSegmentRequest, 
+  SegmentPreviewRequest, 
+  SegmentPreviewResponse, 
+  SegmentType, 
+  SegmentStatus, 
+  CriteriaOperator, 
+  transformSegmentResponse 
+} from '@/types/api';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 
-// Mock data for segments (replace with actual API calls when backend is ready)
-const mockSegments: CustomerSegment[] = [
-  {
-    id: '1',
-    name: 'High-Value Enterprise',
-    description: 'Enterprise customers with high LTV and low churn risk',
-    criteria: [
-      { field: 'plan_type', operator: 'equals', value: 'Enterprise', label: 'Plan Type = Enterprise' },
-      { field: 'ltv', operator: 'greater_than', value: 500, label: 'LTV > $500' }
-    ],
-    customerCount: 1240,
-    churnRate: 3.2,
-    avgLTV: 850,
-    avgRevenue: 12500,
-    createdAt: '2024-03-15',
-    updatedAt: '2024-03-15',
-    status: 'active',
-    type: 'behavioral',
-    color: '#8b5cf6'
-  },
-  // Add more mock segments...
-];
 
 // Get all segments
 export const getSegments = async ({ 
@@ -36,9 +26,13 @@ export const getSegments = async ({
   filterType?: string; 
   sortBy?: string; 
 } = {}): Promise<CustomerSegment[]> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get(`/segments?searchTerm=${searchTerm}&filterType=${filterType}&sortBy=${sortBy}`);
-  return mockSegments;
+  const params = new URLSearchParams();
+  if (searchTerm) params.append('searchTerm', searchTerm);
+  if (filterType) params.append('filterType', filterType);
+  if (sortBy) params.append('sortBy', sortBy);
+  
+  const response = await api.get(`/segments?${params.toString()}`) as SegmentResponse[];
+  return response.map(transformSegmentResponse);
 };
 
 export const getSegmentsQueryOptions = (params?: { 
@@ -64,19 +58,7 @@ export const useGetSegments = (
 
 // Get segment performance
 export const getSegmentPerformance = async (): Promise<SegmentPerformanceMetrics> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get('/segments/performance');
-  return {
-    totalSegments: 6,
-    activeSegments: 10,
-    totalCustomersSegmented: 11200,
-    avgChurnReduction: 34,
-    revenueImpact: '$127K',
-    topPerformingSegment: {
-      name: 'High-Value Enterprise',
-      churnReduction: 45
-    }
-  };
+  return await api.get('/segments/performance') as SegmentPerformanceMetrics;
 };
 
 export const getSegmentPerformanceQueryOptions = () => {
@@ -95,13 +77,8 @@ export const useGetSegmentPerformance = (queryConfig?: QueryConfig<typeof getSeg
 
 // Get segment by ID
 export const getSegmentById = async ({ segmentId }: { segmentId: string }): Promise<CustomerSegment> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get(`/segments/${segmentId}`);
-  const segment = mockSegments.find(s => s.id === segmentId);
-  if (!segment) {
-    throw new Error('Segment not found');
-  }
-  return segment;
+  const response = await api.get(`/segments/${segmentId}`) as SegmentResponse;
+  return transformSegmentResponse(response);
 };
 
 export const getSegmentByIdQueryOptions = (segmentId: string) => {
@@ -123,15 +100,25 @@ export const useGetSegmentById = (segmentId: string, queryConfig?: QueryConfig<t
 export const createSegment = async (data: {
   name: string;
   description: string;
-  type: 'behavioral' | 'demographic' | 'geographic' | 'psychographic' | 'ai-generated';
+  type: SegmentType;
+  color: string;
   criteria: Array<{
     field: string;
-    operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in' | 'not_in';
-    value: string | number | string[];
+    operator: CriteriaOperator;
+    value: string;
     label: string;
   }>;
 }): Promise<CustomerSegment> => {
-  return api.post('/segments', data);
+  const request: CreateSegmentRequest = {
+    name: data.name,
+    description: data.description,
+    type: data.type,
+    color: data.color,
+    criteria: data.criteria
+  };
+  
+  const response = await api.post('/segments', request) as SegmentResponse;
+  return transformSegmentResponse(response);
 };
 
 type UseCreateSegmentOptions = {
@@ -152,15 +139,28 @@ export const updateSegment = async ({
 }: { 
   segmentId: string; 
   name: string; 
-  description: string; 
+  description: string;
+  type: SegmentType;
+  color: string;
+  status: SegmentStatus;
   criteria: Array<{
     field: string;
-    operator: string;
-    value: string | number;
+    operator: CriteriaOperator;
+    value: string;
     label: string;
   }>; 
 }): Promise<CustomerSegment> => {
-  return api.put(`/segments/${segmentId}`, data);
+  const request: UpdateSegmentRequest = {
+    name: data.name,
+    description: data.description,
+    type: data.type,
+    color: data.color,
+    status: data.status,
+    criteria: data.criteria
+  };
+  
+  const response = await api.put(`/segments/${segmentId}`, request) as SegmentResponse;
+  return transformSegmentResponse(response);
 };
 
 type UseUpdateSegmentOptions = {
@@ -176,7 +176,7 @@ export const useUpdateSegment = ({ mutationConfig }: UseUpdateSegmentOptions = {
 
 // Delete segment
 export const deleteSegment = async ({ segmentId }: { segmentId: string }): Promise<void> => {
-  return api.delete(`/segments/${segmentId}`);
+  await api.delete(`/segments/${segmentId}`);
 };
 
 type UseDeleteSegmentOptions = {
@@ -186,6 +186,35 @@ type UseDeleteSegmentOptions = {
 export const useDeleteSegment = ({ mutationConfig }: UseDeleteSegmentOptions = {}) => {
   return useMutation({
     mutationFn: deleteSegment,
+    ...mutationConfig,
+  });
+};
+
+// Preview segment
+export const previewSegment = async (data: {
+  criteria: Array<{
+    field: string;
+    operator: CriteriaOperator;
+    value: string;
+    label: string;
+  }>;
+  type: SegmentType;
+}): Promise<SegmentPreviewResponse> => {
+  const request: SegmentPreviewRequest = {
+    criteria: data.criteria,
+    type: data.type
+  };
+  
+  return await api.post('/segments/preview', request) as SegmentPreviewResponse;
+};
+
+type UsePreviewSegmentOptions = {
+  mutationConfig?: MutationConfig<typeof previewSegment>;
+};
+
+export const usePreviewSegment = ({ mutationConfig }: UsePreviewSegmentOptions = {}) => {
+  return useMutation({
+    mutationFn: previewSegment,
     ...mutationConfig,
   });
 };
