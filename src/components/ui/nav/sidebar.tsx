@@ -29,8 +29,8 @@ type SidebarProps = {
 const Logo = () => {
   return (
     <Link className="flex items-center gap-2" to="/app">
-      <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-        Pulse AI
+      <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
+        PulseLTV
       </span>
       <Code fw={700} className="text-xs">BETA</Code>
     </Link>
@@ -61,9 +61,9 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
   const adminSection = (
     <Authorization allowedRoles={[ROLES.Admin]}>
-      <div className="mt-6 pt-6 border-t border-slate-700/50">
+      <div className="mt-6 pt-6 border-t border-border-primary/50">
         <div className="px-4 mb-3">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Admin</h3>
+          <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Admin</h3>
         </div>
         <LinksGroup
           name="Users"
@@ -84,7 +84,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
   );
 
   const sidebarContent = (
-    <div className="h-full bg-slate-900/95 backdrop-blur-lg border-r border-slate-700/50">
+    <div className="h-full bg-surface-primary/95 backdrop-blur-lg border-r border-border-primary/50">
       {/* Header */}
 
 
@@ -105,11 +105,11 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-6 border-t border-slate-700/50">
-        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg p-4 border border-blue-500/30">
-          <h3 className="text-sm font-medium text-white mb-1">Need Help?</h3>
-          <p className="text-xs text-slate-300 mb-3">Get support from our team</p>
-          <button className="w-full px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium rounded-md hover:shadow-lg transition-all duration-200">
+      <div className="p-6 border-t border-border-primary/50">
+        <div className="bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 rounded-lg p-4 border border-accent-primary/30">
+          <h3 className="text-sm font-medium text-text-primary mb-1">Need Help?</h3>
+          <p className="text-xs text-text-secondary mb-3">Get support from our team</p>
+          <button className="w-full px-3 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white text-xs font-medium rounded-md hover:shadow-lg transition-all duration-200">
             Contact Support
           </button>
         </div>
@@ -149,16 +149,16 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
         withCloseButton
         styles={{
           content: {
-            backgroundColor: 'rgb(15 23 42 / 0.95)',
+            backgroundColor: 'rgb(var(--color-surface-primary) / 0.95)',
             backdropFilter: 'blur(16px)',
-            border: '1px solid rgb(71 85 105 / 0.5)',
+            border: '1px solid rgb(var(--color-border-primary) / 0.5)',
           },
           header: {
             backgroundColor: 'transparent',
-            borderBottom: '1px solid rgb(71 85 105 / 0.5)',
+            borderBottom: '1px solid rgb(var(--color-border-primary) / 0.5)',
           },
           title: {
-            color: 'white',
+            color: 'rgb(var(--color-text-primary))',
             fontWeight: 'bold',
           },
         }}

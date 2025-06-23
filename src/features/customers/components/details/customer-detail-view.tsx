@@ -55,40 +55,40 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
     <div className="space-y-6">
       {/* Header */}
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-gradient-from to-gradient-to rounded-2xl blur-3xl"></div>
         
-        <div className="relative bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-xl">
+        <div className="relative bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/app/customers')}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+                className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
               
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-16 h-16 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-text-primary font-bold text-xl">
                 {customerName.split(' ').map(n => n[0]).join('')}
               </div>
               
               <div>
-                <div className="inline-flex items-center gap-2 bg-purple-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-400/30 mb-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-purple-200">Customer Profile</span>
+                <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-2">
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-accent-secondary">Customer Profile</span>
                   <span className={`text-xs px-2 py-1 rounded-full border ${getHealthScoreColor(customer.quickMetrics.overallHealthScore)}`}>
                     {customer.quickMetrics.overallHealthScore}
                   </span>
                 </div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
                   {customerName}
                 </h1>
                 <div className="flex items-center gap-4 mt-1">
-                  <p className="text-slate-300">{customer.email}</p>
+                  <p className="text-text-secondary">{customer.email}</p>
                   <div className="flex items-center gap-1">
-                    <span className="text-sm text-slate-400">Data Quality:</span>
-                    <span className="text-sm font-medium text-blue-400">
+                    <span className="text-sm text-text-muted">Data Quality:</span>
+                    <span className="text-sm font-medium text-accent-primary">
                       {Math.round(customer.dataQuality.completenessScore)}%
                     </span>
                   </div>
@@ -99,12 +99,12 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
             <div className="flex items-center gap-3">
               <Button 
                 variant="outline"
-                className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                className="border-border-primary hover:border-accent-primary/50 hover:text-accent-primary"
               >
                 Send Message
               </Button>
               <Button 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
               >
                 Launch Campaign
               </Button>
@@ -114,16 +114,16 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg overflow-hidden">
-        <div className="flex flex-wrap border-b border-slate-700/50">
+      <div className="bg-surface-primary backdrop-blur-lg rounded-2xl border border-border-primary shadow-lg overflow-hidden">
+        <div className="flex flex-wrap border-b border-border-primary">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-3 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
                 activeTab === tab.id
-                  ? 'border-blue-500 bg-blue-600/10 text-blue-400'
-                  : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/30'
+                  ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                  : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-secondary/30'
               }`}
             >
               {tab.icon}

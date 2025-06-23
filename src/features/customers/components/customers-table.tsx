@@ -24,13 +24,13 @@ type SortField = 'name' | 'monthsSubbed' | 'ltv' | 'churnRisk' | 'activityFreque
 
 const ChurnRiskBar: React.FC<{ risk: number }> = ({ risk }) => (
   <div className="flex items-center gap-3">
-    <div className="flex-1 bg-slate-700/50 rounded-full h-2 overflow-hidden max-w-[80px]">
+    <div className="flex-1 bg-surface-secondary rounded-full h-2 overflow-hidden max-w-[80px]">
       <div 
         className={`h-full rounded-full transition-all duration-500 ${
-          risk >= 80 ? 'bg-gradient-to-r from-red-500 to-red-600' :
-          risk >= 60 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
-          risk >= 40 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-          'bg-gradient-to-r from-green-500 to-green-600'
+          risk >= 80 ? 'bg-gradient-to-r from-error to-error-muted' :
+          risk >= 60 ? 'bg-gradient-to-r from-warning to-warning-muted' :
+          risk >= 40 ? 'bg-gradient-to-r from-warning to-warning-muted' :
+          'bg-gradient-to-r from-success to-success-muted'
         }`}
         style={{ width: `${risk}%` }}
       />
@@ -177,7 +177,7 @@ export const CustomersTable: React.FC = () => {
 
   const SortIcon: React.FC<{ field: SortField }> = ({ field }) => (
     <svg 
-      className={`w-4 h-4 transition-colors ${queryParams.sortBy === field ? 'text-blue-400' : 'text-slate-500'}`}
+      className={`w-4 h-4 transition-colors ${queryParams.sortBy === field ? 'text-accent-primary' : 'text-text-muted'}`}
       fill="none" 
       stroke="currentColor" 
       viewBox="0 0 24 24"
@@ -194,23 +194,23 @@ export const CustomersTable: React.FC = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+        <div className="bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg animate-pulse">
           <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 h-12 bg-slate-700 rounded"></div>
+            <div className="flex-1 h-12 bg-surface-secondary rounded"></div>
             <div className="flex gap-2">
               {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-10 w-24 bg-slate-700 rounded"></div>
+                <div key={index} className="h-10 w-24 bg-surface-secondary rounded"></div>
               ))}
             </div>
           </div>
         </div>
-        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
-          <div className="p-6 border-b border-slate-700/50">
-            <div className="h-6 bg-slate-700 rounded w-48"></div>
+        <div className="bg-surface-primary backdrop-blur-lg rounded-2xl border border-border-primary shadow-lg animate-pulse">
+          <div className="p-6 border-b border-border-primary">
+            <div className="h-6 bg-surface-secondary rounded w-48"></div>
           </div>
           <div className="p-6">
             {Array.from({ length: 10 }).map((_, index) => (
-              <div key={index} className="h-16 bg-slate-700 rounded mb-2"></div>
+              <div key={index} className="h-16 bg-surface-secondary rounded mb-2"></div>
             ))}
           </div>
         </div>
@@ -220,10 +220,10 @@ export const CustomersTable: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg">
+      <div className="bg-surface-primary backdrop-blur-lg rounded-2xl border border-border-primary shadow-lg">
         <div className="p-12 text-center">
-          <div className="text-red-400 mb-2">Failed to load customers</div>
-          <div className="text-sm text-slate-500">Please try refreshing the page</div>
+          <div className="text-error mb-2">Failed to load customers</div>
+          <div className="text-sm text-text-muted">Please try refreshing the page</div>
         </div>
       </div>
     );
@@ -231,7 +231,7 @@ export const CustomersTable: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+      <div className="bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
             <input 
@@ -239,9 +239,9 @@ export const CustomersTable: React.FC = () => {
               placeholder="Search customers by name or email..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-4 py-3 pl-10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              className="w-full bg-surface-secondary border border-border-primary rounded-lg px-4 py-3 pl-10 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
             />
-            <svg className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="absolute left-3 top-3.5 w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -258,8 +258,8 @@ export const CustomersTable: React.FC = () => {
                 onClick={() => handleFilterChange(filter.key)}
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
                   selectedFilter === filter.key
-                    ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-400 border border-blue-500/30'
-                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
+                    ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
+                    : 'bg-surface-secondary text-text-secondary hover:bg-surface-secondary/80 border border-border-primary'
                 }`}
               >
                 {filter.label} ({filter.count})
@@ -269,34 +269,34 @@ export const CustomersTable: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg overflow-hidden">
-        <div className="p-6 border-b border-slate-700/50">
+      <div className="bg-surface-primary backdrop-blur-lg rounded-2xl border border-border-primary shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-border-primary">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-text-primary">
                 Customers ({pagination?.totalCount || 0})
               </h2>
               {selectedCustomers.size > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-text-muted">
                     {selectedCustomers.size} selected
                   </span>
                   <button 
                     onClick={handleBulkDelete}
-                    className="px-3 py-1 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors text-sm border border-red-500/30 flex items-center gap-2"
+                    className="px-3 py-1 bg-error/20 text-error rounded-lg hover:bg-error/30 transition-colors text-sm border border-error/30 flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                     Delete Selected
                   </button>
-                  <button className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors text-sm border border-blue-500/30">
+                  <button className="px-3 py-1 bg-info-bg text-info rounded-lg hover:bg-info-bg/80 transition-colors text-sm border border-info/30">
                     Export Selected
                   </button>
                 </div>
               )}
             </div>
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-text-muted">
               Page {pagination?.page || 1} of {pagination?.totalPages || 1}
             </div>
           </div>
@@ -305,71 +305,76 @@ export const CustomersTable: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-700/50">
+              <tr className="border-b border-border-primary">
                 <th className="text-left p-4">
                   <input
                     type="checkbox"
                     checked={selectedCustomers.size === customers.length && customers.length > 0}
                     onChange={toggleSelectAll}
-                    className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
+                    className="w-4 h-4 text-accent-primary bg-surface-secondary border border-border-primary rounded focus:ring-accent-primary focus:ring-2"
                   />
                 </th>
                 <th 
-                  className="text-left p-4 cursor-pointer hover:bg-slate-700/30 transition-colors"
+                  className="text-left p-4 cursor-pointer hover:bg-surface-secondary/30 transition-colors"
                   onClick={() => handleSort('name')}
                 >
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-300 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary uppercase tracking-wider">
                     Customer
                     <SortIcon field="name" />
                   </div>
                 </th>
                 <th 
-                  className="text-left p-4 cursor-pointer hover:bg-slate-700/30 transition-colors"
+                  className="text-left p-4 cursor-pointer hover:bg-surface-secondary/30 transition-colors"
                   onClick={() => handleSort('plan')}
                 >
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-300 uppercase tracking-wider">
-                    Plan & Status
+                  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary uppercase tracking-wider">
+                    Plan
                     <SortIcon field="plan" />
                   </div>
                 </th>
+                <th className="text-left p-4">
+                  <span className="text-sm font-medium text-text-secondary uppercase tracking-wider">
+                    Status
+                  </span>
+                </th>
                 <th 
-                  className="text-left p-4 cursor-pointer hover:bg-slate-700/30 transition-colors"
+                  className="text-left p-4 cursor-pointer hover:bg-surface-secondary/30 transition-colors"
                   onClick={() => handleSort('monthsSubbed')}
                 >
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-300 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary uppercase tracking-wider">
                     Tenure
                     <SortIcon field="monthsSubbed" />
                   </div>
                 </th>
                 <th 
-                  className="text-left p-4 cursor-pointer hover:bg-slate-700/30 transition-colors"
+                  className="text-left p-4 cursor-pointer hover:bg-surface-secondary/30 transition-colors"
                   onClick={() => handleSort('ltv')}
                 >
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-300 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary uppercase tracking-wider">
                     LTV
                     <SortIcon field="ltv" />
                   </div>
                 </th>
                 <th 
-                  className="text-left p-4 cursor-pointer hover:bg-slate-700/30 transition-colors"
+                  className="text-left p-4 cursor-pointer hover:bg-surface-secondary/30 transition-colors"
                   onClick={() => handleSort('churnRisk')}
                 >
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-300 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary uppercase tracking-wider">
                     Churn Risk
                     <SortIcon field="churnRisk" />
                   </div>
                 </th>
                 <th 
-                  className="text-left p-4 cursor-pointer hover:bg-slate-700/30 transition-colors"
+                  className="text-left p-4 cursor-pointer hover:bg-surface-secondary/30 transition-colors"
                   onClick={() => handleSort('activityFrequency')}
                 >
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-300 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary uppercase tracking-wider">
                     Activity
                     <SortIcon field="activityFrequency" />
                   </div>
                 </th>
                 <th className="text-left p-4">
-                  <span className="text-sm font-medium text-slate-300 uppercase tracking-wider">
+                  <span className="text-sm font-medium text-text-secondary uppercase tracking-wider">
                     Actions
                   </span>
                 </th>
@@ -379,14 +384,14 @@ export const CustomersTable: React.FC = () => {
               {customers.map((customer) => (
                 <tr 
                   key={customer.id} 
-                  className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-all duration-200 group"
+                  className="border-b border-border-primary/30 hover:bg-surface-secondary/20 transition-all duration-200 group"
                 >
                   <td className="p-4" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedCustomers.has(customer.id)}
                       onChange={(e) => toggleCustomerSelection(customer.id, e)}
-                      className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
+                      className="w-4 h-4 text-accent-primary bg-surface-secondary border border-border-primary rounded focus:ring-accent-primary focus:ring-2"
                     />
                   </td>
                   <td 
@@ -394,14 +399,14 @@ export const CustomersTable: React.FC = () => {
                     onClick={() => handleCustomerClick(customer.id)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                      <div className="w-10 h-10 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-text-primary font-medium text-sm">
                         {customer.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                       </div>
                       <div>
-                        <div className="font-medium text-white group-hover:text-blue-400 transition-colors">
+                        <div className="font-medium text-text-primary group-hover:text-accent-primary transition-colors">
                           {customer.name}
                         </div>
-                        <div className="text-sm text-slate-400">{customer.email}</div>
+                        <div className="text-sm text-text-muted">{customer.email}</div>
                       </div>
                     </div>
                   </td>
@@ -409,34 +414,35 @@ export const CustomersTable: React.FC = () => {
                     className="p-4 cursor-pointer"
                     onClick={() => handleCustomerClick(customer.id)}
                   >
-                    <div className="space-y-1">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                        customer.planEnum === SubscriptionPlan.Enterprise 
-                          ? 'text-purple-400 bg-purple-500/20 border-purple-500/30'
-                          : customer.planEnum === SubscriptionPlan.Pro
-                          ? 'text-blue-400 bg-blue-500/20 border-blue-500/30'
-                          : 'text-green-400 bg-green-500/20 border-green-500/30'
-                      }`}>
-                        {customer.plan}
-                      </span>
-                      <div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getSubscriptionStatusColor(customer.subscriptionStatus)}`}>
-                          {formatSubscriptionStatus(customer.subscriptionStatus)}
-                        </span>
-                      </div>
-                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                      customer.planEnum === SubscriptionPlan.Enterprise 
+                        ? 'text-accent-secondary bg-accent-secondary/20 border-accent-secondary/30'
+                        : customer.planEnum === SubscriptionPlan.Pro
+                        ? 'text-accent-primary bg-accent-primary/20 border-accent-primary/30'
+                        : 'text-success bg-success/20 border-success/30'
+                    }`}>
+                      {customer.plan}
+                    </span>
                   </td>
                   <td 
                     className="p-4 cursor-pointer"
                     onClick={() => handleCustomerClick(customer.id)}
                   >
-                    <span className="text-white font-medium">{customer.monthsSubbed}mo</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getSubscriptionStatusColor(customer.subscriptionStatus)}`}>
+                      {formatSubscriptionStatus(customer.subscriptionStatus)}
+                    </span>
                   </td>
                   <td 
                     className="p-4 cursor-pointer"
                     onClick={() => handleCustomerClick(customer.id)}
                   >
-                    <span className="text-green-400 font-semibold">{customer.ltv}</span>
+                    <span className="text-text-primary font-medium">{customer.monthsSubbed}mo</span>
+                  </td>
+                  <td 
+                    className="p-4 cursor-pointer"
+                    onClick={() => handleCustomerClick(customer.id)}
+                  >
+                    <span className="text-success font-semibold">{customer.ltv}</span>
                   </td>
                   <td 
                     className="p-4 cursor-pointer"
@@ -459,7 +465,7 @@ export const CustomersTable: React.FC = () => {
                           e.stopPropagation();
                           handleCustomerClick(customer.id);
                         }}
-                        className="p-2 text-blue-400 hover:bg-blue-600/20 rounded-lg transition-colors border border-blue-500/30"
+                        className="p-2 text-accent-primary hover:bg-accent-primary/20 rounded-lg transition-colors border border-accent-primary/30"
                         title="View Details"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -469,7 +475,7 @@ export const CustomersTable: React.FC = () => {
                       </button>
                       <button 
                         onClick={(e) => handleSingleDelete(customer, e)}
-                        className="p-2 text-red-400 hover:bg-red-600/20 rounded-lg transition-colors border border-red-500/30"
+                        className="p-2 text-error hover:bg-error/20 rounded-lg transition-colors border border-error/30"
                         title="Delete Customer"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -485,7 +491,7 @@ export const CustomersTable: React.FC = () => {
         </div>
 
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between p-6 border-t border-slate-700/50">
+          <div className="flex items-center justify-between p-6 border-t border-border-primary">
             <div className="text-sm text-slate-400">
               Showing {((pagination.page - 1) * pagination.pageSize) + 1} to {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} customers
             </div>
@@ -493,7 +499,7 @@ export const CustomersTable: React.FC = () => {
               <button
                 onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={!pagination.hasPreviousPage}
-                className="px-3 py-1 bg-slate-700/50 text-white rounded hover:bg-slate-600/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-surface-secondary text-text-primary rounded hover:bg-surface-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
@@ -508,8 +514,8 @@ export const CustomersTable: React.FC = () => {
                       onClick={() => handlePageChange(pageNum)}
                       className={`px-3 py-1 rounded transition-colors ${
                         pageNum === pagination.page
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                          ? 'bg-accent-primary text-text-primary'
+                          : 'bg-surface-secondary text-text-secondary hover:bg-surface-secondary/80'
                       }`}
                     >
                       {pageNum}
@@ -520,7 +526,7 @@ export const CustomersTable: React.FC = () => {
               <button
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={!pagination.hasNextPage}
-                className="px-3 py-1 bg-slate-700/50 text-white rounded hover:bg-slate-600/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-surface-secondary text-text-primary rounded hover:bg-surface-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
@@ -530,8 +536,8 @@ export const CustomersTable: React.FC = () => {
 
         {customers.length === 0 && !isLoading && (
           <div className="p-12 text-center">
-            <div className="text-slate-400 mb-2">No customers found</div>
-            <div className="text-sm text-slate-500">Try adjusting your search or filter criteria</div>
+            <div className="text-text-muted mb-2">No customers found</div>
+            <div className="text-sm text-text-muted">Try adjusting your search or filter criteria</div>
           </div>
         )}
       </div>

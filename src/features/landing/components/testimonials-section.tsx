@@ -44,7 +44,7 @@ export const TestimonialsSection = () => {
             From data to insights in four simple steps
           </h2>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-            PulseAI makes it easy to turn your customer data into actionable retention strategies. Here's how it works.
+            PulseLTV makes it easy to turn your customer data into actionable retention strategies. Here's how it works.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export const TestimonialsSection = () => {
               Ready to start reducing churn?
             </h3>
             <p className="text-slate-300 mb-8 text-lg">
-              Join subscription businesses using PulseAI to turn customer insights into revenue growth.
+              Join subscription businesses using PulseLTV to turn customer insights into revenue growth.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

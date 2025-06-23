@@ -13,19 +13,19 @@ export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data: 
 
   if (isLoading) {
     return (
-      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+      <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg animate-pulse">
         <div className="flex items-center justify-between mb-6">
           <div className="space-y-2">
-            <div className="h-6 bg-slate-700 rounded w-48"></div>
-            <div className="h-4 bg-slate-700 rounded w-32"></div>
+            <div className="h-6 bg-surface-primary rounded w-48"></div>
+            <div className="h-4 bg-surface-primary rounded w-32"></div>
           </div>
         </div>
         
         <div className="flex items-center justify-between">
-          <div className="h-48 w-48 bg-slate-700 rounded-full"></div>
+          <div className="h-48 w-48 bg-surface-primary rounded-full"></div>
           <div className="ml-6 space-y-3 flex-1">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-12 bg-slate-700 rounded"></div>
+              <div key={index} className="h-12 bg-surface-primary rounded"></div>
             ))}
           </div>
         </div>
@@ -35,21 +35,21 @@ export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data: 
 
   if (error || !customerInsightsData) {
     return (
-      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+      <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="text-center py-8">
-          <div className="text-red-400 mb-2">Failed to load customer insights</div>
-          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+          <div className="text-error-muted mb-2">Failed to load customer insights</div>
+          <div className="text-text-muted text-sm">Please try refreshing the page</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+    <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-white mb-1">Customer Demographics</h2>
-          <p className="text-sm text-slate-400">Age distribution analysis</p>
+          <h2 className="text-xl font-semibold text-text-primary mb-1">Customer Demographics</h2>
+          <p className="text-sm text-text-muted">Age distribution analysis</p>
         </div>
       </div>
       
@@ -73,10 +73,10 @@ export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data: 
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#1e293b', 
-                    border: '1px solid #475569',
+                    backgroundColor: 'rgb(var(--surface-secondary))', 
+                    border: '1px solid rgb(var(--border-primary))',
                     borderRadius: '8px',
-                    color: '#f1f5f9'
+                    color: 'rgb(var(--text-primary))'
                   }}
                 />
               </PieChart>
@@ -91,11 +91,11 @@ export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data: 
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-slate-300 font-medium">{item.name}</span>
+                <span className="text-text-secondary font-medium">{item.name}</span>
               </div>
               <div className="text-right">
-                <div className="text-white font-semibold">${item.revenue}</div>
-                <div className="text-xs text-slate-400">{item.value}%</div>
+                <div className="text-text-primary font-semibold">${item.revenue}</div>
+                <div className="text-xs text-text-muted">{item.value}%</div>
               </div>
             </div>
           ))}

@@ -100,16 +100,16 @@ export const NotificationsRoute = () => {
       if (category === 'Import') {
         if (type === 'Success') {
           return (
-            <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-success-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
           );
         } else if (type === 'Error' || type === 'Failed') {
           return (
-            <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-error/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-error-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
@@ -119,8 +119,8 @@ export const NotificationsRoute = () => {
 
       if (category === 'Customer') {
         return (
-          <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-10 h-10 bg-accent-secondary/20 rounded-full flex items-center justify-center">
+            <svg className="w-5 h-5 text-accent-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
@@ -130,8 +130,8 @@ export const NotificationsRoute = () => {
       switch (type) {
         case 'Success':
           return (
-            <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-success-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -139,24 +139,24 @@ export const NotificationsRoute = () => {
         case 'Error':
         case 'Failed':
           return (
-            <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-error/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-error-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
           );
         case 'Warning':
           return (
-            <div className="w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-warning/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-warning-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
           );
         default:
           return (
-            <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-info/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-info-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -230,26 +230,26 @@ export const NotificationsRoute = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl blur-3xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
           
-          <div className="relative bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-xl">
+          <div className="relative bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
-                <div className="inline-flex items-center gap-2 bg-purple-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-400/30 mb-4">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-purple-200">Activity Center</span>
+                <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-4">
+                  <div className="w-2 h-2 bg-success-muted rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-accent-secondary">Activity Center</span>
                 </div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
+                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
                   Notifications
                 </h1>
-                <p className="text-slate-300">
+                <p className="text-text-secondary">
                   Stay updated with real-time notifications and system alerts
                 </p>
               </div>
               
               <div className="flex items-center gap-3">
                 {unreadCount > 0 && (
-                  <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm font-medium border border-red-500/30">
+                  <span className="px-3 py-1 bg-error/20 text-error-muted rounded-full text-sm font-medium border border-error/30">
                     {unreadCount} unread
                   </span>
                 )}
@@ -257,14 +257,14 @@ export const NotificationsRoute = () => {
                   onClick={() => markAllAsRead.mutate(undefined)}
                   disabled={unreadCount === 0 || markAllAsRead.isPending}
                   variant="outline"
-                  className="border-slate-600/50 hover:border-blue-500/50"
+                  className="border-border-primary/50 hover:border-accent-primary/50"
                 >
                   {markAllAsRead.isPending ? 'Marking...' : 'Mark All Read'}
                 </Button>
                 <Button
                   onClick={clearAllNotifications}
                   variant="outline"
-                  className="border-slate-600/50 hover:border-red-500/50 hover:text-red-400"
+                  className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
                 >
                   Clear All
                 </Button>
@@ -274,7 +274,7 @@ export const NotificationsRoute = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+        <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex gap-2">
               {[
@@ -287,8 +287,8 @@ export const NotificationsRoute = () => {
                   onClick={() => handleFilterChange(filter.key as 'all' | 'unread' | 'read')}
                   className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
                     filterType === filter.key
-                      ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-400 border border-blue-500/30'
-                      : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
+                      ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
+                      : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70 border border-border-primary/50'
                   }`}
                 >
                   {filter.label} ({filter.count})
@@ -296,38 +296,38 @@ export const NotificationsRoute = () => {
               ))}
             </div>
             
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-text-muted">
               Page {currentPage} of {totalPages} • {totalCount} total
             </div>
           </div>
         </div>
 
         {/* Notifications List */}
-        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg overflow-hidden">
+        <div className="bg-surface-primary/50 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-lg overflow-hidden">
           {isLoading ? (
             <div className="p-12 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-slate-400">Loading notifications...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary mx-auto mb-4"></div>
+              <p className="text-text-muted">Loading notifications...</p>
             </div>
           ) : error ? (
             <div className="p-12 text-center">
-              <div className="text-red-400 mb-2">Failed to load notifications</div>
+              <div className="text-error-muted mb-2">Failed to load notifications</div>
               <button 
                 onClick={() => refetch()}
-                className="text-blue-400 hover:text-blue-300"
+                className="text-accent-primary hover:text-accent-primary"
               >
                 Try again
               </button>
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-surface-secondary/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5v3a6 6 0 10-12 0v3l-5 5h5m7 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </div>
-              <h3 className="text-white font-medium mb-2">No notifications</h3>
-              <p className="text-slate-400">
+              <h3 className="text-text-primary font-medium mb-2">No notifications</h3>
+              <p className="text-text-muted">
                 {filterType === 'unread' 
                   ? "You don't have any unread notifications" 
                   : filterType === 'read'
@@ -336,12 +336,12 @@ export const NotificationsRoute = () => {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-700/50">
+            <div className="divide-y divide-border-primary/50">
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`group hover:bg-slate-700/30 transition-all duration-200 ${
-                    !notification.isRead ? 'bg-blue-600/5' : ''
+                  className={`group hover:bg-surface-secondary/30 transition-all duration-200 ${
+                    !notification.isRead ? 'bg-accent-primary/5' : ''
                   }`}
                 >
                   <div className="p-6">
@@ -351,41 +351,41 @@ export const NotificationsRoute = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-4 mb-2">
                           <h3 className={`font-medium text-lg ${
-                            !notification.isRead ? 'text-white' : 'text-slate-300'
+                            !notification.isRead ? 'text-text-primary' : 'text-text-secondary'
                           }`}>
                             {notification.title}
                           </h3>
                           
                           <div className="flex items-center gap-3 flex-shrink-0">
-                            <span className="text-sm text-slate-400" title={formatDateTime(notification.createdAt)}>
+                            <span className="text-sm text-text-muted" title={formatDateTime(notification.createdAt)}>
                               {formatTimeAgo(notification.createdAt)}
                             </span>
                             {!notification.isRead && (
-                              <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0"></div>
+                              <div className="w-3 h-3 bg-accent-primary rounded-full flex-shrink-0"></div>
                             )}
                           </div>
                         </div>
                         
-                        <p className="text-slate-400 leading-relaxed mb-3">
+                        <p className="text-text-muted leading-relaxed mb-3">
                           {notification.message}
                         </p>
                         
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             {notification.category && (
-                              <span className="text-xs text-slate-500 bg-slate-700/50 px-2 py-1 rounded border border-slate-600/50">
+                              <span className="text-xs text-text-muted bg-surface-secondary/50 px-2 py-1 rounded border border-border-primary/50">
                                 {notification.category}
                               </span>
                             )}
                             
                             <span className={`text-xs px-2 py-1 rounded border ${
                               notification.type === 'Success' 
-                                ? 'text-green-400 bg-green-500/20 border-green-500/30'
+                                ? 'text-success-muted bg-success/20 border-success/30'
                                 : notification.type === 'Error' || notification.type === 'Failed'
-                                ? 'text-red-400 bg-red-500/20 border-red-500/30'
+                                ? 'text-error-muted bg-error/20 border-error/30'
                                 : notification.type === 'Warning'
-                                ? 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30'
-                                : 'text-blue-400 bg-blue-500/20 border-blue-500/30'
+                                ? 'text-warning-muted bg-warning/20 border-warning/30'
+                                : 'text-info-muted bg-info/20 border-info/30'
                             }`}>
                               {notification.type}
                             </span>
@@ -396,7 +396,7 @@ export const NotificationsRoute = () => {
                               <button
                                 onClick={() => markAsRead.mutate(notification.id)}
                                 disabled={markAsRead.isPending}
-                                className="px-3 py-1 text-xs bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30 transition-colors border border-blue-500/30 disabled:opacity-50"
+                                className="px-3 py-1 text-xs bg-accent-primary/20 text-accent-primary rounded hover:bg-accent-primary/30 transition-colors border border-accent-primary/30 disabled:opacity-50"
                               >
                                 Mark as read
                               </button>
@@ -405,7 +405,7 @@ export const NotificationsRoute = () => {
                             {notification.actionUrl && notification.actionText && (
                               <button
                                 onClick={() => handleNotificationClick(notification)}
-                                className="px-3 py-1 text-xs bg-purple-600/20 text-purple-400 rounded hover:bg-purple-600/30 transition-colors border border-purple-500/30"
+                                className="px-3 py-1 text-xs bg-accent-secondary/20 text-accent-secondary rounded hover:bg-accent-secondary/30 transition-colors border border-accent-secondary/30"
                               >
                                 {notification.actionText}
                               </button>
@@ -422,15 +422,15 @@ export const NotificationsRoute = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between p-6 border-t border-slate-700/50">
-              <div className="text-sm text-slate-400">
+            <div className="flex items-center justify-between p-6 border-t border-border-primary/50">
+              <div className="text-sm text-text-muted">
                 Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} notifications
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
-                  className="px-3 py-1 bg-slate-700/50 text-white rounded hover:bg-slate-600/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 bg-surface-secondary/50 text-text-primary rounded hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -446,8 +446,8 @@ export const NotificationsRoute = () => {
                         onClick={() => handlePageChange(pageNum)}
                         className={`px-3 py-1 rounded transition-colors ${
                           pageNum === currentPage
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                            ? 'bg-accent-primary text-text-primary'
+                            : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70'
                         }`}
                       >
                         {pageNum}
@@ -459,7 +459,7 @@ export const NotificationsRoute = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
-                  className="px-3 py-1 bg-slate-700/50 text-white rounded hover:bg-slate-600/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 bg-surface-secondary/50 text-text-primary rounded hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

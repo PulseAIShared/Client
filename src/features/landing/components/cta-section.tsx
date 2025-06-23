@@ -28,7 +28,7 @@ export const CTASection = () => {
             </h2>
             
             <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Join hundreds of subscription businesses using Pulse AI to predict churn, recover failed payments, and maximize customer lifetime value — all automatically.
+              Join hundreds of subscription businesses using PulseLTV to predict churn, recover failed payments, and maximize customer lifetime value — all automatically.
             </p>
           </div>
           

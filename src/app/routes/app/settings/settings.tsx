@@ -84,28 +84,28 @@ export const SettingsRoute = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl blur-3xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
           
-          <div className="relative bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-xl">
+          <div className="relative bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-2 bg-purple-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-400/30 mb-4">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-purple-200">Configuration</span>
+                <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-4">
+                  <div className="w-2 h-2 bg-success-muted rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-accent-secondary">Configuration</span>
                 </div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
+                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
                   Settings
                 </h1>
-                <p className="text-slate-300">
-                  Configure your Pulse AI workspace and integrations
+                <p className="text-text-secondary">
+                  Configure your PulseLTV workspace and integrations
                 </p>
               </div>
               
               <div className="hidden lg:flex items-center gap-3">
-                <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm">
+                <button className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm">
                   Save Changes
                 </button>
-                <button className="px-4 py-2 bg-slate-700/50 text-white rounded-lg hover:bg-slate-600/50 transition-colors font-medium text-sm border border-slate-600/50">
+                <button className="px-4 py-2 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/70 transition-colors font-medium text-sm border border-border-primary/50">
                   Reset to Default
                 </button>
               </div>
@@ -114,16 +114,16 @@ export const SettingsRoute = () => {
         </div>
 
         {/* Settings Navigation */}
-        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg overflow-hidden">
-          <div className="flex flex-wrap border-b border-slate-700/50">
+        <div className="bg-surface-secondary/50 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-lg overflow-hidden">
+          <div className="flex flex-wrap border-b border-border-primary/50">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
                   activeTab === tab.id
-                    ? 'border-blue-500 bg-blue-600/10 text-blue-400'
-                    : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/30'
+                    ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                    : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-secondary/30'
                 }`}
               >
                 {tab.icon}

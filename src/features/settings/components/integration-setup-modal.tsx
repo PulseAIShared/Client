@@ -206,10 +206,10 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-text-primary mb-2">
                 Connect {integration.name}
               </h3>
-              <p className="text-slate-400">
+              <p className="text-text-muted">
                 Enter your {integration.name} credentials to establish the connection
               </p>
             </div>
@@ -229,36 +229,36 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
 
             {/* Special OAuth instructions for certain integrations */}
             {integration.id === 'hubspot' && (
-              <div className="bg-orange-600/20 p-4 rounded-lg border border-orange-500/30">
-                <h4 className="text-orange-400 font-medium mb-2">OAuth Setup Required</h4>
-                <p className="text-orange-300 text-sm mb-3">
-                  HubSpot uses OAuth for secure authentication. Click below to authorize Pulse AI.
+              <div className="bg-warning/20 p-4 rounded-lg border border-warning/30">
+                <h4 className="text-warning-muted font-medium mb-2">OAuth Setup Required</h4>
+                <p className="text-warning text-sm mb-3">
+                  HubSpot uses OAuth for secure authentication. Click below to authorize PulseLTV.
                 </p>
-                <Button className="bg-orange-600 hover:bg-orange-700 text-white">
+                <Button className="bg-warning hover:bg-warning text-text-primary">
                   Authorize with HubSpot
                 </Button>
               </div>
             )}
 
             {integration.id === 'google-analytics' && (
-              <div className="bg-blue-600/20 p-4 rounded-lg border border-blue-500/30">
-                <h4 className="text-blue-400 font-medium mb-2">Google OAuth Required</h4>
-                <p className="text-blue-300 text-sm mb-3">
+              <div className="bg-accent-primary/20 p-4 rounded-lg border border-accent-primary/30">
+                <h4 className="text-accent-primary font-medium mb-2">Google OAuth Required</h4>
+                <p className="text-accent-primary text-sm mb-3">
                   Connect your Google account to access Analytics data.
                 </p>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button className="bg-accent-primary hover:bg-accent-primary text-text-primary">
                   Sign in with Google
                 </Button>
               </div>
             )}
 
             {integration.id === 'stripe' && (
-              <div className="bg-purple-600/20 p-4 rounded-lg border border-purple-500/30">
-                <h4 className="text-purple-400 font-medium mb-2">Webhook Configuration</h4>
-                <p className="text-purple-300 text-sm mb-2">
+              <div className="bg-accent-secondary/20 p-4 rounded-lg border border-accent-secondary/30">
+                <h4 className="text-accent-secondary font-medium mb-2">Webhook Configuration</h4>
+                <p className="text-accent-secondary text-sm mb-2">
                   Add this endpoint URL to your Stripe webhook settings:
                 </p>
-                <code className="block bg-slate-800 p-2 rounded text-sm text-green-400 border border-slate-600">
+                <code className="block bg-surface-primary p-2 rounded text-sm text-success-muted border border-border-primary">
                   https://your-domain.com/api/webhooks/stripe
                 </code>
               </div>
@@ -270,10 +270,10 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-text-primary mb-2">
                 Configure Data Sync
               </h3>
-              <p className="text-slate-400">
+              <p className="text-text-muted">
                 Choose which data objects to sync from {integration.name}
               </p>
             </div>
@@ -284,8 +284,8 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
                   key={option.id}
                   className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                     selectedSyncOptions.has(option.id)
-                      ? 'bg-blue-600/20 border-blue-500/50 text-blue-400'
-                      : 'bg-slate-700/30 border-slate-600/50 hover:bg-slate-700/50 text-white'
+                      ? 'bg-accent-primary/20 border-accent-primary/50 text-accent-primary'
+                      : 'bg-surface-secondary/30 border-border-primary/50 hover:bg-surface-secondary/50 text-text-primary'
                   }`}
                   onClick={() => handleSyncOptionToggle(option.id)}
                 >
@@ -295,15 +295,15 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
                         type="checkbox"
                         checked={selectedSyncOptions.has(option.id)}
                         onChange={() => handleSyncOptionToggle(option.id)}
-                        className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-accent-primary bg-surface-secondary border-border-primary rounded focus:ring-accent-primary"
                       />
                       <div>
                         <div className="font-medium">{option.label}</div>
-                        <div className="text-sm text-slate-400">{option.description}</div>
+                        <div className="text-sm text-text-muted">{option.description}</div>
                       </div>
                     </div>
                     {selectedSyncOptions.has(option.id) && (
-                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     )}
@@ -312,11 +312,11 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
               ))}
             </div>
 
-            <div className="bg-purple-600/20 p-4 rounded-lg border border-purple-500/30">
-              <h4 className="text-purple-400 font-medium mb-2">Sync Frequency</h4>
+            <div className="bg-accent-secondary/20 p-4 rounded-lg border border-accent-secondary/30">
+              <h4 className="text-accent-secondary font-medium mb-2">Sync Frequency</h4>
               <select 
                 {...register('syncFrequency')}
-                className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                className="w-full bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-secondary/50"
               >
                 <option value="realtime">Real-time (recommended)</option>
                 <option value="hourly">Every hour</option>
@@ -326,12 +326,12 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
             </div>
 
             {selectedSyncOptions.size === 0 && (
-              <div className="bg-yellow-600/20 p-4 rounded-lg border border-yellow-500/30">
+              <div className="bg-warning/20 p-4 rounded-lg border border-warning/30">
                 <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-warning-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
-                  <span className="text-yellow-400 font-medium">Please select at least one data object to sync</span>
+                  <span className="text-warning-muted font-medium">Please select at least one data object to sync</span>
                 </div>
               </div>
             )}
@@ -342,57 +342,57 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-text-primary mb-2">
                 Test Connection
               </h3>
-              <p className="text-slate-400">
+              <p className="text-text-muted">
                 Verify that the integration is working correctly
               </p>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-green-600/20 p-4 rounded-lg border border-green-500/30">
+              <div className="bg-success/20 p-4 rounded-lg border border-success/30">
                 <div className="flex items-center gap-3">
-                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-success-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <div>
-                    <div className="text-green-400 font-medium">Connection Successful</div>
-                    <div className="text-green-300 text-sm">Successfully authenticated with {integration.name}</div>
+                    <div className="text-success-muted font-medium">Connection Successful</div>
+                    <div className="text-success text-sm">Successfully authenticated with {integration.name}</div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-600/20 p-4 rounded-lg border border-blue-500/30">
+              <div className="bg-accent-primary/20 p-4 rounded-lg border border-accent-primary/30">
                 <div className="flex items-center gap-3">
-                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                   <div>
-                    <div className="text-blue-400 font-medium">Initial Sync Started</div>
-                    <div className="text-blue-300 text-sm">Syncing {selectedSyncOptions.size} data objects</div>
+                    <div className="text-accent-primary font-medium">Initial Sync Started</div>
+                    <div className="text-accent-primary text-sm">Syncing {selectedSyncOptions.size} data objects</div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50">
-                <h4 className="text-white font-medium mb-3">Sync Preview</h4>
+              <div className="bg-surface-secondary/30 p-4 rounded-lg border border-border-primary/50">
+                <h4 className="text-text-primary font-medium mb-3">Sync Preview</h4>
                 <div className="space-y-2 text-sm">
                   {Array.from(selectedSyncOptions).map(optionId => {
                     const option = config.syncOptions.find((o: { id: string; label: string; description: string }) => o.id === optionId);
                     return (
-                      <div key={optionId} className="flex justify-between text-slate-300">
+                      <div key={optionId} className="flex justify-between text-text-secondary">
                         <span>{option?.label}</span>
-                        <span className="text-green-400">✓ Ready</span>
+                        <span className="text-success-muted">✓ Ready</span>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="bg-purple-600/20 p-4 rounded-lg border border-purple-500/30">
-                <h4 className="text-purple-400 font-medium mb-2">What happens next?</h4>
-                <ul className="text-purple-300 text-sm space-y-1">
+              <div className="bg-accent-secondary/20 p-4 rounded-lg border border-accent-secondary/30">
+                <h4 className="text-accent-secondary font-medium mb-2">What happens next?</h4>
+                <ul className="text-accent-secondary text-sm space-y-1">
                   <li>• Data will start syncing within the next few minutes</li>
                   <li>• You'll receive a notification when the initial sync is complete</li>
                   <li>• Check the integrations page to monitor sync status</li>
@@ -409,20 +409,20 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-surface-secondary/95 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700/50">
+        <div className="flex items-center justify-between p-6 border-b border-border-primary/50">
           <div className="flex items-center gap-4">
             {integration.icon}
             <div>
-              <h2 className="text-xl font-bold text-white">Setup {integration.name}</h2>
-              <p className="text-sm text-slate-400">{integration.description}</p>
+              <h2 className="text-xl font-bold text-text-primary">Setup {integration.name}</h2>
+              <p className="text-sm text-text-muted">{integration.description}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+            className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary/50 rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -431,17 +431,17 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         </div>
 
         {/* Progress Steps */}
-        <div className="px-6 py-4 border-b border-slate-700/50">
+        <div className="px-6 py-4 border-b border-border-primary/50">
           <div className="flex items-center">
             {config.steps.map((step: { title: string; description: string }, index: number) => (
               <div key={index} className="flex items-center flex-1">
                 <div className={`flex items-center gap-3 ${index < config.steps.length - 1 ? 'flex-1' : ''}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
                     currentStep > index + 1
-                      ? 'bg-green-500 border-green-500 text-white'
+                      ? 'bg-success border-success text-text-primary'
                       : currentStep === index + 1
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'bg-slate-700 border-slate-600 text-slate-400'
+                      ? 'bg-accent-primary border-accent-primary text-text-primary'
+                      : 'bg-surface-secondary border-border-primary text-text-muted'
                   }`}>
                     {currentStep > index + 1 ? (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -453,16 +453,16 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
                   </div>
                   <div className="hidden sm:block">
                     <div className={`text-sm font-medium ${
-                      currentStep >= index + 1 ? 'text-white' : 'text-slate-400'
+                      currentStep >= index + 1 ? 'text-text-primary' : 'text-text-muted'
                     }`}>
                       {step.title}
                     </div>
-                    <div className="text-xs text-slate-500">{step.description}</div>
+                    <div className="text-xs text-text-muted">{step.description}</div>
                   </div>
                 </div>
                 {index < config.steps.length - 1 && (
                   <div className={`hidden sm:block flex-1 h-px mx-4 ${
-                    currentStep > index + 1 ? 'bg-green-500' : 'bg-slate-600'
+                    currentStep > index + 1 ? 'bg-success' : 'bg-border-primary'
                   }`} />
                 )}
               </div>
@@ -476,11 +476,11 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-slate-700/50">
+        <div className="flex items-center justify-between p-6 border-t border-border-primary/50">
           <Button
             variant="outline"
             onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : onClose()}
-            className="border-slate-600/50 hover:border-slate-500/50"
+            className="border-border-primary/50 hover:border-border-primary/70"
           >
             {currentStep > 1 ? 'Previous' : 'Cancel'}
           </Button>
@@ -490,7 +490,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
               <Button
                 onClick={() => setCurrentStep(currentStep + 1)}
                 disabled={currentStep === 2 && selectedSyncOptions.size === 0}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary"
               >
                 Next Step
               </Button>
@@ -499,7 +499,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
                 onClick={handleSubmit(onSubmit)}
                 disabled={isConnecting}
                 isLoading={isConnecting}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                className="bg-gradient-to-r from-success to-success-muted hover:from-success hover:to-success-muted"
               >
                 {isConnecting ? 'Connecting...' : 'Complete Setup'}
               </Button>

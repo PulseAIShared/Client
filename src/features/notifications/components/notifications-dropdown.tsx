@@ -115,24 +115,24 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
       if (category === 'Import') {
         if (type === 'Success') {
           return (
-            <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-success-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
           );
         } else if (type === 'Error' || type === 'Failed') {
           return (
-            <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-error/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-error-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
           );
         } else if (type === 'Information' || type === 'Info') {
           return (
-            <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-info/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-info-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
@@ -143,8 +143,8 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
       // Handle Customer category
       if (category === 'Customer') {
         return (
-          <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-8 h-8 bg-accent-secondary/20 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-accent-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
@@ -154,8 +154,8 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
       // Handle System category
       if (category === 'System') {
         return (
-          <div className="w-8 h-8 bg-gray-500/20 rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-8 h-8 bg-surface-secondary/20 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
@@ -167,8 +167,8 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
       switch (type) {
         case 'Success':
           return (
-            <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-success-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -176,16 +176,16 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         case 'Error':
         case 'Failed':
           return (
-            <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-error/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-error-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
           );
         case 'Warning':
           return (
-            <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-warning/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-warning-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
@@ -193,16 +193,16 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         case 'Info':
         case 'Information':
           return (
-            <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-info/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-info-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           );
         default:
           return (
-            <div className="w-8 h-8 bg-slate-500/20 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-surface-secondary/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5v3a6 6 0 10-12 0v3l-5 5h5m7 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </div>
@@ -264,21 +264,21 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 mt-2 w-96 bg-slate-800/95 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-xl z-50 flex flex-col max-h-96"
+      className="absolute right-0 mt-2 w-96 bg-surface-primary/95 backdrop-blur-lg border border-border-primary/50 rounded-xl shadow-xl z-50 flex flex-col max-h-96"
     >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-slate-700/50 flex-shrink-0">
+      <div className="px-4 py-3 border-b border-border-primary/50 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <h3 className="text-white font-semibold">Notifications</h3>
+          <h3 className="text-text-primary font-semibold">Notifications</h3>
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
-              <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-medium border border-red-500/30">
+              <span className="px-2 py-1 bg-error/20 text-error-muted rounded-full text-xs font-medium border border-error/30">
                 {unreadCount} new
               </span>
             )}
             <button 
               onClick={() => refetch()}
-              className="text-slate-400 hover:text-white text-sm p-1 rounded hover:bg-slate-700/50"
+              className="text-text-muted hover:text-text-primary text-sm p-1 rounded hover:bg-surface-secondary/50"
               title="Refresh notifications"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,7 +288,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
             <button 
               onClick={handleMarkAllAsRead}
               disabled={unreadCount === 0 || markAllAsRead.isPending}
-              className="text-slate-400 hover:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-text-muted hover:text-text-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {markAllAsRead.isPending ? 'Marking...' : 'Mark all read'}
             </button>
@@ -300,23 +300,23 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
       <div className="flex-1 overflow-y-auto min-h-0">
         {isLoading ? (
           <div className="px-4 py-8 text-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="text-slate-400 text-sm mt-2">Loading notifications...</p>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent-primary mx-auto"></div>
+            <p className="text-text-muted text-sm mt-2">Loading notifications...</p>
           </div>
         ) : error ? (
           <div className="px-4 py-8 text-center">
-            <div className="text-red-400 mb-2">Failed to load notifications</div>
+            <div className="text-error-muted mb-2">Failed to load notifications</div>
             <button 
               onClick={() => refetch()}
-              className="text-blue-400 hover:text-blue-300 text-sm"
+              className="text-accent-primary hover:text-accent-primary text-sm"
             >
               Try again
             </button>
           </div>
         ) : notifications.length === 0 ? (
           <div className="px-4 py-8 text-center">
-            <div className="text-slate-400 mb-2">No notifications</div>
-            <div className="text-slate-500 text-sm">You're all caught up!</div>
+            <div className="text-text-muted mb-2">No notifications</div>
+            <div className="text-text-muted text-sm">You're all caught up!</div>
           </div>
         ) : (
           <div className="py-2">
@@ -325,9 +325,9 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
                 disabled={markAsRead.isPending}
-                className={`w-full px-4 py-3 hover:bg-slate-700/50 transition-all duration-200 text-left border-l-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`w-full px-4 py-3 hover:bg-surface-secondary/50 transition-all duration-200 text-left border-l-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                   !notification.isRead 
-                    ? 'border-blue-500 bg-blue-600/5' 
+                    ? 'border-accent-primary bg-accent-primary/5' 
                     : 'border-transparent'
                 }`}
               >
@@ -336,34 +336,34 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h4 className={`text-sm font-medium truncate ${
-                        !notification.isRead ? 'text-white' : 'text-slate-300'
+                        !notification.isRead ? 'text-text-primary' : 'text-text-secondary'
                       }`}>
                         {notification.title}
                       </h4>
-                      <span className="text-xs text-slate-500 ml-2 flex-shrink-0">
+                      <span className="text-xs text-text-muted ml-2 flex-shrink-0">
                         {formatTimeAgo(notification.createdAt)}
                       </span>
                     </div>
-                    <p className="text-slate-400 text-sm leading-relaxed">
+                    <p className="text-text-muted text-sm leading-relaxed">
                       {notification.message}
                     </p>
                     {notification.actionText && (
                       <div className="mt-2">
-                        <span className="text-xs text-blue-400 font-medium">
+                        <span className="text-xs text-accent-primary font-medium">
                           {notification.actionText}
                         </span>
                       </div>
                     )}
                     {notification.category && (
                       <div className="mt-1">
-                        <span className="text-xs text-slate-500 bg-slate-700/50 px-2 py-1 rounded">
+                        <span className="text-xs text-text-muted bg-surface-secondary/50 px-2 py-1 rounded">
                           {notification.category}
                         </span>
                       </div>
                     )}
                   </div>
                   {!notification.isRead && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                    <div className="w-2 h-2 bg-accent-primary rounded-full flex-shrink-0 mt-2"></div>
                   )}
                 </div>
               </button>
@@ -374,13 +374,13 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
 
       {/* Footer - Always visible */}
       {notifications.length > 0 && (
-        <div className="border-t border-slate-700/50 flex-shrink-0">
+        <div className="border-t border-border-primary/50 flex-shrink-0">
           <button
             onClick={() => {
               navigate('/app/notifications');
               onClose();
             }}
-            className="block w-full px-4 py-3 text-center text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 text-sm font-medium"
+            className="block w-full px-4 py-3 text-center text-text-muted hover:text-text-primary hover:bg-surface-secondary/50 transition-all duration-200 text-sm font-medium"
           >
             View All Notifications ({totalCount})
           </button>

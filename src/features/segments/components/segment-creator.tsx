@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
 import { useCreateSegment, usePreviewSegment } from '../api/segments';
-import { SegmentType, CriteriaOperator, SegmentStatus } from '@/types/api';
+import { SegmentType, CriteriaOperator } from '@/types/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
@@ -224,8 +224,8 @@ export const SegmentCreator = () => {
           onClick={() => setIsAIMode(false)}
           className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
             !isAIMode
-              ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-400 border border-blue-500/30'
-              : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
+              ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
+              : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/60 border border-border-primary/50'
           }`}
         >
           Manual Creation
@@ -234,8 +234,8 @@ export const SegmentCreator = () => {
           onClick={() => setIsAIMode(true)}
           className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
             isAIMode
-              ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 text-purple-400 border border-purple-500/30'
-              : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
+              ? 'bg-gradient-to-r from-accent-secondary/30 to-accent-secondary/40 text-accent-secondary border border-accent-secondary/30'
+              : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/60 border border-border-primary/50'
           }`}
         >
           AI-Powered Creation
@@ -244,27 +244,27 @@ export const SegmentCreator = () => {
 
       {isAIMode ? (
         /* AI Creation Mode */
-        <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg p-8 rounded-2xl border border-purple-500/30 shadow-xl">
+        <div className="bg-gradient-to-r from-accent-secondary/20 to-accent-secondary/30 backdrop-blur-lg p-8 rounded-2xl border border-accent-secondary/30 shadow-xl">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-purple-600/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-accent-secondary/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-accent-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">AI Segment Builder</h3>
-            <p className="text-purple-200 max-w-2xl mx-auto">
+            <h3 className="text-2xl font-bold text-text-primary mb-4">AI Segment Builder</h3>
+            <p className="text-accent-secondary max-w-2xl mx-auto">
               Describe the type of customers you want to target, and our AI will automatically create the perfect segment criteria for you.
             </p>
           </div>
 
           <div className="max-w-2xl mx-auto space-y-6">
             <div>
-              <label className="block text-white font-medium mb-2">Describe Your Target Segment</label>
+              <label className="block text-text-primary font-medium mb-2">Describe Your Target Segment</label>
               <textarea
                 value={aiPrompt}
                 onChange={(e) => setAIPrompt(e.target.value)}
                 placeholder="e.g., 'Find customers who are likely to churn within the next 30 days but have high lifetime value' or 'Identify trial users who are highly engaged and ready to upgrade'"
-                className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all h-24 resize-none"
+                className="w-full bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-4 py-3 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-secondary/50 focus:border-accent-secondary/50 transition-all h-24 resize-none"
               />
             </div>
 
@@ -272,18 +272,18 @@ export const SegmentCreator = () => {
               <Button
                 onClick={generateAISegment}
                 disabled={!aiPrompt.trim()}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                className="flex-1 bg-gradient-to-r from-accent-secondary to-accent-secondary hover:from-accent-secondary hover:to-accent-secondary"
               >
                 Generate AI Segment
               </Button>
-              <Button variant="outline" className="border-slate-600/50 hover:border-purple-500/50 hover:text-purple-400">
+              <Button variant="outline" className="border-border-primary/50 hover:border-accent-secondary/50 hover:text-accent-secondary">
                 View Examples
               </Button>
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-purple-500/30">
-            <div className="text-center text-sm text-purple-200">
+          <div className="mt-8 pt-6 border-t border-accent-secondary/30">
+            <div className="text-center text-sm text-accent-secondary">
               💡 <strong>Pro Tip:</strong> Be specific about behavior patterns, timeframes, and customer characteristics for best results
             </div>
           </div>
@@ -292,22 +292,22 @@ export const SegmentCreator = () => {
         /* Manual Creation Mode */
         <div className="space-y-8">
           {/* Templates */}
-          <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
-            <h3 className="text-lg font-semibold text-white mb-4">Quick Start Templates</h3>
+          <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Quick Start Templates</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {segmentTemplates.map((template, index) => (
                 <div
                   key={index}
-                  className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-all duration-200 cursor-pointer"
+                  className="p-4 bg-surface-secondary/30 rounded-lg border border-border-primary/50 hover:border-border-primary/60 transition-all duration-200 cursor-pointer"
                   onClick={() => loadTemplate(template)}
                 >
-                  <h4 className="text-white font-semibold mb-2">{template.name}</h4>
-                  <p className="text-slate-300 text-sm mb-3">{template.description}</p>
+                  <h4 className="text-text-primary font-semibold mb-2">{template.name}</h4>
+                  <p className="text-text-secondary text-sm mb-3">{template.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium border border-blue-500/30">
+                    <span className="px-2 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-xs font-medium border border-accent-primary/30">
                       {template.type}
                     </span>
-                    <span className="text-slate-400 text-xs">{template.criteria.length} criteria</span>
+                    <span className="text-text-muted text-xs">{template.criteria.length} criteria</span>
                   </div>
                 </div>
               ))}
@@ -315,8 +315,8 @@ export const SegmentCreator = () => {
           </div>
 
           {/* Segment Details */}
-          <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
-            <h3 className="text-lg font-semibold text-white mb-6">Segment Details</h3>
+          <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
+            <h3 className="text-lg font-semibold text-text-primary mb-6">Segment Details</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <Input
@@ -327,11 +327,11 @@ export const SegmentCreator = () => {
                 placeholder="e.g., High-Value Enterprise Customers"
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Segment Type</label>
+                <label className="block text-sm font-medium text-text-primary mb-2">Segment Type</label>
                 <select
                   value={segmentType}
                   onChange={(e) => setSegmentType(Number(e.target.value) as SegmentType)}
-                  className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  className="w-full bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
                 >
                   <option value={SegmentType.Behavioral}>Behavioral</option>
                   <option value={SegmentType.Demographic}>Demographic</option>
@@ -340,62 +340,62 @@ export const SegmentCreator = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Segment Color</label>
+                <label className="block text-sm font-medium text-text-primary mb-2">Segment Color</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
                     value={segmentColor}
                     onChange={(e) => setSegmentColor(e.target.value)}
-                    className="w-12 h-10 bg-slate-700/50 border border-slate-600/50 rounded-lg cursor-pointer"
+                    className="w-12 h-10 bg-surface-secondary/50 border border-border-primary/50 rounded-lg cursor-pointer"
                   />
                   <input
                     type="text"
                     value={segmentColor}
                     onChange={(e) => setSegmentColor(e.target.value)}
                     placeholder="#8b5cf6"
-                    className="flex-1 bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    className="flex-1 bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
                   />
                 </div>
               </div>
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">Description</label>
               <textarea
                 value={segmentDescription}
                 onChange={(e) => setSegmentDescription(e.target.value)}
                 placeholder="Describe the characteristics and purpose of this segment..."
-                className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all h-20 resize-none"
+                className="w-full bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all h-20 resize-none"
               />
             </div>
           </div>
 
           {/* Criteria Builder */}
-          <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+          <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-white">Segment Criteria</h3>
-              <Button onClick={addCriteria} variant="outline" className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400">
+              <h3 className="text-lg font-semibold text-text-primary">Segment Criteria</h3>
+              <Button onClick={addCriteria} variant="outline" className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary">
                 Add Criteria
               </Button>
             </div>
 
             {criteria.length === 0 ? (
               <div className="text-center py-8">
-                <div className="text-slate-400 mb-2">No criteria defined yet</div>
-                <div className="text-sm text-slate-500">Add criteria to define who should be included in this segment</div>
+                <div className="text-text-muted mb-2">No criteria defined yet</div>
+                <div className="text-sm text-text-muted">Add criteria to define who should be included in this segment</div>
               </div>
             ) : (
               <div className="space-y-4">
                 {criteria.map((criterion, index) => (
-                  <div key={criterion.id} className="flex items-center gap-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                  <div key={criterion.id} className="flex items-center gap-4 p-4 bg-surface-secondary/30 rounded-lg border border-border-primary/50">
                     {index > 0 && (
-                      <div className="text-blue-400 font-medium text-sm">AND</div>
+                      <div className="text-accent-primary font-medium text-sm">AND</div>
                     )}
                     
                     <select
                       value={criterion.field}
                       onChange={(e) => updateCriteria(criterion.id, 'field', e.target.value)}
-                      className="bg-slate-600/50 border border-slate-500/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/50"
                     >
                       {availableFields.map(field => (
                         <option key={field.value} value={field.value}>{field.label}</option>
@@ -405,7 +405,7 @@ export const SegmentCreator = () => {
                     <select
                       value={criterion.operator}
                       onChange={(e) => updateCriteria(criterion.id, 'operator', Number(e.target.value) as CriteriaOperator)}
-                      className="bg-slate-600/50 border border-slate-500/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/50"
                     >
                       {operators.map(op => (
                         <option key={op.value} value={op.value}>{op.label}</option>
@@ -419,7 +419,7 @@ export const SegmentCreator = () => {
                           <select
                             value={criterion.value}
                             onChange={(e) => updateCriteria(criterion.id, 'value', e.target.value)}
-                            className="bg-slate-600/50 border border-slate-500/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                            className="bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/50"
                           >
                             <option value="">Select value...</option>
                             {field.options.map(option => (
@@ -434,7 +434,7 @@ export const SegmentCreator = () => {
                             value={criterion.value}
                             onChange={(e) => updateCriteria(criterion.id, 'value', e.target.value)}
                             placeholder="Enter value..."
-                            className="bg-slate-600/50 border border-slate-500/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-slate-400"
+                            className="bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/50 placeholder-text-muted"
                           />
                         );
                       }
@@ -442,7 +442,7 @@ export const SegmentCreator = () => {
 
                     <button
                       onClick={() => removeCriteria(criterion.id)}
-                      className="p-2 text-red-400 hover:bg-red-600/20 rounded-lg transition-colors"
+                      className="p-2 text-error hover:bg-error/20 rounded-lg transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -454,21 +454,21 @@ export const SegmentCreator = () => {
             )}
 
             {criteria.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-slate-700/50">
+              <div className="mt-6 pt-4 border-t border-border-primary/50">
                 <div className="flex items-center justify-between">
                   <Button 
                     onClick={estimateSegmentSize}
                     disabled={previewSegmentMutation.isPending || criteria.length === 0}
                     variant="outline" 
-                    className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                    className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
                   >
                     {previewSegmentMutation.isPending ? 'Estimating...' : 'Estimate Segment Size'}
                   </Button>
                   {previewData && (
                     <div className="text-right space-y-1">
-                      <div className="text-2xl font-bold text-blue-400">{previewData.estimatedCustomerCount.toLocaleString()}</div>
-                      <div className="text-sm text-slate-400">estimated customers</div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-2xl font-bold text-accent-primary">{previewData.estimatedCustomerCount.toLocaleString()}</div>
+                      <div className="text-sm text-text-muted">estimated customers</div>
+                      <div className="text-xs text-text-muted">
                         Avg Churn: {previewData.averageChurnRate.toFixed(1)}% | Avg LTV: ${previewData.averageLifetimeValue.toLocaleString()}
                       </div>
                     </div>
@@ -482,13 +482,13 @@ export const SegmentCreator = () => {
 
       {/* Action Buttons */}
       <div className="flex gap-4 justify-end">
-        <Button variant="outline" className="border-slate-600/50 hover:border-slate-500/50">
+        <Button variant="outline" className="border-border-primary/50 hover:border-border-primary/60">
           Save as Draft
         </Button>
         <Button 
           onClick={handleCreateSegment}
           disabled={!segmentName || criteria.length === 0 || createSegmentMutation.isPending}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary"
         >
           {createSegmentMutation.isPending ? 'Creating...' : 'Create Segment'}
         </Button>

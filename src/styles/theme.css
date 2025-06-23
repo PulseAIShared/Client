@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* Define theme colors using Tailwind v4 @theme directive */
+:root {
+  /* Light theme variables - Sophisticated crimson & gold palette */
+  --bg-primary: 254 252 248; /* warm off-white with slight cream tint */
+  --bg-secondary: 249 247 243; /* slightly darker warm background */
+  --surface-primary: 255 255 255; /* pure white for cards */
+  --surface-secondary: 254 252 248; /* warm off-white for secondary surfaces */
+  --text-primary: 17 24 39; /* slate-900 - crisp dark text */
+  --text-secondary: 51 65 85; /* slate-700 - medium contrast */
+  --text-muted: 100 116 139; /* slate-500 - muted but readable */
+  --border-primary: 226 232 240; /* slate-200 - clean borders */
+  --accent-primary: 153 27 27; /* red-800 - deep crimson/burgundy */
+  --accent-secondary: 180 83 9; /* amber-700 - rich gold complement */
+  --gradient-from: 254 252 248; /* warm off-white */
+  --gradient-via: 254 242 242; /* red-50 - subtle crimson tint */
+  --gradient-to: 252 246 232; /* amber-50 - subtle gold tint */
+  --success: 34 197 94; /* green-500 - keep existing green */
+  --success-muted: 74 222 128; /* green-400 */
+  --success-bg: 34 197 94; /* green-500 */
+  --warning: 180 83 9; /* amber-700 - rich gold */
+  --warning-muted: 245 158 11; /* amber-500 - lighter gold */
+  --warning-bg: 180 83 9; /* amber-700 */
+  --error: 185 28 28; /* red-700 - deeper red for errors */
+  --error-muted: 220 38 38; /* red-600 - medium red */
+  --error-bg: 185 28 28; /* red-700 */
+  --info: 7 89 133; /* sky-800 - deep blue for contrast */
+  --info-muted: 14 116 144; /* cyan-700 - deeper cyan */
+  --info-bg: 7 89 133; /* sky-800 */
+}
+
+.dark {
+  /* Dark theme variables - matching original color scheme */
+  --bg-primary: 15 23 42; /* slate-900 - for gradient background */
+  --bg-secondary: 30 41 59; /* slate-800 */
+  --surface-primary: 15 23 42; /* slate-900 - to match original nav/sidebar */
+  --surface-secondary: 30 41 59; /* slate-800 - slightly lighter surfaces */
+  --text-primary: 255 255 255; /* white - original text color */
+  --text-secondary: 226 232 240; /* slate-200 */
+  --text-muted: 148 163 184; /* slate-400 - original muted text */
+  --border-primary: 71 85 105; /* slate-600 - original border color */
+  --accent-primary: 96 165 250; /* blue-400 - original blue accent */
+  --accent-secondary: 168 85 247; /* purple-400 - original purple accent */
+  --gradient-from: 15 23 42; /* slate-900 - original dark gradient */
+  --gradient-via: 107 33 168; /* purple-800 - original purple center */
+  --gradient-to: 15 23 42; /* slate-900 - original dark gradient */
+  --success: 34 197 94; /* green-500 */
+  --success-muted: 74 222 128; /* green-400 */
+  --success-bg: 22 163 74; /* green-600 */
+  --warning: 234 179 8; /* yellow-500 */
+  --warning-muted: 250 204 21; /* yellow-400 */
+  --warning-bg: 202 138 4; /* yellow-600 */
+  --error: 239 68 68; /* red-500 */
+  --error-muted: 248 113 113; /* red-400 */
+  --error-bg: 220 38 38; /* red-600 */
+  --info: 6 182 212; /* cyan-500 */
+  --info-muted: 34 211 238; /* cyan-400 */
+  --info-bg: 8 145 178; /* cyan-600 */
+}
+
+@theme {
+  --color-bg-primary: rgb(var(--bg-primary));
+  --color-bg-secondary: rgb(var(--bg-secondary));
+  --color-surface-primary: rgb(var(--surface-primary));
+  --color-surface-secondary: rgb(var(--surface-secondary));
+  --color-text-primary: rgb(var(--text-primary));
+  --color-text-secondary: rgb(var(--text-secondary));
+  --color-text-muted: rgb(var(--text-muted));
+  --color-border-primary: rgb(var(--border-primary));
+  --color-accent-primary: rgb(var(--accent-primary));
+  --color-accent-secondary: rgb(var(--accent-secondary));
+  --color-gradient-from: rgb(var(--gradient-from));
+  --color-gradient-via: rgb(var(--gradient-via));
+  --color-gradient-to: rgb(var(--gradient-to));
+  --color-success: rgb(var(--success));
+  --color-success-muted: rgb(var(--success-muted));
+  --color-success-bg: rgb(var(--success-bg));
+  --color-warning: rgb(var(--warning));
+  --color-warning-muted: rgb(var(--warning-muted));
+  --color-warning-bg: rgb(var(--warning-bg));
+  --color-error: rgb(var(--error));
+  --color-error-muted: rgb(var(--error-muted));
+  --color-error-bg: rgb(var(--error-bg));
+  --color-info: rgb(var(--info));
+  --color-info-muted: rgb(var(--info-muted));
+  --color-info-bg: rgb(var(--info-bg));
+}

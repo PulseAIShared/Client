@@ -111,8 +111,8 @@ export const IntegrationsSection = () => {
         setupComplexity: 'Medium',
         features: ['Customer Data Sync', 'Lead Scoring', 'Opportunity Tracking', 'Real-time Updates'],
         icon: (
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 bg-gradient-to-r from-accent-primary to-accent-primary rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-text-primary" fill="currentColor" viewBox="0 0 24 24">
               <path d="M11.5 0a5.5 5.5 0 00-5.5 5.5v.5H5a5 5 0 00-5 5v8a5 5 0 005 5h14a5 5 0 005-5v-8a5 5 0 00-5-5h-1v-.5A5.5 5.5 0 0012.5 0h-1zm0 2h1a3.5 3.5 0 013.5 3.5V6h-8v-.5A3.5 3.5 0 0111.5 2zM5 8h14a3 3 0 013 3v8a3 3 0 01-3 3H5a3 3 0 01-3-3v-8a3 3 0 013-3z"/>
             </svg>
           </div>
@@ -126,8 +126,8 @@ export const IntegrationsSection = () => {
         setupComplexity: 'Easy',
         features: ['OAuth Security', 'Contact Management', 'Deal Pipeline', 'Email Tracking', 'Marketing Automation'],
         icon: (
-          <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 bg-gradient-to-r from-warning to-error rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-text-primary" fill="currentColor" viewBox="0 0 24 24">
               <circle cx="12" cy="6" r="4"/>
               <circle cx="6" cy="18" r="4"/>
               <circle cx="18" cy="18" r="4"/>
@@ -144,8 +144,8 @@ export const IntegrationsSection = () => {
         setupComplexity: 'Easy',
         features: ['Pipeline Management', 'Activity Tracking', 'Custom Fields', 'Sales Reporting'],
         icon: (
-          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 bg-gradient-to-r from-success to-success-muted rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-text-primary" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
             </svg>
           </div>
@@ -159,8 +159,8 @@ export const IntegrationsSection = () => {
         setupComplexity: 'Medium',
         features: ['Payment Processing', 'Subscription Management', 'Billing Events', 'Revenue Analytics'],
         icon: (
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 bg-gradient-to-r from-accent-secondary to-info rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-text-primary" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
@@ -174,8 +174,8 @@ export const IntegrationsSection = () => {
         setupComplexity: 'Easy',
         features: ['Email Campaigns', 'Audience Segmentation', 'Open/Click Tracking', 'Automation Workflows'],
         icon: (
-          <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 bg-gradient-to-r from-warning-muted to-warning rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-text-primary" fill="currentColor" viewBox="0 0 24 24">
               <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
             </svg>
           </div>
@@ -189,8 +189,8 @@ export const IntegrationsSection = () => {
         setupComplexity: 'Medium',
         features: ['User Behavior', 'Conversion Tracking', 'Event Analytics', 'Audience Insights'],
         icon: (
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 bg-gradient-to-r from-accent-primary to-success rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-text-primary" fill="currentColor" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -410,20 +410,20 @@ export const IntegrationsSection = () => {
         {/* Stats Loading */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="bg-slate-700/30 backdrop-blur-lg p-6 rounded-xl border border-slate-600/50 animate-pulse">
-              <div className="h-6 bg-slate-600 rounded mb-2"></div>
-              <div className="h-8 bg-slate-600 rounded"></div>
+            <div key={index} className="bg-surface-secondary/30 backdrop-blur-lg p-6 rounded-xl border border-border-primary/50 animate-pulse">
+              <div className="h-6 bg-surface-secondary rounded mb-2"></div>
+              <div className="h-8 bg-surface-secondary rounded"></div>
             </div>
           ))}
         </div>
 
         {/* Search and Filters Loading */}
-        <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg animate-pulse">
+        <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg animate-pulse">
           <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 h-12 bg-slate-700 rounded"></div>
+            <div className="flex-1 h-12 bg-surface-secondary rounded"></div>
             <div className="flex gap-2">
               {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-10 w-24 bg-slate-700 rounded"></div>
+                <div key={index} className="h-10 w-24 bg-surface-secondary rounded"></div>
               ))}
             </div>
           </div>
@@ -432,16 +432,16 @@ export const IntegrationsSection = () => {
         {/* Integrations Grid Loading */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="bg-slate-700/30 backdrop-blur-lg p-6 rounded-xl border border-slate-600/50 animate-pulse">
+            <div key={index} className="bg-surface-secondary/30 backdrop-blur-lg p-6 rounded-xl border border-border-primary/50 animate-pulse">
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-600 rounded-xl"></div>
+                  <div className="w-12 h-12 bg-surface-secondary rounded-xl"></div>
                   <div className="space-y-2 flex-1">
-                    <div className="h-4 bg-slate-600 rounded w-3/4"></div>
-                    <div className="h-3 bg-slate-600 rounded w-1/2"></div>
+                    <div className="h-4 bg-surface-secondary rounded w-3/4"></div>
+                    <div className="h-3 bg-surface-secondary rounded w-1/2"></div>
                   </div>
                 </div>
-                <div className="h-16 bg-slate-600 rounded"></div>
+                <div className="h-16 bg-surface-secondary rounded"></div>
               </div>
             </div>
           ))}
@@ -452,10 +452,10 @@ export const IntegrationsSection = () => {
 
   if (error) {
     return (
-      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+      <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="text-center py-8">
-          <div className="text-red-400 mb-2">Failed to load integrations</div>
-          <div className="text-slate-500 text-sm">Please try refreshing the page</div>
+          <div className="text-error-muted mb-2">Failed to load integrations</div>
+          <div className="text-text-muted text-sm">Please try refreshing the page</div>
         </div>
       </div>
     );
@@ -465,51 +465,51 @@ export const IntegrationsSection = () => {
     <div className="space-y-6">
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 backdrop-blur-lg p-6 rounded-xl border border-green-500/30">
+        <div className="bg-gradient-to-r from-success/20 to-success-muted/20 backdrop-blur-lg p-6 rounded-xl border border-success/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-500/30 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-success/30 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-success-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
             </div>
             <div>
-              <div className="text-2xl font-bold text-green-400">{stats?.connectedCount || 0}</div>
-              <div className="text-sm text-green-300">Connected Integrations</div>
+              <div className="text-2xl font-bold text-success-muted">{stats?.connectedCount || 0}</div>
+              <div className="text-sm text-success">Connected Integrations</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-lg p-6 rounded-xl border border-blue-500/30">
+        <div className="bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 backdrop-blur-lg p-6 rounded-xl border border-accent-primary/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-500/30 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-accent-primary/30 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2M7 4h10l1 16H6L7 4z" />
               </svg>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-400">{stats?.totalRecordsSynced?.toLocaleString() || '0'}</div>
-              <div className="text-sm text-blue-300">Total Records Synced</div>
+              <div className="text-2xl font-bold text-accent-primary">{stats?.totalRecordsSynced?.toLocaleString() || '0'}</div>
+              <div className="text-sm text-accent-primary">Total Records Synced</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg p-6 rounded-xl border border-purple-500/30">
+        <div className="bg-gradient-to-r from-accent-secondary/20 to-accent-secondary/30 backdrop-blur-lg p-6 rounded-xl border border-accent-secondary/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-500/30 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-accent-secondary/30 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-accent-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <div className="text-2xl font-bold text-purple-400">{stats?.lastSyncTime || 'Never'}</div>
-              <div className="text-sm text-purple-300">Last Sync</div>
+              <div className="text-2xl font-bold text-accent-secondary">{stats?.lastSyncTime || 'Never'}</div>
+              <div className="text-sm text-accent-secondary">Last Sync</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
+      <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
             <input 
@@ -517,9 +517,9 @@ export const IntegrationsSection = () => {
               placeholder="Search integrations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-4 py-3 pl-10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              className="w-full bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-4 py-3 pl-10 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
             />
-            <svg className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="absolute left-3 top-3.5 w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -528,7 +528,7 @@ export const IntegrationsSection = () => {
             <button
               onClick={refreshIntegrations}
               disabled={isLoading}
-              className="px-3 py-2 bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-all duration-200 border border-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 bg-surface-secondary/50 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/70 rounded-lg transition-all duration-200 border border-border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Refresh integrations"
             >
               <svg className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -543,8 +543,8 @@ export const IntegrationsSection = () => {
                   onClick={() => setSelectedCategory(category.id)}
                   className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                     selectedCategory === category.id
-                      ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-400 border border-blue-500/30'
-                      : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600/50'
+                      ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
+                      : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70 border border-border-primary/50'
                   }`}
                 >
                   {category.label} ({category.count})
@@ -564,28 +564,28 @@ export const IntegrationsSection = () => {
           return (
             <div
               key={template.id}
-              className="group bg-slate-700/30 backdrop-blur-lg p-6 rounded-xl border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300 hover:shadow-lg"
+              className="group bg-surface-secondary/30 backdrop-blur-lg p-6 rounded-xl border border-border-primary/50 hover:border-border-primary/70 transition-all duration-300 hover:shadow-lg"
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-4">
                   {template.icon}
                   <div>
-                    <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-lg font-semibold text-text-primary group-hover:text-accent-primary transition-colors">
                       {template.name}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         isConnected
-                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                          : 'bg-slate-600/50 text-slate-400 border border-slate-600/50'
+                          ? 'bg-success/20 text-success-muted border border-success/30'
+                          : 'bg-surface-secondary/50 text-text-muted border border-border-primary/50'
                       }`}>
                         {isConnected ? 'Connected' : 'Not Connected'}
                       </span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        template.setupComplexity === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                        template.setupComplexity === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-red-500/20 text-red-400'
+                        template.setupComplexity === 'Easy' ? 'bg-success/20 text-success-muted' :
+                        template.setupComplexity === 'Medium' ? 'bg-warning/20 text-warning-muted' :
+                        'bg-error/20 text-error-muted'
                       }`}>
                         {template.setupComplexity} Setup
                       </span>
@@ -602,7 +602,7 @@ export const IntegrationsSection = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => testHubSpotConnection(integration!.id)}
-                            className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                            className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
                           >
                             Test Connection
                           </Button>
@@ -611,7 +611,7 @@ export const IntegrationsSection = () => {
                             size="sm"
                             onClick={() => handleSync(integration!.id)}
                             disabled={syncMutation.isPending}
-                            className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                            className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
                           >
                             {syncMutation.isPending ? 'Syncing...' : 'Sync'}
                           </Button>
@@ -620,7 +620,7 @@ export const IntegrationsSection = () => {
                             size="sm"
                             onClick={() => handleDisconnect(integration!.id)}
                             disabled={disconnectMutation.isPending}
-                            className="border-slate-600/50 hover:border-red-500/50 hover:text-red-400"
+                            className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
                           >
                             {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
                           </Button>
@@ -632,7 +632,7 @@ export const IntegrationsSection = () => {
                             size="sm"
                             onClick={() => handleSync(integration!.id)}
                             disabled={syncMutation.isPending}
-                            className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400"
+                            className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
                           >
                             {syncMutation.isPending ? 'Syncing...' : 'Sync'}
                           </Button>
@@ -641,7 +641,7 @@ export const IntegrationsSection = () => {
                             size="sm"
                             onClick={() => handleDisconnect(integration!.id)}
                             disabled={disconnectMutation.isPending}
-                            className="border-slate-600/50 hover:border-red-500/50 hover:text-red-400"
+                            className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
                           >
                             {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
                           </Button>
@@ -654,7 +654,7 @@ export const IntegrationsSection = () => {
                       size="sm"
                       onClick={() => handleConnect(template.id, template.name)}
                       disabled={connectMutation.isPending}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary"
                     >
                       {connectMutation.isPending ? 'Connecting...' : 'Connect'}
                     </Button>
@@ -663,21 +663,21 @@ export const IntegrationsSection = () => {
               </div>
 
               {/* Description */}
-              <p className="text-slate-300 text-sm mb-4 leading-relaxed">
+              <p className="text-text-secondary text-sm mb-4 leading-relaxed">
                 {template.description}
               </p>
 
               {/* Connection Details */}
               {isConnected && integration && (
                 <div className="flex items-center gap-4 mb-4 text-sm">
-                  <div className="flex items-center gap-2 text-slate-400">
+                  <div className="flex items-center gap-2 text-text-muted">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <span>{integration.syncedRecordCount.toLocaleString()} records</span>
                   </div>
                   {integration.lastSyncedAt && (
-                    <div className="flex items-center gap-2 text-slate-400">
+                    <div className="flex items-center gap-2 text-text-muted">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -689,12 +689,12 @@ export const IntegrationsSection = () => {
 
               {/* Features */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-slate-300">Key Features:</h4>
+                <h4 className="text-sm font-medium text-text-secondary">Key Features:</h4>
                 <div className="flex flex-wrap gap-2">
                   {template.features.map((feature, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 bg-slate-600/50 text-slate-300 rounded-md text-xs border border-slate-600/50"
+                      className="px-2 py-1 bg-surface-secondary/50 text-text-secondary rounded-md text-xs border border-border-primary/50"
                     >
                       {feature}
                     </span>
@@ -708,25 +708,25 @@ export const IntegrationsSection = () => {
 
       {filteredTemplates.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-slate-400 mb-2">No integrations found</div>
-          <div className="text-sm text-slate-500">Try adjusting your search or filter criteria</div>
+          <div className="text-text-muted mb-2">No integrations found</div>
+          <div className="text-sm text-text-muted">Try adjusting your search or filter criteria</div>
         </div>
       )}
 
       {/* Bottom CTA Section */}
-      <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-lg p-8 rounded-2xl border border-blue-500/30 mt-8">
+      <div className="bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 backdrop-blur-lg p-8 rounded-2xl border border-accent-primary/30 mt-8">
         <div className="text-center">
-          <h3 className="text-2xl font-bold text-white mb-4">
+          <h3 className="text-2xl font-bold text-text-primary mb-4">
             Need a Custom Integration?
           </h3>
-          <p className="text-slate-300 mb-6 max-w-2xl mx-auto">
-            Don't see your system listed? Our team can help you build custom integrations to connect any data source with Pulse AI's churn prediction engine.
+          <p className="text-text-secondary mb-6 max-w-2xl mx-auto">
+            Don't see your system listed? Our team can help you build custom integrations to connect any data source with PulseLTV's churn prediction engine.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Button className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary">
               Request Custom Integration
             </Button>
-            <Button variant="outline" className="border-slate-600/50 hover:border-blue-500/50 hover:text-blue-400">
+            <Button variant="outline" className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary">
               View API Documentation
             </Button>
           </div>

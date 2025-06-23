@@ -5,6 +5,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { Code } from '@mantine/core';
 import { useUser, useLogout } from '@/lib/auth';
 import { NotificationsBell } from '@/components/ui/notifications';
+import { useTheme } from '@/lib/theme-context';
 
 export const TopNav = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -14,14 +15,15 @@ export const TopNav = () => {
   
   const user = useUser();
   const logout = useLogout();
+  const { theme, toggleTheme } = useTheme();
   
   const Logo = () => {
     return (
       <Link className="flex items-center gap-2" to="/app">
-        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-          Pulse AI
+        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
+          PulseLTV
         </span>
-        <Code fw={700} className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+        <Code fw={700} className="text-xs bg-accent-secondary/20 text-accent-secondary border border-accent-secondary/30">
           BETA
         </Code>
       </Link>
@@ -65,7 +67,7 @@ export const TopNav = () => {
   };
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-30 flex h-14 sm:h-16 items-center justify-between bg-slate-900/95 backdrop-blur-lg px-4 sm:px-6 text-white border-b border-slate-700/50 shadow-lg">
+    <nav className="fixed inset-x-0 top-0 z-30 flex h-14 sm:h-16 items-center justify-between bg-surface-primary/95 backdrop-blur-lg px-4 sm:px-6 text-text-primary border-b border-border-primary/50 shadow-lg">
       <div className="flex items-center">
         <Link 
           to="/app" 
@@ -82,12 +84,29 @@ export const TopNav = () => {
           <input 
             type="text" 
             placeholder="Search..."
-            className="bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-2 pl-10 w-64 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            className="bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-4 py-2 pl-10 w-64 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
           />
-          <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-2.5 w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-lg bg-surface-secondary/50 border border-border-primary/50 hover:bg-surface-tertiary/50 transition-all"
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {theme === 'dark' ? (
+            <svg className="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+        </button>
 
         {/* Notifications Bell Component */}
         <NotificationsBell />
@@ -96,36 +115,36 @@ export const TopNav = () => {
         <div className="relative" ref={userDropdownRef}>
           <button 
             onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-            className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50 border border-slate-600/50 hover:bg-slate-700/50 transition-all"
+            className="flex items-center gap-2 p-2 rounded-lg bg-surface-secondary/50 border border-border-primary/50 hover:bg-surface-tertiary/50 transition-all"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
+            <div className="w-8 h-8 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-medium text-sm">
               {getUserInitials()}
             </div>
             {!isMobile && (
               <div className="text-sm">
-                <div className="text-white font-medium">{getUserDisplayName()}</div>
+                <div className="text-text-primary font-medium">{getUserDisplayName()}</div>
               </div>
             )}
-            <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4 h-4 text-text-muted transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           {/* Dropdown Menu */}
           {isUserDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-xl py-2 z-50">
+            <div className="absolute right-0 mt-2 w-64 bg-surface-primary/95 backdrop-blur-lg border border-border-primary/50 rounded-xl shadow-xl py-2 z-50">
               {/* User Info Section */}
-              <div className="px-4 py-3 border-b border-slate-700/50">
+              <div className="px-4 py-3 border-b border-border-primary/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium">
+                  <div className="w-10 h-10 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-medium">
                     {getUserInitials()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-white font-medium truncate">{getUserDisplayName()}</div>
-                    <div className="text-slate-400 text-sm truncate">{user.data?.email}</div>
-                    <div className="text-slate-500 text-xs mt-2">
+                    <div className="text-text-primary font-medium truncate">{getUserDisplayName()}</div>
+                    <div className="text-text-secondary text-sm truncate">{user.data?.email}</div>
+                    <div className="text-text-tertiary text-xs mt-2">
                       {user.data?.role && (
-                        <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium border border-blue-500/30">
+                        <span className="px-2 py-0.5 bg-accent-primary/20 text-accent-primary rounded-full text-xs font-medium border border-accent-primary/30">
                           {user.data.role}
                         </span>
                       )}
@@ -139,7 +158,7 @@ export const TopNav = () => {
                 <Link
                   to="/app/settings"
                   onClick={() => setIsUserDropdownOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+                  className="flex items-center gap-3 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 transition-all duration-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -151,7 +170,7 @@ export const TopNav = () => {
                 <Link
                   to="/app"
                   onClick={() => setIsUserDropdownOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+                  className="flex items-center gap-3 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 transition-all duration-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 7 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -162,7 +181,7 @@ export const TopNav = () => {
                   <Link
                   to="docs/getting-started"
                   onClick={() => setIsUserDropdownOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+                  className="flex items-center gap-3 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 transition-all duration-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -172,7 +191,7 @@ export const TopNav = () => {
 
                 <button
                   onClick={() => setIsUserDropdownOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200 w-full text-left"
+                  className="flex items-center gap-3 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 transition-all duration-200 w-full text-left"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
@@ -182,11 +201,11 @@ export const TopNav = () => {
               </div>
 
               {/* Logout Section */}
-              <div className="border-t border-slate-700/50 pt-2">
+              <div className="border-t border-border-primary/50 pt-2">
                 <button
                   onClick={handleLogout}
                   disabled={logout.isPending}
-                  className="flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-600/10 transition-all duration-200 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-3 px-4 py-2 text-error-muted hover:text-error hover:bg-error/10 transition-all duration-200 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {logout.isPending ? (
                     <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">

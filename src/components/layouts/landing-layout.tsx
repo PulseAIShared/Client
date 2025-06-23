@@ -1,12 +1,9 @@
-import { Footer } from '@/components/ui/nav';
-import { Navbar } from '@/components/ui/nav';
+import { Footer, LandingNavbar } from '@/components/ui/nav';
 import { useUser } from '@/lib/auth';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
-export function LandingLayout({ children }: { children: React.ReactNode }){
-
+export function LandingLayout({ children }: { children: React.ReactNode }) {
   const user = useUser({
     staleTime: 1000 * 60 * 5, 
     refetchOnWindowFocus: false, 
@@ -24,8 +21,10 @@ export function LandingLayout({ children }: { children: React.ReactNode }){
   }, [user.data, navigate]);
 
   return (
-    <div>    
-      <main>{children}</main>
+    <div className="min-h-screen bg-bg-primary">
+      <LandingNavbar />
+      <main className="pt-16">{children}</main>
+      <Footer />
     </div>
   );
 };

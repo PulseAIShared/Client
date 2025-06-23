@@ -11,6 +11,7 @@ import { MantineProvider } from '@mantine/core';
 import { MainErrorFallback } from '@/components/errors/main';
 import { ModalProvider } from './modal-provider';
 import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
+import { ThemeProvider } from '@/lib/theme-context';
 
 // Component to handle real-time notifications
 const RealTimeNotificationHandler: React.FC = () => {
@@ -48,16 +49,18 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       }
     >
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
-        <MantineProvider>
-          <QueryClientProvider client={queryClient}>
-            <ModalProvider>
-              {import.meta.env.DEV && <ReactQueryDevtools />}
-              <Notifications />
-              <RealTimeNotificationHandler />
-              {children}
-            </ModalProvider>
-          </QueryClientProvider>
-        </MantineProvider>
+        <ThemeProvider>
+          <MantineProvider>
+            <QueryClientProvider client={queryClient}>
+              <ModalProvider>
+                {import.meta.env.DEV && <ReactQueryDevtools />}
+                <Notifications />
+                <RealTimeNotificationHandler />
+                {children}
+              </ModalProvider>
+            </QueryClientProvider>
+          </MantineProvider>
+        </ThemeProvider>
       </ErrorBoundary>
     </React.Suspense>
   );

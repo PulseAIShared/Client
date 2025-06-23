@@ -88,3 +88,74 @@ Required environment variables (prefixed with `VITE_APP_`):
 - No refetching on window focus - relies on SignalR events
 - Connection status indicator shows when real-time updates are active
 - Manual refresh option available when needed
+
+## Theme System
+
+The application uses a flexible dark/light theme system built with Tailwind CSS v4 and CSS custom properties.
+
+### Theme Implementation
+
+**Theme Context**: Located in `src/lib/theme-context.tsx`
+- React context for theme state management
+- Persists theme preference in localStorage
+- Toggles `.dark` class on document root
+- Default theme is dark (preserves original design)
+
+**CSS Variables**: Defined in `src/styles/theme.css`
+- Uses Tailwind v4's `@theme` directive for custom colors
+- Separate variable sets for light and dark modes
+- Automatic switching based on `.dark` class
+
+**Theme Variables Available**:
+- `bg-primary`, `bg-secondary` - Background colors
+- `surface-primary`, `surface-secondary` - Card/surface backgrounds
+- `text-primary`, `text-secondary`, `text-muted` - Text colors
+- `border-primary` - Border colors
+- `accent-primary`, `accent-secondary` - Accent colors for buttons/highlights
+- `gradient-from`, `gradient-via`, `gradient-to` - Gradient colors
+- `success`, `success-muted`, `success-bg` - Success/green semantic colors
+- `warning`, `warning-muted`, `warning-bg` - Warning/yellow semantic colors
+- `error`, `error-muted`, `error-bg` - Error/red semantic colors
+- `info`, `info-muted`, `info-bg` - Info/cyan semantic colors
+
+### Usage in Components
+
+Use theme variables instead of hard-coded colors:
+```tsx
+// ✅ Good - Uses theme variables
+<div className="bg-surface-primary text-text-primary border-border-primary">
+  <h1 className="text-text-primary">Title</h1>
+  <button className="bg-accent-primary hover:bg-accent-hover">Click me</button>
+  <div className="text-success-muted">Success message</div>
+  <div className="text-error-muted">Error message</div>
+</div>
+
+// ❌ Bad - Hard-coded colors
+<div className="bg-slate-800 text-white border-slate-700">
+  <h1 className="text-white">Title</h1>
+  <button className="bg-blue-500 hover:bg-blue-600">Click me</button>
+  <div className="text-green-400">Success message</div>
+  <div className="text-red-400">Error message</div>
+</div>
+```
+
+### Customizing Colors
+
+Edit the CSS variables in `src/styles/theme.css`:
+```css
+:root {
+  /* Light theme */
+  --bg-primary: 248 250 252; /* RGB values */
+  --accent-primary: 59 130 246;
+}
+
+.dark {
+  /* Dark theme */
+  --bg-primary: 15 23 42;
+  --accent-primary: 96 165 250;
+}
+```
+
+### Theme Toggle
+
+Theme toggle button is available in the top navigation (`src/components/ui/nav/top-navigation.tsx`) with sun/moon icons that automatically switch based on current theme.

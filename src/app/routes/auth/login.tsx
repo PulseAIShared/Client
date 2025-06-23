@@ -45,7 +45,7 @@ export const LoginRoute = () => {
               </div>
               
               <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                Sign in to Pulse AI
+                Sign in to PulseLTV
               </h1>
               <p className="text-slate-600">
                 Access your AI-powered dashboard

@@ -80,7 +80,7 @@ export const FeatureIconsSection = () => {
             </span>
           </h2>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-            Pulse AI combines predictive analytics, automation, and personalization to help subscription businesses retain more customers and recover more revenue.
+            PulseLTV combines predictive analytics, automation, and personalization to help subscription businesses retain more customers and recover more revenue.
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export const FeatureIconsSection = () => {
               Ready to reduce churn and recover revenue?
             </h3>
             <p className="text-slate-300 mb-6 max-w-2xl mx-auto">
-              Join hundreds of subscription businesses using Pulse AI to automatically predict, prevent, and recover from customer churn.
+              Join hundreds of subscription businesses using PulseLTV to automatically predict, prevent, and recover from customer churn.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-1 transition-all duration-200">

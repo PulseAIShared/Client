@@ -43,13 +43,13 @@ export const AuthRoute = () => {
               </div>
               
               <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                Sign in to Pulse AI
+                Sign in to PulseLTV
               </h1>
               <p className="text-slate-600 mb-2">
                 AI-powered churn prediction and revenue recovery
               </p>
               <p className="text-sm text-slate-500">
-                New to Pulse AI?{" "}
+                New to PulseLTV?{" "}
                 <Link 
                   to="/auth/register" 
                   className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"

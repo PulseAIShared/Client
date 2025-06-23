@@ -37,17 +37,17 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
 
   console.log(importHistory);
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
+    <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-surface-primary/95 backdrop-blur-lg rounded-2xl border border-border-primary shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700/50">
+        <div className="flex items-center justify-between p-6 border-b border-border-primary">
           <div>
-            <h2 className="text-xl font-bold text-white">Import History</h2>
-            <p className="text-sm text-slate-400">View your customer import jobs</p>
+            <h2 className="text-xl font-bold text-text-primary">Import History</h2>
+            <p className="text-sm text-text-muted">View your customer import jobs</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+            className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -60,7 +60,7 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
           {isLoading ? (
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-16 bg-slate-700 rounded animate-pulse"></div>
+                <div key={index} className="h-16 bg-surface-secondary rounded animate-pulse"></div>
               ))}
             </div>
           ) : importHistory && importHistory.items.length > 0 ? (
@@ -68,13 +68,13 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
               {importHistory.items.map((job) => (
                 <div 
                   key={job.id}
-                  className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 hover:bg-slate-700/50 transition-colors"
+                  className="bg-surface-secondary/30 p-4 rounded-lg border border-border-primary hover:bg-surface-secondary/50 transition-colors"
                 onClick={() => handleImportClick(job.id)}
                 >
                   <div className="flex items-center justify-between mb-3" >
                     <div>
-                      <h4 className="text-white font-medium">{job.fileName}</h4>
-                      <p className="text-sm text-slate-400">
+                      <h4 className="text-text-primary font-medium">{job.fileName}</h4>
+                      <p className="text-sm text-text-muted">
                         {new Date(job.createdAt).toLocaleDateString()} at{' '}
                         {new Date(job.createdAt).toLocaleTimeString()}
                       </p>
@@ -86,20 +86,20 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <span className="text-slate-400">Total Records:</span>
-                      <div className="text-white font-medium">{job.totalRecords}</div>
+                      <span className="text-text-muted">Total Records:</span>
+                      <div className="text-text-primary font-medium">{job.totalRecords}</div>
                     </div>
                     <div>
-                      <span className="text-slate-400">Successful:</span>
-                      <div className="text-green-400 font-medium">{job.successfulRecords}</div>
+                      <span className="text-text-muted">Successful:</span>
+                      <div className="text-success font-medium">{job.successfulRecords}</div>
                     </div>
                     <div>
-                      <span className="text-slate-400">Errors:</span>
-                      <div className="text-red-400 font-medium">{job.errorCount}</div>
+                      <span className="text-text-muted">Errors:</span>
+                      <div className="text-error font-medium">{job.errorCount}</div>
                     </div>
                     <div>
-                      <span className="text-slate-400">Completed:</span>
-                      <div className="text-white font-medium">
+                      <span className="text-text-muted">Completed:</span>
+                      <div className="text-text-primary font-medium">
                         {job.completedAt 
                           ? new Date(job.completedAt).toLocaleDateString()
                           : 'In Progress'
@@ -112,35 +112,35 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-surface-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-white font-medium mb-2">No Import History</h3>
-              <p className="text-slate-400">You haven't imported any customers yet.</p>
+              <h3 className="text-text-primary font-medium mb-2">No Import History</h3>
+              <p className="text-text-muted">You haven't imported any customers yet.</p>
             </div>
           )}
         </div>
 
         {/* Pagination */}
         {importHistory && importHistory.totalPages > 1 && (
-          <div className="flex items-center justify-between p-6 border-t border-slate-700/50">
-            <div className="text-sm text-slate-400">
+          <div className="flex items-center justify-between p-6 border-t border-border-primary">
+            <div className="text-sm text-text-muted">
               Page {importHistory.page} of {importHistory.totalPages}
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setPage(page - 1)}
                 disabled={page <= 1}
-                className="px-3 py-1 bg-slate-700/50 text-white rounded hover:bg-slate-600/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-surface-secondary text-text-primary rounded hover:bg-surface-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= importHistory.totalPages}
-                className="px-3 py-1 bg-slate-700/50 text-white rounded hover:bg-slate-600/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-surface-secondary text-text-primary rounded hover:bg-surface-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>

@@ -81,16 +81,16 @@ export const SegmentsRoute = () => {
         <SegmentsHeader />
 
         {/* Navigation Tabs */}
-        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-lg overflow-hidden">
-          <div className="flex flex-wrap border-b border-slate-700/50">
+        <div className="bg-surface-primary/50 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-lg overflow-hidden">
+          <div className="flex flex-wrap border-b border-border-primary/50">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
                   activeTab === tab.id
-                    ? 'border-blue-500 bg-blue-600/10 text-blue-400'
-                    : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/30'
+                    ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                    : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-secondary/30'
                 }`}
               >
                 {tab.icon}

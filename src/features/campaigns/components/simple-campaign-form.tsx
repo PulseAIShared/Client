@@ -94,7 +94,7 @@ Our customer success team has identified some optimization opportunities that co
 Would you like to schedule a 15-minute call to discuss how we can better support your goals?
 
 Best regards,
-The PulseAI Team`,
+The PulseLTV Team`,
     },
     {
       id: 'winback',
@@ -113,7 +113,7 @@ To show our appreciation for your past business, we'd like to offer you:
 This offer expires in 7 days. Ready to give us another try?
 
 Best regards,
-The PulseAI Team`,
+The PulseLTV Team`,
     },
   ];
 
@@ -126,7 +126,7 @@ The PulseAI Team`,
     return (
       <ContentLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary"></div>
         </div>
       </ContentLayout>
     );
@@ -137,10 +137,10 @@ The PulseAI Team`,
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Create New Campaign</h1>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Create New Campaign</h1>
           {selectedSegment && (
-            <p className="text-slate-400">
-              Creating campaign for segment: <span className="text-white font-medium">{selectedSegment.name}</span>
+            <p className="text-text-muted">
+              Creating campaign for segment: <span className="text-text-primary font-medium">{selectedSegment.name}</span>
               {' '}({selectedSegment.customerCount.toLocaleString()} customers)
             </p>
           )}
@@ -148,32 +148,32 @@ The PulseAI Team`,
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
-          <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
-            <h2 className="text-xl font-semibold text-white mb-6">Basic Information</h2>
+          <div className="bg-surface-primary/50 rounded-2xl p-6 border border-border-primary/50">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">Basic Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Campaign Name *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => updateField('name', e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/50 rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent"
                   placeholder="Enter campaign name"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Campaign Type
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => updateField('type', e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/50 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent"
                 >
                   <option value="Email">Email</option>
                   <option value="SMS">SMS</option>
@@ -190,15 +190,15 @@ The PulseAI Team`,
                 value={formData.description}
                 onChange={(e) => updateField('description', e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/50 rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent"
                 placeholder="Describe what this campaign aims to achieve"
               />
             </div>
           </div>
 
           {/* Segment Selection */}
-          <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
-            <h2 className="text-xl font-semibold text-white mb-6">Target Segment</h2>
+          <div className="bg-surface-primary/50 rounded-2xl p-6 border border-border-primary/50">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">Target Segment</h2>
             
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -208,7 +208,7 @@ The PulseAI Team`,
                 value={formData.segmentId}
                 onChange={(e) => updateField('segmentId', e.target.value)}
                 disabled={!!segmentId}
-                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/50 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent disabled:opacity-50"
                 required
               >
                 <option value="">Select a segment</option>
@@ -221,17 +221,17 @@ The PulseAI Team`,
             </div>
 
             {selectedSegment && (
-              <div className="mt-4 p-4 bg-slate-700/30 rounded-lg">
-                <h3 className="font-medium text-white mb-2">{selectedSegment.name}</h3>
-                <p className="text-slate-400 text-sm mb-3">{selectedSegment.description}</p>
+              <div className="mt-4 p-4 bg-surface-secondary/30 rounded-lg">
+                <h3 className="font-medium text-text-primary mb-2">{selectedSegment.name}</h3>
+                <p className="text-text-muted text-sm mb-3">{selectedSegment.description}</p>
                 <div className="flex gap-4 text-sm">
-                  <span className="text-slate-300">
+                  <span className="text-text-secondary">
                     <span className="font-medium">{selectedSegment.customerCount.toLocaleString()}</span> customers
                   </span>
-                  <span className="text-slate-300">
+                  <span className="text-text-secondary">
                     <span className="font-medium">{selectedSegment.churnRate}%</span> churn rate
                   </span>
-                  <span className="text-slate-300">
+                  <span className="text-text-secondary">
                     <span className="font-medium">${selectedSegment.avgLTV}</span> avg LTV
                   </span>
                 </div>
@@ -241,9 +241,9 @@ The PulseAI Team`,
 
           {/* Email Templates */}
           {formData.type === 'Email' && (
-            <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
-              <h2 className="text-xl font-semibold text-white mb-6">Email Templates</h2>
-              <p className="text-slate-400 text-sm mb-4">Choose a template to get started quickly:</p>
+            <div className="bg-surface-primary/50 rounded-2xl p-6 border border-border-primary/50">
+              <h2 className="text-xl font-semibold text-text-primary mb-6">Email Templates</h2>
+              <p className="text-text-muted text-sm mb-4">Choose a template to get started quickly:</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {emailTemplates.map((template) => (
@@ -251,10 +251,10 @@ The PulseAI Team`,
                     key={template.id}
                     type="button"
                     onClick={() => handleUseTemplate(template)}
-                    className="p-4 rounded-lg border-2 border-slate-600/50 bg-slate-700/30 hover:border-slate-500/50 text-left transition-all"
+                    className="p-4 rounded-lg border-2 border-border-primary/50 bg-surface-secondary/30 hover:border-border-primary/60 text-left transition-all"
                   >
-                    <h3 className="font-medium text-white mb-2">{template.name}</h3>
-                    <p className="text-slate-400 text-sm">{template.subject}</p>
+                    <h3 className="font-medium text-text-primary mb-2">{template.name}</h3>
+                    <p className="text-text-muted text-sm">{template.subject}</p>
                   </button>
                 ))}
               </div>
@@ -262,19 +262,19 @@ The PulseAI Team`,
           )}
 
           {/* Campaign Content */}
-          <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
-            <h2 className="text-xl font-semibold text-white mb-6">Campaign Content</h2>
+          <div className="bg-surface-primary/50 rounded-2xl p-6 border border-border-primary/50">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">Campaign Content</h2>
             
             {formData.type === 'Email' && (
               <div className="mb-6">
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Email Subject
                 </label>
                 <input
                   type="text"
                   value={formData.subject}
                   onChange={(e) => updateField('subject', e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/50 rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent"
                   placeholder="Enter email subject"
                 />
               </div>
@@ -288,7 +288,7 @@ The PulseAI Team`,
                 value={formData.content}
                 onChange={(e) => updateField('content', e.target.value)}
                 rows={12}
-                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/50 rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent"
                 placeholder="Enter your campaign content..."
                 required
               />
@@ -300,7 +300,7 @@ The PulseAI Team`,
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-6 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
+              className="px-6 py-2 bg-surface-secondary hover:bg-surface-secondary/80 text-text-primary rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -308,7 +308,7 @@ The PulseAI Team`,
             <button
               type="submit"
               disabled={createCampaignMutation.isPending}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="px-6 py-2 bg-accent-primary hover:bg-accent-primary/80 text-text-primary rounded-lg transition-colors disabled:opacity-50"
             >
               {createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign'}
             </button>

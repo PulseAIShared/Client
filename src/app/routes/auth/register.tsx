@@ -33,8 +33,8 @@ export const RegisterRoute = () => {
       return {
         badge: { text: "Team Invitation", color: "bg-blue-100", textColor: "text-blue-700" },
         title: invitationInfo.companyName 
-          ? `Join ${invitationInfo.companyName} on Pulse AI`
-          : "Join Team on Pulse AI",
+          ? `Join ${invitationInfo.companyName} on PulseLTV`
+          : "Join Team on PulseLTV",
         subtitle: invitationInfo.inviterName
           ? `${invitationInfo.inviterName} has invited you to collaborate`
           : "You've been invited to join a team workspace"
@@ -43,7 +43,7 @@ export const RegisterRoute = () => {
 
     return {
       badge: { text: "Get Started", color: "bg-green-100", textColor: "text-green-700" },
-      title: "Create your Pulse AI account",
+      title: "Create your PulseLTV account",
       subtitle: "Start predicting and recovering revenue with AI"
     };
   };

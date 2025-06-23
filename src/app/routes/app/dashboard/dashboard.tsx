@@ -23,7 +23,7 @@ export const DashboardRoute = () => {
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
             <Spinner size="xl" />
-            <p className="mt-4 text-slate-300">Loading dashboard...</p>
+            <p className="mt-4 text-text-secondary">Loading dashboard...</p>
           </div>
         </div>
       </ContentLayout>
@@ -34,10 +34,10 @@ export const DashboardRoute = () => {
     return (
       <ContentLayout>
         <div className="flex items-center justify-center min-h-96">
-          <div className="text-center bg-slate-800/50 backdrop-blur-lg p-8 rounded-2xl border border-slate-700/50">
-            <div className="text-red-400 text-6xl mb-4">⚠️</div>
-            <h2 className="text-xl font-semibold text-white mb-2">Failed to Load Dashboard</h2>
-            <p className="text-slate-400">
+          <div className="text-center bg-surface-secondary/50 backdrop-blur-lg p-8 rounded-2xl border border-border-primary/50">
+            <div className="text-error-muted text-6xl mb-4">⚠️</div>
+            <h2 className="text-xl font-semibold text-text-primary mb-2">Failed to Load Dashboard</h2>
+            <p className="text-text-muted">
               {error instanceof Error ? error.message : 'Unable to load dashboard data'}
             </p>
           </div>

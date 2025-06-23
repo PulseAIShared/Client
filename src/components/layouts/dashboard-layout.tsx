@@ -7,6 +7,7 @@ import { GiProgression } from "react-icons/gi";
 import { FaUser } from "react-icons/fa";
 import { useMediaQuery } from "@mantine/hooks";
 import { MdSegment, MdCampaign } from "react-icons/md";
+import { useTheme } from "@/lib/theme-context";
 
 
 type DashboardLayoutProps = {
@@ -15,6 +16,7 @@ type DashboardLayoutProps = {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const { theme } = useTheme();
 
   const navigation: SideNavigationItem[] = [
     {
@@ -50,7 +52,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   return (
-    <div className="flex w-full flex-col bg-gradient-to-br from-slate-900 via-purple-800 to-slate-900 min-h-screen">
+    <div className="flex w-full flex-col bg-bg-primary min-h-screen transition-colors duration-300">
+      {/* Debug theme indicator */}
+      <div className="fixed top-20 right-4 z-50 px-3 py-1 rounded-full text-xs font-mono bg-black/10 dark:bg-white/10 text-black dark:text-white">
+        Theme: {theme}
+      </div>
       <TopNav />
       <div className="flex flex-grow min-h-0">
         <Sidebar navigation={navigation} />

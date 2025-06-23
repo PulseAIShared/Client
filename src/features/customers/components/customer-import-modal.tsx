@@ -14,7 +14,7 @@ type ImportMode = 'pulse-template' | 'hubspot' | 'salesforce' | 'pipedrive' | 'c
 // Define CRM field mappings
 const CRM_TEMPLATES = {
   'pulse-template': {
-    name: 'Pulse AI Template',
+    name: 'PulseLTV Template',
     description: 'Our standard customer import format',
     requiredFields: ['name', 'email', 'plan', 'monthlyRevenue', 'subscriptionStartDate', 'lastActivity'],
   },
@@ -143,10 +143,10 @@ const downloadTemplate = (mode: ImportMode) => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-text-primary mb-2">
                 Choose Import Method
               </h3>
-              <p className="text-slate-400">
+              <p className="text-text-muted">
                 Select your data source to get the right import format
               </p>
             </div>
@@ -158,18 +158,18 @@ const downloadTemplate = (mode: ImportMode) => {
                   onClick={() => setImportMode(key as ImportMode)}
                   className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
                     importMode === key
-                      ? 'border-blue-500 bg-blue-600/20'
-                      : 'border-slate-600/50 hover:border-slate-500/50 bg-slate-700/30'
+                      ? 'border-accent-primary bg-accent-primary/20'
+                      : 'border-border-primary hover:border-border-primary/70 bg-surface-secondary/30'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`w-3 h-3 rounded-full mt-1 ${
-                      importMode === key ? 'bg-blue-500' : 'bg-slate-500'
+                      importMode === key ? 'bg-accent-primary' : 'bg-surface-secondary'
                     }`} />
                     <div>
-                      <h4 className="text-white font-medium mb-1">{template.name}</h4>
-                      <p className="text-slate-400 text-sm">{template.description}</p>
-                      <div className="mt-2 text-xs text-slate-500">
+                      <h4 className="text-text-primary font-medium mb-1">{template.name}</h4>
+                      <p className="text-text-muted text-sm">{template.description}</p>
+                      <div className="mt-2 text-xs text-text-muted">
                         Required: {template.requiredFields.join(', ')}
                       </div>
                     </div>
@@ -184,10 +184,10 @@ const downloadTemplate = (mode: ImportMode) => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-text-primary mb-2">
                 Upload Your CSV File
               </h3>
-              <p className="text-slate-400">
+              <p className="text-text-muted">
                 Upload a {CRM_TEMPLATES[importMode].name} format CSV file
               </p>
             </div>
@@ -245,10 +245,10 @@ const downloadTemplate = (mode: ImportMode) => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-text-primary mb-2">
                 Ready to Import
               </h3>
-              <p className="text-slate-400">
+              <p className="text-text-muted">
                 File selected: {csvFile?.name}
               </p>
             </div>
@@ -286,10 +286,10 @@ const downloadTemplate = (mode: ImportMode) => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-text-primary mb-2">
                 Import Started Successfully
               </h3>
-              <p className="text-slate-400">
+              <p className="text-text-muted">
                 Your import is being processed with real-time updates
               </p>
             </div>
@@ -377,24 +377,24 @@ const downloadTemplate = (mode: ImportMode) => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-surface-primary/95 backdrop-blur-lg rounded-2xl border border-border-primary shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700/50">
+        <div className="flex items-center justify-between p-6 border-b border-border-primary">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Import Customers</h2>
-              <p className="text-sm text-slate-400">Bulk import with real-time processing</p>
+              <h2 className="text-xl font-bold text-text-primary">Import Customers</h2>
+              <p className="text-sm text-text-muted">Bulk import with real-time processing</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+            className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -403,17 +403,17 @@ const downloadTemplate = (mode: ImportMode) => {
         </div>
 
         {/* Progress Steps */}
-        <div className="px-6 py-4 border-b border-slate-700/50">
+        <div className="px-6 py-4 border-b border-border-primary">
           <div className="flex items-center">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-1">
                 <div className={`flex items-center gap-3 ${index < steps.length - 1 ? 'flex-1' : ''}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
                     currentStep > step.id
-                      ? 'bg-green-500 border-green-500 text-white'
+                      ? 'bg-success border-success text-text-primary'
                       : currentStep === step.id
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'bg-slate-700 border-slate-600 text-slate-400'
+                      ? 'bg-accent-primary border-accent-primary text-text-primary'
+                      : 'bg-surface-secondary border-border-primary text-text-muted'
                   }`}>
                     {currentStep > step.id ? (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,16 +425,16 @@ const downloadTemplate = (mode: ImportMode) => {
                   </div>
                   <div className="hidden sm:block">
                     <div className={`text-sm font-medium ${
-                      currentStep >= step.id ? 'text-white' : 'text-slate-400'
+                      currentStep >= step.id ? 'text-text-primary' : 'text-text-muted'
                     }`}>
                       {step.title}
                     </div>
-                    <div className="text-xs text-slate-500">{step.description}</div>
+                    <div className="text-xs text-text-muted">{step.description}</div>
                   </div>
                 </div>
                 {index < steps.length - 1 && (
                   <div className={`hidden sm:block flex-1 h-px mx-4 ${
-                    currentStep > step.id ? 'bg-green-500' : 'bg-slate-600'
+                    currentStep > step.id ? 'bg-success' : 'bg-border-primary'
                   }`} />
                 )}
               </div>
@@ -448,7 +448,7 @@ const downloadTemplate = (mode: ImportMode) => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-slate-700/50">
+        <div className="flex items-center justify-between p-6 border-t border-border-primary">
           <Button
             variant="outline"
             onClick={() => {
@@ -460,7 +460,7 @@ const downloadTemplate = (mode: ImportMode) => {
                 onClose();
               }
             }}
-            className="border-slate-600/50 hover:border-slate-500/50"
+            className="border-border-primary hover:border-border-primary/70"
           >
             {currentStep === 4 ? 'Close' : currentStep > 1 ? 'Previous' : 'Cancel'}
           </Button>
@@ -469,7 +469,7 @@ const downloadTemplate = (mode: ImportMode) => {
             {currentStep === 1 && (
               <Button
                 onClick={() => setCurrentStep(2)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
               >
                 Continue
               </Button>
@@ -479,7 +479,7 @@ const downloadTemplate = (mode: ImportMode) => {
                 onClick={() => handleUpload(false)}
                 disabled={uploadImport.isPending || !csvFile}
                 isLoading={uploadImport.isPending}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
               >
                 {uploadImport.isPending ? 'Starting Import...' : 'Start Import'}
               </Button>
@@ -487,7 +487,7 @@ const downloadTemplate = (mode: ImportMode) => {
             {currentStep === 4 && (
               <Button
                 onClick={onClose}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                className="bg-gradient-to-r from-success to-success-muted hover:from-success/80 hover:to-success-muted/80"
               >
                 Continue Working
               </Button>

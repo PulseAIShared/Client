@@ -14,14 +14,14 @@ export const AccountSection = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-semibold text-white mb-4">Profile Information</h3>
-        <div className="bg-slate-700/30 p-6 rounded-xl border border-slate-600/50">
+        <h3 className="text-xl font-semibold text-text-primary mb-4">Profile Information</h3>
+        <div className="bg-surface-secondary/30 p-6 rounded-xl border border-border-primary/50">
           <div className="flex items-center gap-6 mb-6">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+            <div className="w-20 h-20 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-text-primary text-2xl font-bold">
               JD
             </div>
             <div>
-              <Button variant="outline" size="sm" className="border-slate-600/50 hover:border-blue-500/50">
+              <Button variant="outline" size="sm" className="border-border-primary/50 hover:border-accent-primary/50">
                 Change Avatar
               </Button>
             </div>

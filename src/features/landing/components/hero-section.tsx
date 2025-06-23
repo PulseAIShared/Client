@@ -132,7 +132,7 @@ export const HeroSection = () => {
         <div className="mb-8 animate-fade-in-up">   
           <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 animate-gradient">
-              PulseAI
+              PulseLTV
             </span>
             <br />
             <span className="text-white text-3xl md:text-4xl font-normal opacity-0 animate-fade-in-up delay-300">

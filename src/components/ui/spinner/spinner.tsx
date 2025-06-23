@@ -8,8 +8,8 @@ const sizes = {
 };
 
 const variants = {
-  light: 'text-white',
-  primary: 'text-slate-600',
+  light: 'text-text-primary',
+  primary: 'text-text-muted',
 };
 
 export type SpinnerProps = {
