@@ -5,15 +5,15 @@ import { useTheme } from '@/lib/theme-context';
 
 export const LandingNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
 
   const Logo = () => {
     return (
       <Link className="flex items-center gap-2" to="/">
-        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
+        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
           PulseLTV
         </span>
-        <Code fw={700} className="text-xs bg-accent-secondary/20 text-accent-secondary border border-accent-secondary/30">
+        <Code fw={700} className="text-xs bg-purple-400/20 text-purple-400 border border-purple-400/30">
           BETA
         </Code>
       </Link>
@@ -29,7 +29,7 @@ export const LandingNavbar = () => {
   ];
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 bg-surface-primary/95 backdrop-blur-lg border-b border-border-primary/50 shadow-sm">
+    <nav className="fixed inset-x-0 top-0 z-50 bg-slate-900/95 backdrop-blur-lg border-b border-slate-700/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -44,7 +44,7 @@ export const LandingNavbar = () => {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-text-secondary hover:text-text-primary transition-colors duration-200 font-medium"
+                  className="text-slate-200 hover:text-white transition-colors duration-200 font-medium"
                 >
                   {link.name}
                 </a>
@@ -54,12 +54,11 @@ export const LandingNavbar = () => {
 
           {/* Right Side - Theme Toggle & CTAs */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Theme Toggle */}
    
             {/* Sign In */}
             <Link
               to="/auth/login"
-              className="text-text-secondary hover:text-text-primary font-medium transition-colors duration-200"
+              className="text-slate-200 hover:text-white font-medium transition-colors duration-200"
             >
               Sign In
             </Link>
@@ -67,7 +66,7 @@ export const LandingNavbar = () => {
             {/* Get Started CTA */}
             <Link
               to="/auth/register"
-              className="bg-gradient-to-r from-accent-primary to-accent-secondary text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-accent-primary/25 transform hover:-translate-y-0.5 transition-all duration-200"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 transition-all duration-200"
             >
               Get Started
             </Link>
@@ -77,7 +76,7 @@ export const LandingNavbar = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 transition-all"
+              className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-slate-800/50 transition-all"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMobileMenuOpen ? (
@@ -106,27 +105,7 @@ export const LandingNavbar = () => {
               </a>
             ))}
             
-            {/* Mobile theme toggle */}
-            <button
-              onClick={toggleTheme}
-              className="flex items-center gap-2 w-full px-3 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 rounded-lg transition-all"
-            >
-              {theme === 'dark' ? (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                  Light Mode
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                  Dark Mode
-                </>
-              )}
-            </button>
+
             
             {/* Mobile CTAs */}
             <div className="px-3 pt-4 space-y-2">
