@@ -24,7 +24,7 @@ export function LandingLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-bg-primary">
       <LandingNavbar />
       <main className="pt-16">{children}</main>
-      <Footer />
+
     </div>
   );
 };
