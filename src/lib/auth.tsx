@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Spinner } from '@/components/ui/spinner';
 
 import { api, clearToken, setToken} from './api-client';
-import { AuthResponse, User, CompanyCreationRequest, OnboardingStatus, VerifyCodeResponse } from '@/types/api';
+import { AuthResponse, User, CompanyCreationRequest, VerifyCodeResponse } from '@/types/api';
 
 const getUser = async (): Promise<User> => {
   const response = await api.get('/auth/me') as AuthResponse;

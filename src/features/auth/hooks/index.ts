@@ -1,1 +1,1 @@
-export * from './useAuthUser';
+// Auth hooks are now in @/lib/auth

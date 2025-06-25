@@ -16,7 +16,6 @@ export const RegisterRoute = () => {
   const [code, setCode] = useState('');
   const [ssoLoading, setSsoLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   // Auth hooks
   const sendCodeMutation = useSendVerificationCode({
     onSuccess: () => {
@@ -63,13 +62,9 @@ export const RegisterRoute = () => {
     setSsoLoading(provider);
     setError(null);
     
-    // Include invitation token in SSO URL if present
-    const invitationToken = searchParams.get('invitation') || searchParams.get('token');
-    const inviteParam = invitationToken ? `&invitation=${invitationToken}` : '';
-    
     const baseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
     const popup = window.open(
-      `${baseUrl}auth/${provider}?popup=true${inviteParam}`,
+      `${baseUrl}auth/${provider}?popup=true`,
       'oauth-popup',
       'width=500,height=600,scrollbars=yes,resizable=yes'
     );
@@ -84,12 +79,8 @@ export const RegisterRoute = () => {
       if (event.origin !== window.location.origin) return;
       
       if (event.data.type === 'OAUTH_SUCCESS') {
-        // Store auth data and redirect
-        const authData = event.data.payload;
         popup.close();
         setSsoLoading(null);
-        
-        // Redirect based on onboarding status (ProtectedRoute will handle this)
         navigate('/app');
       } else if (event.data.type === 'OAUTH_ERROR') {
         setError(event.data.error);
@@ -100,7 +91,6 @@ export const RegisterRoute = () => {
 
     window.addEventListener('message', messageHandler);
     
-    // Cleanup listener when popup closes
     const checkClosed = setInterval(() => {
       if (popup.closed) {
         window.removeEventListener('message', messageHandler);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { needsCompanyCreation } from '@/lib/auth';
+import { needsOnboarding } from '@/lib/auth';
 import { Spinner } from '@/components/ui/spinner';
 import { AuthLayout } from '@/components/layouts';
 import { User } from '@/types/api';
@@ -42,11 +42,9 @@ export const AuthSuccessRoute = () => {
         
         setStatus('Setting up your account...');
         
-        // Check if user needs company creation
-        if (needsCompanyCreation(user)) {
-          navigate('/auth/company-setup', { 
-            state: { user, isSSO: true } 
-          });
+        // Check if user needs onboarding
+        if (needsOnboarding(user)) {
+          navigate('/onboarding');
         } else {
           navigate('/app');
         }

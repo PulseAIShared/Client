@@ -46,7 +46,7 @@ export const TopNav = () => {
 
   const handleLogout = async () => {
     try {
-      await logout.mutateAsync();
+      await logout.mutateAsync({});
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);

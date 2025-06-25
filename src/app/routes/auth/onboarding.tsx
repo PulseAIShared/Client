@@ -106,21 +106,12 @@ export const OnboardingRoute = () => {
   // Determine if user needs profile setup (email users vs SSO users)
   const needsProfileSetup = !user.data?.firstName || !user.data?.lastName;
   const totalSteps = needsProfileSetup ? 2 : 1; // Only profile (step 1) and company (step 2) steps
-  
-  console.log('Debug onboarding:', {
-    currentStep,
-    needsProfileSetup,
-    totalSteps,
-    userOnboardingStep: user.data?.onboardingCurrentStep,
-    firstName: user.data?.firstName,
-    lastName: user.data?.lastName
-  });
-  
+
   // For SSO users who skip profile setup, map currentStep to display step
   const displayStep = needsProfileSetup ? currentStep : (currentStep === 2 ? 1 : currentStep);
   const displayTotalSteps = totalSteps;
 
-  const handleCreateCompany = (values: any) => {
+  const handleCreateCompany = (values: Record<string, any>) => {
     setError(null); // Clear any existing errors
     processStepMutation.mutate({
       step: "2", // Company step
@@ -181,19 +172,19 @@ export const OnboardingRoute = () => {
               <Input
                 label="First Name"
                 registration={register('firstName')}
-                error={formState.errors.firstName}
+                error={formState.errors.firstName as any}
               />
               <Input
                 label="Last Name"
                 registration={register('lastName')}
-                error={formState.errors.lastName}
+                error={formState.errors.lastName as any}
               />
             </div>
             <Input
               type="password"
               label="Create Password"
               registration={register('password')}
-              error={formState.errors.password}
+              error={formState.errors.password as any}
             />
             <Button 
               type="submit" 
@@ -228,13 +219,13 @@ export const OnboardingRoute = () => {
             <Input
               label="Company Name"
               registration={register('companyName')}
-              error={formState.errors.companyName}
+              error={formState.errors.companyName as any}
               className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
             />
             <Input
               label="Company Domain"
               registration={register('companyDomain')}
-              error={formState.errors.companyDomain}
+              error={formState.errors.companyDomain as any}
               placeholder="yourcompany.com"
               className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
             />
@@ -243,7 +234,7 @@ export const OnboardingRoute = () => {
                 label="Industry"
                 options={INDUSTRY_OPTIONS}
                 registration={register('industry')}
-                error={formState.errors.industry}
+                error={formState.errors.industry as any}
                 defaultValue=""
                 className="bg-slate-800 border-slate-600 text-white focus:border-blue-500"
               />
@@ -251,7 +242,7 @@ export const OnboardingRoute = () => {
                 label="Company Size"
                 options={COMPANY_SIZE_OPTIONS}
                 registration={register('companySize')}
-                error={formState.errors.companySize}
+                error={formState.errors.companySize as any}
                 defaultValue=""
                 className="bg-slate-800 border-slate-600 text-white focus:border-blue-500"
               />
@@ -260,7 +251,7 @@ export const OnboardingRoute = () => {
               label="Country"
               options={COUNTRY_OPTIONS}
               registration={register('country')}
-              error={formState.errors.country}
+              error={formState.errors.country as any}
               defaultValue=""
               className="bg-slate-800 border-slate-600 text-white focus:border-blue-500"
             />

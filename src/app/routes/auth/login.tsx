@@ -4,11 +4,12 @@ import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 import { AuthLayout } from '@/components/layouts';
 import { LoginForm } from '@/features/auth/components/login-form';
 
-
 export const LoginRoute = () => {
   const navigate = useNavigate();
   const [ssoLoading, setSsoLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+      
   const handleSSOLogin = (provider: 'google' | 'facebook' | 'apple') => {
     setSsoLoading(provider);
     setError(null);
