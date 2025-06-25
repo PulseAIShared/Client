@@ -86,16 +86,13 @@ export const OnboardingRoute = () => {
   // Single dynamic onboarding hook
   const processStepMutation = useProcessOnboardingStep({
     onSuccess: async (data) => {
-      console.log('Onboarding step processed:', data);
       setError(null);
       
-      // If onboarding was completed (step 2), navigate to app
-      if (data.onboardingCompleted) {
-        navigate('/app');
-      } else {
-        // Otherwise, refresh user data to get updated step from server
-        await user.refetch();
-      }
+      // Always refresh user data to get updated step from server
+      await user.refetch();
+      
+      // Company step navigation is handled separately in handleCreateCompany
+      // Profile step will automatically show next step after refetch
     },
     onError: (error) => {
       console.error('Failed to process onboarding step:', error);
@@ -111,16 +108,28 @@ export const OnboardingRoute = () => {
   const displayStep = needsProfileSetup ? currentStep : (currentStep === 2 ? 1 : currentStep);
   const displayTotalSteps = totalSteps;
 
-  const handleCreateCompany = (values: Record<string, any>) => {
-    setError(null); // Clear any existing errors
-    processStepMutation.mutate({
-      step: "2", // Company step
-      companyName: values.companyName,
-      companyDomain: values.companyDomain,
-      companyCountry: values.country,
-      companySize: values.companySize,
-      companyIndustry: values.industry,
-    });
+  const handleCreateCompany = async (values: Record<string, any>) => {
+    setError(null);
+    
+    try {
+      const result = await processStepMutation.mutateAsync({
+        step: "2", // Company step
+        companyName: values.companyName,
+        companyDomain: values.companyDomain,
+        companyCountry: values.country,
+        companySize: values.companySize,
+        companyIndustry: values.industry,
+      });
+      
+      // Refresh user data
+      await user.refetch();
+      
+      // Navigate to app after successful company creation
+      navigate('/app');
+    } catch (error) {
+      console.error('Company creation failed:', error);
+      setError('Failed to create company. Please try again.');
+    }
   };
 
   const renderProgressBar = () => (
@@ -156,8 +165,7 @@ export const OnboardingRoute = () => {
       <Form
         schema={profileStepSchema}
         onSubmit={(values) => {
-          console.log('Profile data:', values);
-          setError(null); // Clear any existing errors
+          setError(null);
           processStepMutation.mutate({
             step: "1", // Profile step
             firstName: values.firstName,
@@ -167,17 +175,19 @@ export const OnboardingRoute = () => {
         }}
       >
         {({ register, formState }) => (
-          <div className="space-y-4">
+          <div className="space-y-4 [&_label]:!text-white [&_label]:!font-medium">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="First Name"
                 registration={register('firstName')}
                 error={formState.errors.firstName as any}
+                className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
               />
               <Input
                 label="Last Name"
                 registration={register('lastName')}
                 error={formState.errors.lastName as any}
+                className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
               />
             </div>
             <Input
@@ -185,6 +195,7 @@ export const OnboardingRoute = () => {
               label="Create Password"
               registration={register('password')}
               error={formState.errors.password as any}
+              className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
             />
             <Button 
               type="submit" 

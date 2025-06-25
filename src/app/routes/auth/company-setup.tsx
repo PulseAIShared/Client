@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useCompanyCreation } from '@/lib/auth';
+import { useCompanyCreation, useUser } from '@/lib/auth';
 import { CompanySize } from '@/types/api';
 import { AuthLayout } from '@/components/layouts';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ export const CompanySetupRoute = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
   const createCompany = useCompanyCreation();
+  const user = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const requiresCompanyCreation = location.state?.requiresCompanyCreation || false;
 
@@ -39,7 +40,8 @@ export const CompanySetupRoute = () => {
         companyIndustry: values.companyIndustry,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['authenticated-user'] });
+      // Refetch user data to get updated company info
+      await user.refetch();
       navigate('/app');
     } catch (error) {
       console.error('Company creation failed:', error);

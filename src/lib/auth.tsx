@@ -150,14 +150,11 @@ export const useVerifyCode = (options?: {
   onSuccess?: (data: any) => void;
   onError?: (error: Error) => void;
 }) => {
-  const queryClient = useQueryClient();
-  
   return useMutation({
     mutationFn: ({ email, code }: { email: string; code: string }) => verifyCode(email, code),
-    onSuccess: (data) => {
-      if (data.authData?.user) {
-        queryClient.setQueryData(['authenticated-user'], data.authData.user);
-      }
+    onSuccess: async (data) => {
+      // Token is already set in verifyCode function
+      // Let the parent component handle the refetch/navigation
       options?.onSuccess?.(data);
     },
     onError: (error) => {

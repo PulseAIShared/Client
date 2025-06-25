@@ -41,6 +41,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
               label="Enter your email"
               error={formState.errors["email"] as FieldError | undefined}
               registration={register("email")}
+              className="`w-full mt-1 p-2 border  rounded-md focus:outline-none`"
             />
 
             <Input
@@ -48,7 +49,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
               label="Password"
               error={formState.errors["password"] as FieldError | undefined}
               registration={register("password")}
-              className="`w-full mt-1 p-2 border  rounded-md focus:outline-none`"
+                className="`w-full mt-1 p-2 border  rounded-md focus:outline-none`"
             />
 
             <div className="mt-6">

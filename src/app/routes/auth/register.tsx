@@ -4,7 +4,9 @@ import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 import { IoMdMail } from "react-icons/io";
 import { AuthLayout } from '@/components/layouts';
 import { Button } from '@/components/ui/button';
-import { useSendVerificationCode, useVerifyCode } from '@/lib/auth';
+import { useSendVerificationCode, useVerifyCode, useUser } from '@/lib/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { setToken } from '@/lib/api-client';
 
 type AuthStep = 'email' | 'code';
 
@@ -16,6 +18,8 @@ export const RegisterRoute = () => {
   const [code, setCode] = useState('');
   const [ssoLoading, setSsoLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const user = useUser();
+  const queryClient = useQueryClient();
   // Auth hooks
   const sendCodeMutation = useSendVerificationCode({
     onSuccess: () => {
@@ -28,8 +32,11 @@ export const RegisterRoute = () => {
   });
 
   const verifyCodeMutation = useVerifyCode({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('Registration successful:', data);
+      // Refetch user data to get fresh onboarding status
+      await user.refetch();
+      // Navigate to /app - ProtectedRoute will handle onboarding redirect
       navigate('/app');
     },
     onError: (error) => {
@@ -63,8 +70,11 @@ export const RegisterRoute = () => {
     setError(null);
     
     const baseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
+    const frontendOrigin = window.location.origin;
+    const popupUrl = `${baseUrl}auth/${provider}?popup=true&redirectOrigin=${encodeURIComponent(frontendOrigin)}`;
+    
     const popup = window.open(
-      `${baseUrl}auth/${provider}?popup=true`,
+      popupUrl,
       'oauth-popup',
       'width=500,height=600,scrollbars=yes,resizable=yes'
     );
@@ -75,13 +85,33 @@ export const RegisterRoute = () => {
       return;
     }
 
-    const messageHandler = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
+    const messageHandler = async (event: MessageEvent) => {
+      // Accept messages from the API origin (where the SSO popup comes from)
+      const baseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
+      const apiOrigin = new URL(baseUrl).origin;
+      
+      if (event.origin !== apiOrigin) {
+        return;
+      }
       
       if (event.data.type === 'OAUTH_SUCCESS') {
         popup.close();
         setSsoLoading(null);
-        navigate('/app');
+        
+        // Handle authentication data from SSO popup
+        const authData = event.data.payload;
+        
+        if (authData?.token) {
+          setToken(authData.token);
+        }
+        
+        // Clear all queries and let the app re-authenticate
+        queryClient.clear();
+        
+        // Small delay to ensure token is set, then navigate
+        setTimeout(() => {
+          navigate('/app');
+        }, 100);
       } else if (event.data.type === 'OAUTH_ERROR') {
         setError(event.data.error);
         popup.close();
@@ -92,10 +122,15 @@ export const RegisterRoute = () => {
     window.addEventListener('message', messageHandler);
     
     const checkClosed = setInterval(() => {
-      if (popup.closed) {
-        window.removeEventListener('message', messageHandler);
-        setSsoLoading(null);
-        clearInterval(checkClosed);
+      try {
+        if (popup.closed) {
+          window.removeEventListener('message', messageHandler);
+          setSsoLoading(null);
+          clearInterval(checkClosed);
+        }
+      } catch (error) {
+        // Cross-origin policy blocks popup.closed check
+        // The popup is probably still open, continue checking
       }
     }, 1000);
   };
