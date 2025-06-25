@@ -94,7 +94,7 @@ export const TestimonialsSection = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="/auth"
+                href="/register"
                 className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-1 transition-all duration-200"
               >
                 Get Started Free

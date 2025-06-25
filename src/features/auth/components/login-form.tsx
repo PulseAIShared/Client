@@ -1,17 +1,32 @@
 import * as React from "react";
 import { FieldError } from "react-hook-form";
 import { z } from "zod";
+import { useNavigate } from "react-router-dom";
 import { loginInputSchema, useLogin } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Form, Input } from "@/components/ui/form";
 
 
 type LoginFormProps = {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 };
 
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
-  const login = useLogin({ onSuccess });
+  const navigate = useNavigate();
+  
+  const handleSuccess = () => {
+    // If custom onSuccess provided, use it
+    if (onSuccess) {
+      onSuccess();
+      return;
+    }
+    
+    // Default behavior: redirect based on onboarding status
+    // The ProtectedRoute will handle the actual onboarding check
+    navigate('/app');
+  };
+  
+  const login = useLogin({ onSuccess: handleSuccess });
   return (
     <div>
       <Form<z.infer<typeof loginInputSchema>, typeof loginInputSchema>

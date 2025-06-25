@@ -20,7 +20,7 @@ export const Navbar = () => {
     <nav className="bg-purple-900 py-4 text-white">
       <div className="container mx-auto flex items-center justify-between">   
         <div className="flex items-center space-x-4">
-            <Link to="/auth/login" className="hover:text-purple-200">
+            <Link to="/login" className="hover:text-purple-200">
               Login
             </Link>
         </div>

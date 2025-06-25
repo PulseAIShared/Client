@@ -57,7 +57,7 @@ export const LandingNavbar = () => {
    
             {/* Sign In */}
             <Link
-              to="/auth/login"
+              to="/login"
               className="text-slate-200 hover:text-white font-medium transition-colors duration-200"
             >
               Sign In
@@ -65,10 +65,10 @@ export const LandingNavbar = () => {
 
             {/* Get Started CTA */}
             <Link
-              to="/auth/register"
+              to="/book-demo"
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 transition-all duration-200"
             >
-              Get Started
+              Book Demo
             </Link>
           </div>
 
@@ -110,14 +110,14 @@ export const LandingNavbar = () => {
             {/* Mobile CTAs */}
             <div className="px-3 pt-4 space-y-2">
               <Link
-                to="/auth/login"
+                to="/login"
                 className="block w-full text-center px-4 py-2 text-text-secondary hover:text-text-primary border border-border-primary rounded-lg transition-all"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Sign In
               </Link>
               <Link
-                to="/auth/register"
+                to="/register"
                 className="block w-full text-center bg-gradient-to-r from-accent-primary to-accent-secondary text-white px-4 py-2 rounded-lg font-semibold transition-all"
                 onClick={() => setIsMobileMenuOpen(false)}
               >

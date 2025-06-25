@@ -4,6 +4,13 @@ import { IoMdMail } from "react-icons/io";
 import { AuthLayout } from '@/components/layouts';
 
 export const AuthRoute = () => {
+  const handleSSOLogin = (provider: 'google' | 'facebook' | 'apple') => {
+    // Redirect to backend OAuth initiation endpoint
+    const baseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
+    const oauthUrl = `${baseUrl}auth/${provider}`;
+    window.location.href = oauthUrl;
+  };
+
   return (
     <AuthLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
@@ -51,7 +58,7 @@ export const AuthRoute = () => {
               <p className="text-sm text-slate-500">
                 New to PulseLTV?{" "}
                 <Link 
-                  to="/auth/register" 
+                  to="/register" 
                   className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
                 >
                   Create an Account
@@ -61,17 +68,26 @@ export const AuthRoute = () => {
 
             {/* Social Login Buttons */}
             <div className="space-y-3 mb-6">
-              <button className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700">
+              <button 
+                onClick={() => handleSSOLogin('google')}
+                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700"
+              >
                 <FaGoogle className="text-red-500" />
                 <span>Continue with Google</span>
               </button>
 
-              <button className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700">
+              <button 
+                onClick={() => handleSSOLogin('facebook')}
+                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700"
+              >
                 <FaFacebook className="text-blue-600" />
                 <span>Continue with Facebook</span>
               </button>
 
-              <button className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700">
+              <button 
+                onClick={() => handleSSOLogin('apple')}
+                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700"
+              >
                 <FaApple className="text-slate-800" />
                 <span>Continue with Apple</span>
               </button>

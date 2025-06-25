@@ -1,6 +1,7 @@
 // src/features/auth/components/register-form.tsx
 import { FieldError } from "react-hook-form";
 import { z } from "zod";
+import { useNavigate } from "react-router-dom";
 import { registerInputSchema, useRegister } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Form, Input, Select } from "@/components/ui/form";
@@ -96,11 +97,25 @@ const INDUSTRY_OPTIONS = [
 ].sort((a, b) => a.label.localeCompare(b.label));
 
 type RegisterFormProps = {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 };
 
 export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
-  const registering = useRegister({ onSuccess });
+  const navigate = useNavigate();
+  
+  const handleSuccess = () => {
+    // If custom onSuccess provided, use it
+    if (onSuccess) {
+      onSuccess();
+      return;
+    }
+    
+    // Default behavior: redirect based on onboarding status
+    // The ProtectedRoute will handle the actual onboarding check
+    navigate('/app');
+  };
+  
+  const registering = useRegister({ onSuccess: handleSuccess });
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
 
   // Check for invitation token in URL parameters

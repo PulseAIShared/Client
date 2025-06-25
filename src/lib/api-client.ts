@@ -34,12 +34,12 @@ export const api = Axios.create({
 api.interceptors.request.use(authRequestInterceptor);
 api.interceptors.response.use(
   (response) => {
+    console.log(response);
     return response.data;
   },
   (error) => {
     if (error.response?.status !== 401 || error.response?.data?.message) {
       const message = error.response?.data?.message || error.message;
-      console.log(message);
     }
     return Promise.reject(error);
   },

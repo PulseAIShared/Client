@@ -1,4 +1,3 @@
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import {
   RouterProvider,
@@ -6,11 +5,11 @@ import {
 } from 'react-router-dom';
 
 import { Spinner } from '@/components/ui/spinner';
-import { AuthLoader, ProtectedRoute } from '@/lib/auth';
+import { ProtectedRoute } from '@/lib/auth';
 
 import { AppRoot } from './routes/app/root';
 
-export const createAppRouter = (queryClient: QueryClient) =>
+export const createAppRouter = () =>
   createBrowserRouter([
     {
       path: '/',
@@ -20,39 +19,38 @@ export const createAppRouter = (queryClient: QueryClient) =>
       },
     },
      {
-      path: '/auth/register',
+      path: '/register',
       lazy: async () => {
         const { RegisterRoute } = await import('./routes/auth/register');
         return { Component: RegisterRoute };
      },
     },
     {
-      path: '/auth/login',
+      path: '/login',
       lazy: async () => {
         const { LoginRoute } = await import('./routes/auth/login');
         return { Component: LoginRoute };
       },
     },
     {
-      path: '/auth',
+      path: '/success',
       lazy: async () => {
-        const { AuthRoute } = await import('./routes/auth/auth');
-        return { Component: AuthRoute };
+        const { AuthSuccessRoute } = await import('./routes/auth/success');
+        return { Component: AuthSuccessRoute };
+      },
+    },
+    {
+      path: '/onboarding',
+      lazy: async () => {
+        const { ProtectedOnboardingRoute } = await import('./routes/auth/protected-onboarding');
+        return { Component: ProtectedOnboardingRoute };
       },
     },
     {
       path: '/app',
       element: (
         <ProtectedRoute>
-          <AuthLoader
-            renderLoading={() => (
-              <div className="flex h-screen w-screen items-center justify-center">
-                <Spinner size="xl" />
-              </div>
-            )}
-          >
-            <AppRoot />
-          </AuthLoader>
+          <AppRoot />
         </ProtectedRoute>
       ),
       children: [
@@ -188,9 +186,7 @@ export const createAppRouter = (queryClient: QueryClient) =>
   ]);
 
 export const AppRouter = () => {
-  const queryClient = useQueryClient();
-
-  const router = useMemo(() => createAppRouter(queryClient), [queryClient]);
+  const router = useMemo(() => createAppRouter(), []);
 
   return <RouterProvider router={router} />;
 };

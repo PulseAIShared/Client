@@ -17,6 +17,12 @@ export type Meta = {
   totalPages: number;
 };
 
+export type OnboardingStatus = {
+  completed: boolean;
+  currentStep?: number;
+  completedSteps: string[];
+};
+
 export type User = Entity<{
   firstName: string;
   lastName: string;
@@ -24,6 +30,11 @@ export type User = Entity<{
   avatar: string;
   role: 'Admin' | 'User';
   dateCreated: string;
+  companyId?: string;
+  isFirstLogin?: boolean;
+  onboardingStatus?: OnboardingStatus;
+  onboardingCurrentStep?: number;
+  onboardingCompleted?: boolean;
 }>;
 
 export type UserProfile = Entity<{
@@ -38,6 +49,25 @@ export type UserProfile = Entity<{
 export type AuthResponse = {
   token: string;
   user: User;
+};
+
+export type VerifyCodeResponse = {
+  success: boolean;
+  message: string;
+  refreshToken?: string; // Optional token if verification is successful
+  refreshTokenExpiryTime?: Date; // Optional expiry time for the refresh token
+  authData?: AuthResponse; // Optional auth data if verification is successful
+};
+
+// OAuth is now handled entirely by the backend
+// Frontend only needs company creation types
+
+export type CompanyCreationRequest = {
+  companyName: string;
+  companyDomain?: string;
+  companyCountry?: string;
+  companySize: CompanySize;
+  companyIndustry?: string;
 };
 
 
