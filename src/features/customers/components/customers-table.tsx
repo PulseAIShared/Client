@@ -2,7 +2,9 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useMediaQuery } from '@mantine/hooks';
 import { useGetCustomers } from '@/features/customers/api/customers';
+import { MobileCustomerCards } from './mobile-customer-cards';
 
 import { useNotifications } from '@/components/ui/notifications';
 import { 
@@ -45,6 +47,7 @@ export const CustomersTable: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { addNotification } = useNotifications();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   const [queryParams, setQueryParams] = useState<CustomersQueryParams>({
     page: 1,
@@ -245,24 +248,25 @@ export const CustomersTable: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className={`flex gap-2 ${isMobile ? 'overflow-x-auto pb-2' : 'flex-wrap'}`}>
             {[
-              { key: 'all', label: 'All Customers', count: filterCounts.all },
-              { key: 'active', label: 'Active', count: filterCounts.active },
-              { key: 'high-risk', label: 'High Risk', count: filterCounts['high-risk'] },
-              { key: 'payment-issues', label: 'Payment Issues', count: filterCounts['payment-issues'] },
-              { key: 'cancelled', label: 'Cancelled', count: filterCounts.cancelled }
+              { key: 'all', label: 'All Customers', shortLabel: 'All', count: filterCounts.all },
+              { key: 'active', label: 'Active', shortLabel: 'Active', count: filterCounts.active },
+              { key: 'high-risk', label: 'High Risk', shortLabel: 'High Risk', count: filterCounts['high-risk'] },
+              { key: 'payment-issues', label: 'Payment Issues', shortLabel: 'Payment', count: filterCounts['payment-issues'] },
+              { key: 'cancelled', label: 'Cancelled', shortLabel: 'Cancelled', count: filterCounts.cancelled }
             ].map((filter) => (
               <button
                 key={filter.key}
                 onClick={() => handleFilterChange(filter.key)}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${
                   selectedFilter === filter.key
                     ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
                     : 'bg-surface-secondary text-text-secondary hover:bg-surface-secondary/80 border border-border-primary'
                 }`}
               >
-                {filter.label} ({filter.count})
+                <span className="block sm:hidden">{filter.shortLabel} ({filter.count})</span>
+                <span className="hidden sm:block">{filter.label} ({filter.count})</span>
               </button>
             ))}
           </div>
@@ -302,8 +306,16 @@ export const CustomersTable: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        {/* Mobile: Card Layout */}
+        {isMobile ? (
+          <MobileCustomerCards 
+            customers={customers}
+            onCustomerSelect={(customer) => navigate(`/app/customers/${customer.id}`)}
+          />
+        ) : (
+          /* Desktop: Table Layout */
+          <div className="overflow-x-auto">
+            <table className="w-full">
             <thead>
               <tr className="border-b border-border-primary">
                 <th className="text-left p-4">
@@ -488,7 +500,8 @@ export const CustomersTable: React.FC = () => {
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        )}
 
         {pagination && pagination.totalPages > 1 && (
           <div className="flex items-center justify-between p-6 border-t border-border-primary">

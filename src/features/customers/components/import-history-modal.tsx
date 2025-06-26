@@ -38,9 +38,9 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
   console.log(importHistory);
   return (
     <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-surface-primary/95 backdrop-blur-lg rounded-2xl border border-border-primary shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
+      <div className="bg-surface-primary/95 backdrop-blur-lg rounded-2xl border border-border-primary shadow-2xl w-full max-w-4xl h-[90vh] min-h-[500px] max-h-[800px] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border-primary">
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-border-primary">
           <div>
             <h2 className="text-xl font-bold text-text-primary">Import History</h2>
             <p className="text-sm text-text-muted">View your customer import jobs</p>
@@ -56,7 +56,8 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
           {isLoading ? (
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, index) => (
@@ -121,11 +122,12 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
               <p className="text-text-muted">You haven't imported any customers yet.</p>
             </div>
           )}
+          </div>
         </div>
 
         {/* Pagination */}
         {importHistory && importHistory.totalPages > 1 && (
-          <div className="flex items-center justify-between p-6 border-t border-border-primary">
+          <div className="flex-shrink-0 flex items-center justify-between p-6 border-t border-border-primary bg-surface-primary/95">
             <div className="text-sm text-text-muted">
               Page {importHistory.page} of {importHistory.totalPages}
             </div>

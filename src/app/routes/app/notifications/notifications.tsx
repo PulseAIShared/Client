@@ -227,13 +227,13 @@ export const NotificationsRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
           
-          <div className="relative bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="relative bg-surface-primary/50 backdrop-blur-lg p-4 sm:p-6 rounded-2xl border border-border-primary/50 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-4">
                   <div className="w-2 h-2 bg-success-muted rounded-full animate-pulse"></div>
@@ -247,7 +247,7 @@ export const NotificationsRoute = () => {
                 </p>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                 {unreadCount > 0 && (
                   <span className="px-3 py-1 bg-error/20 text-error-muted rounded-full text-sm font-medium border border-error/30">
                     {unreadCount} unread
@@ -274,9 +274,9 @@ export const NotificationsRoute = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex gap-2">
+        <div className="bg-surface-primary/50 backdrop-blur-lg p-4 sm:p-6 rounded-2xl border border-border-primary/50 shadow-lg">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
+            <div className="flex flex-wrap gap-2">
               {[
                 { key: 'all', label: 'All Notifications', count: totalCount },
                 { key: 'unread', label: 'Unread', count: unreadCount },
@@ -285,7 +285,7 @@ export const NotificationsRoute = () => {
                 <button
                   key={filter.key}
                   onClick={() => handleFilterChange(filter.key as 'all' | 'unread' | 'read')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                     filterType === filter.key
                       ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
                       : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70 border border-border-primary/50'
@@ -296,7 +296,7 @@ export const NotificationsRoute = () => {
               ))}
             </div>
             
-            <div className="text-sm text-text-muted">
+            <div className="text-xs sm:text-sm text-text-muted">
               Page {currentPage} of {totalPages} • {totalCount} total
             </div>
           </div>
@@ -344,19 +344,19 @@ export const NotificationsRoute = () => {
                     !notification.isRead ? 'bg-accent-primary/5' : ''
                   }`}
                 >
-                  <div className="p-6">
-                    <div className="flex items-start gap-4">
+                  <div className="p-4 sm:p-6">
+                    <div className="flex items-start gap-3 sm:gap-4">
                       {getNotificationIcon(notification.type, notification.category)}
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-4 mb-2">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-2">
                           <h3 className={`font-medium text-lg ${
                             !notification.isRead ? 'text-text-primary' : 'text-text-secondary'
                           }`}>
                             {notification.title}
                           </h3>
                           
-                          <div className="flex items-center gap-3 flex-shrink-0">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                             <span className="text-sm text-text-muted" title={formatDateTime(notification.createdAt)}>
                               {formatTimeAgo(notification.createdAt)}
                             </span>
@@ -370,8 +370,8 @@ export const NotificationsRoute = () => {
                           {notification.message}
                         </p>
                         
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             {notification.category && (
                               <span className="text-xs text-text-muted bg-surface-secondary/50 px-2 py-1 rounded border border-border-primary/50">
                                 {notification.category}
@@ -391,7 +391,7 @@ export const NotificationsRoute = () => {
                             </span>
                           </div>
                           
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex flex-wrap items-center gap-2 opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity">
                             {!notification.isRead && (
                               <button
                                 onClick={() => markAsRead.mutate(notification.id)}
@@ -422,20 +422,20 @@ export const NotificationsRoute = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between p-6 border-t border-border-primary/50">
-              <div className="text-sm text-text-muted">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 border-t border-border-primary/50">
+              <div className="text-xs sm:text-sm text-text-muted">
                 Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} notifications
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
-                  className="px-3 py-1 bg-surface-secondary/50 text-text-primary rounded hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 sm:px-3 py-1 bg-surface-secondary/50 text-text-primary rounded hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
                 >
                   Previous
                 </button>
                 
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNum = Math.max(1, currentPage - 2) + i;
                     if (pageNum > totalPages) return null;
@@ -444,7 +444,7 @@ export const NotificationsRoute = () => {
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`px-3 py-1 rounded transition-colors ${
+                        className={`px-2 sm:px-3 py-1 rounded transition-colors text-xs sm:text-sm ${
                           pageNum === currentPage
                             ? 'bg-accent-primary text-text-primary'
                             : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70'
@@ -459,7 +459,7 @@ export const NotificationsRoute = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
-                  className="px-3 py-1 bg-surface-secondary/50 text-text-primary rounded hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 sm:px-3 py-1 bg-surface-secondary/50 text-text-primary rounded hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
                 >
                   Next
                 </button>

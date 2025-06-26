@@ -14,6 +14,7 @@ import { LinksGroup } from './links';
 import { Authorization, ROLES } from '@/lib/authorization';
 import { FaUsersCog, FaNetworkWired } from 'react-icons/fa';
 import { IconType } from 'react-icons';
+import { useTheme } from '@/lib/theme-context';
 
 export type SideNavigationItem = {
   name: string;
@@ -38,10 +39,10 @@ const Logo = () => {
 };
 
 export const Sidebar = ({ navigation }: SidebarProps) => {
-  const theme = useMantineTheme();
+
   const [drawerOpened, setDrawerOpened] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  
+    const { theme, toggleTheme } = useTheme();
   // Close drawer when screen size changes from mobile to desktop
   useEffect(() => {
     if (!isMobile) {
@@ -125,7 +126,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
           opened={drawerOpened}
           onClick={toggleDrawer}
           size="sm"
-          color="white"
+          color= {theme === 'dark' ? 'white' : 'black'}
           className="fixed left-4 top-3 z-50"
           aria-label={drawerOpened ? 'Close navigation' : 'Open navigation'}
         />
@@ -162,10 +163,9 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
             fontWeight: 'bold',
           },
         }}
-        overlayProps={{
-          color: theme.colors.gray[2],
-          opacity: 0.55,
-          blur: 3,
+        overlayProps={{ 
+          opacity: 0,
+
         }}
       >
         <ScrollArea style={{ height: 'calc(100vh - 120px)' }}>

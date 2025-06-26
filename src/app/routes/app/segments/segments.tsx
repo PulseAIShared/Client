@@ -49,7 +49,7 @@ export const SegmentsRoute = () => {
     switch (activeTab) {
       case 'overview':
         return (
-          <div className="space-y-8">
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             <SegmentPerformance />
             <SegmentsList 
               onSelectSegment={setSelectedSegment} 
@@ -63,7 +63,7 @@ export const SegmentsRoute = () => {
         return <SegmentCreator />;
       default:
         return (
-          <div className="space-y-8">
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             <SegmentPerformance />
             <SegmentsList 
               onSelectSegment={setSelectedSegment} 
@@ -76,7 +76,7 @@ export const SegmentsRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <SegmentsHeader />
 
@@ -87,7 +87,7 @@ export const SegmentsRoute = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
+                className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm transition-all duration-200 border-b-2 ${
                   activeTab === tab.id
                     ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
                     : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-secondary/30'
@@ -100,7 +100,7 @@ export const SegmentsRoute = () => {
           </div>
           
           {/* Content Area */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {renderContent()}
           </div>
         </div>

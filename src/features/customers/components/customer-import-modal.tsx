@@ -151,12 +151,12 @@ const downloadTemplate = (mode: ImportMode) => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {Object.entries(CRM_TEMPLATES).map(([key, template]) => (
                 <button
                   key={key}
                   onClick={() => setImportMode(key as ImportMode)}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                  className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${
                     importMode === key
                       ? 'border-accent-primary bg-accent-primary/20'
                       : 'border-border-primary hover:border-border-primary/70 bg-surface-secondary/30'
@@ -377,19 +377,19 @@ const downloadTemplate = (mode: ImportMode) => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-surface-primary/95 backdrop-blur-lg rounded-2xl border border-border-primary shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className="bg-surface-primary/95 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-border-primary shadow-2xl w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-[95vh] min-h-[500px] max-h-[800px] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border-primary">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-xl flex items-center justify-center">
+        <div className="flex items-center justify-between p-3 sm:p-4 lg:p-6 border-b border-border-primary">
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-lg sm:rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-text-primary">Import Customers</h2>
-              <p className="text-sm text-text-muted">Bulk import with real-time processing</p>
+              <h2 className="text-lg sm:text-xl font-bold text-text-primary">Import Customers</h2>
+              <p className="text-xs sm:text-sm text-text-muted hidden sm:block">Bulk import with real-time processing</p>
             </div>
           </div>
           <button
@@ -402,9 +402,26 @@ const downloadTemplate = (mode: ImportMode) => {
           </button>
         </div>
 
-        {/* Progress Steps */}
-        <div className="px-6 py-4 border-b border-border-primary">
-          <div className="flex items-center">
+        {/* Progress Steps - Fixed Height */}
+        <div className="flex-shrink-0 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 border-b border-border-primary">
+          {/* Mobile: Simple dots indicator */}
+          <div className="flex sm:hidden items-center justify-center gap-2">
+            {steps.map((step) => (
+              <div key={step.id} className={`w-2 h-2 rounded-full ${
+                currentStep > step.id
+                  ? 'bg-success'
+                  : currentStep === step.id
+                  ? 'bg-accent-primary'
+                  : 'bg-surface-secondary'
+              }`} />
+            ))}
+            <span className="ml-3 text-sm text-text-muted">
+              Step {currentStep} of {steps.length}
+            </span>
+          </div>
+          
+          {/* Desktop: Full progress steps */}
+          <div className="hidden sm:flex items-center">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-1">
                 <div className={`flex items-center gap-3 ${index < steps.length - 1 ? 'flex-1' : ''}`}>
@@ -423,7 +440,7 @@ const downloadTemplate = (mode: ImportMode) => {
                       <span className="text-sm font-medium">{step.id}</span>
                     )}
                   </div>
-                  <div className="hidden sm:block">
+                  <div>
                     <div className={`text-sm font-medium ${
                       currentStep >= step.id ? 'text-text-primary' : 'text-text-muted'
                     }`}>
@@ -433,7 +450,7 @@ const downloadTemplate = (mode: ImportMode) => {
                   </div>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`hidden sm:block flex-1 h-px mx-4 ${
+                  <div className={`flex-1 h-px mx-4 ${
                     currentStep > step.id ? 'bg-success' : 'bg-border-primary'
                   }`} />
                 )}
@@ -442,13 +459,15 @@ const downloadTemplate = (mode: ImportMode) => {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
-          {renderStepContent()}
+        {/* Content - Scrollable Area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-3 sm:p-4 lg:p-6">
+            {renderStepContent()}
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-border-primary">
+        {/* Footer - Always Visible */}
+        <div className="flex-shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 lg:p-6 border-t border-border-primary bg-surface-primary/95">
           <Button
             variant="outline"
             onClick={() => {
@@ -465,11 +484,11 @@ const downloadTemplate = (mode: ImportMode) => {
             {currentStep === 4 ? 'Close' : currentStep > 1 ? 'Previous' : 'Cancel'}
           </Button>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
             {currentStep === 1 && (
               <Button
                 onClick={() => setCurrentStep(2)}
-                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80 w-full sm:w-auto"
               >
                 Continue
               </Button>
@@ -479,7 +498,7 @@ const downloadTemplate = (mode: ImportMode) => {
                 onClick={() => handleUpload(false)}
                 disabled={uploadImport.isPending || !csvFile}
                 isLoading={uploadImport.isPending}
-                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80 w-full sm:w-auto"
               >
                 {uploadImport.isPending ? 'Starting Import...' : 'Start Import'}
               </Button>
@@ -487,7 +506,7 @@ const downloadTemplate = (mode: ImportMode) => {
             {currentStep === 4 && (
               <Button
                 onClick={onClose}
-                className="bg-gradient-to-r from-success to-success-muted hover:from-success/80 hover:to-success-muted/80"
+                className="bg-gradient-to-r from-success to-success-muted hover:from-success/80 hover:to-success-muted/80 w-full sm:w-auto"
               >
                 Continue Working
               </Button>

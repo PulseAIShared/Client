@@ -48,28 +48,40 @@ console.log(importHistory);
                 </p>
               </div>
               
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setShowImportHistory(true)}
-                  className="px-4 py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Import History
-                </button>
-                <button className="px-4 py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary">
-                  Export Data
-                </button>
+              {/* Mobile-First Button Layout */}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                {/* Primary Action - Always Prominent */}
                 <button 
                   onClick={() => setShowImportModal(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm flex items-center gap-2"
+                  className="order-1 w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm sm:text-sm flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  Import Customers
+                  <span className="hidden sm:inline">Import Customers</span>
+                  <span className="sm:hidden">Import</span>
                 </button>
+                
+                {/* Secondary Actions */}
+                <div className="order-2 flex flex-row gap-2 w-full sm:w-auto">
+                  <button 
+                    onClick={() => setShowImportHistory(true)}
+                    className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="hidden sm:inline">Import History</span>
+                    <span className="sm:hidden">History</span>
+                  </button>
+                  <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center justify-center gap-2 whitespace-nowrap">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="hidden sm:inline">Export Data</span>
+                    <span className="sm:hidden">Export</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

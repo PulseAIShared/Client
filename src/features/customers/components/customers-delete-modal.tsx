@@ -46,9 +46,9 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
   if (showResults && deletionResults) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+        <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-2xl h-[85vh] min-h-[400px] max-h-[600px] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-slate-700/50">
+          <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-700/50">
             <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                 deletionResults.failed === 0 
@@ -87,8 +87,9 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
           </div>
 
           {/* Results Summary */}
-          <div className="p-6">
-            <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-6">
+              <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="bg-slate-700/30 p-4 rounded-xl border border-slate-600/50 text-center">
                 <div className="text-2xl font-bold text-white">{deletionResults.totalRequested}</div>
                 <div className="text-sm text-slate-400">Total Requested</div>
@@ -148,10 +149,11 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
                 </p>
               </div>
             )}
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end p-6 border-t border-slate-700/50">
+          <div className="flex-shrink-0 flex items-center justify-end p-6 border-t border-slate-700/50 bg-slate-800/95">
             <Button
               onClick={handleClose}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -166,9 +168,9 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-lg">
+      <div className="bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-lg h-auto min-h-[300px] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700/50">
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-700/50">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,9 +195,10 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          <div className="bg-red-600/10 p-4 rounded-lg border border-red-500/30 mb-6">
-            <div className="flex items-start gap-3">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            <div className="bg-red-600/10 p-4 rounded-lg border border-red-500/30 mb-6">
+              <div className="flex items-start gap-3">
               <svg className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
@@ -240,10 +243,11 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
               <li>• All associated metadata and custom fields</li>
             </ul>
           </div>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-slate-700/50">
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-t border-slate-700/50 bg-slate-800/95">
           <Button
             variant="outline"
             onClick={onClose}

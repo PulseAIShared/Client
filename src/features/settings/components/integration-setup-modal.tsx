@@ -410,9 +410,9 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-surface-secondary/95 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+      <div className="bg-surface-secondary/95 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-2xl w-full max-w-2xl h-[95vh] min-h-[500px] max-h-[800px] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border-primary/50">
+        <div className="flex items-center justify-between p-6 border-b border-border-primary/50 flex-shrink-0">
           <div className="flex items-center gap-4">
             {integration.icon}
             <div>
@@ -431,7 +431,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         </div>
 
         {/* Progress Steps */}
-        <div className="px-6 py-4 border-b border-border-primary/50">
+        <div className="px-6 py-4 border-b border-border-primary/50 flex-shrink-0">
           <div className="flex items-center">
             {config.steps.map((step: { title: string; description: string }, index: number) => (
               <div key={index} className="flex items-center flex-1">
@@ -471,12 +471,12 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
+        <div className="p-6 flex-1 overflow-y-auto">
           {renderStepContent()}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-border-primary/50">
+        <div className="flex items-center justify-between p-6 border-t border-border-primary/50 flex-shrink-0">
           <Button
             variant="outline"
             onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : onClose()}

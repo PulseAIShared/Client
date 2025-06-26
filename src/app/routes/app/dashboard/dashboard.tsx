@@ -66,7 +66,7 @@ export const DashboardRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
         <DashboardHeader />
 
@@ -78,7 +78,7 @@ export const DashboardRoute = () => {
         />
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Churn Risk Predictor */}
           <ChurnRiskChart 
             data={dashboardData?.churnRiskTrend} 
@@ -95,7 +95,7 @@ export const DashboardRoute = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Customer Insights Chart */}
           <CustomerInsightsPie 
             data={dashboardData?.customerInsights} 

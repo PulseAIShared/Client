@@ -81,13 +81,13 @@ export const SettingsRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
           
-          <div className="relative bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-            <div className="flex items-center justify-between">
+          <div className="relative bg-surface-secondary/50 backdrop-blur-lg p-4 sm:p-6 rounded-2xl border border-border-primary/50 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-4">
                   <div className="w-2 h-2 bg-success-muted rounded-full animate-pulse"></div>
@@ -101,11 +101,11 @@ export const SettingsRoute = () => {
                 </p>
               </div>
               
-              <div className="hidden lg:flex items-center gap-3">
-                <button className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                <button className="px-3 sm:px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-xs sm:text-sm">
                   Save Changes
                 </button>
-                <button className="px-4 py-2 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/70 transition-colors font-medium text-sm border border-border-primary/50">
+                <button className="px-3 sm:px-4 py-2 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/70 transition-colors font-medium text-xs sm:text-sm border border-border-primary/50">
                   Reset to Default
                 </button>
               </div>
@@ -120,7 +120,7 @@ export const SettingsRoute = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
+                className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm transition-all duration-200 border-b-2 ${
                   activeTab === tab.id
                     ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
                     : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-secondary/30'
@@ -133,7 +133,7 @@ export const SettingsRoute = () => {
           </div>
           
           {/* Content Area */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {renderContent()}
           </div>
         </div>
