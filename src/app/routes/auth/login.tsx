@@ -86,7 +86,10 @@ export const LoginRoute = () => {
   };
 
   const handleLoginSuccess = () => {
-    navigate('/app');
+        queryClient.clear();
+        setTimeout(() => {
+          navigate('/app');
+        }, 100);
   };
 
   return (

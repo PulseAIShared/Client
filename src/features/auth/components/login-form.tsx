@@ -20,10 +20,8 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
       onSuccess();
       return;
     }
-    
-    // Default behavior: redirect based on onboarding status
-    // The ProtectedRoute will handle the actual onboarding check
-    navigate('/app');
+
+  
   };
   
   const login = useLogin({ onSuccess: handleSuccess });
