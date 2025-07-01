@@ -1,6 +1,8 @@
 import React from 'react';
+import { useWaitlistModal } from '@/hooks/useWaitlistModal';
 
 export const FeatureIconsSection = () => {
+  const { openWaitlistModal } = useWaitlistModal();
   const features = [
     {
       name: 'Churn Prediction',
@@ -133,12 +135,18 @@ export const FeatureIconsSection = () => {
               Join hundreds of subscription businesses using PulseLTV to automatically predict, prevent, and recover from customer churn.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-1 transition-all duration-200">
-                Start Free Trial
+              <button 
+                onClick={() => openWaitlistModal('features-icon-section')}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-1 transition-all duration-200"
+              >
+                Join Waiting List
               </button>
-              <button className="px-6 py-3 text-white border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors duration-200">
+              <a 
+                href="/book-demo"
+                className="px-6 py-3 text-white border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors duration-200 text-center inline-block"
+              >
                 Schedule Demo
-              </button>
+              </a>
             </div>
           </div>
         </div>

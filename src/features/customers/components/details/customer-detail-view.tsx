@@ -20,7 +20,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
 
   const customerName = `${customer.firstName} ${customer.lastName}`.trim();
   const tenure = calculateTenure(customer.subscriptionStartDate);
-  
+  console.log(customer);
   const tabs = [
     { 
       id: 'overview' as const, 
@@ -77,9 +77,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
                 <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-2">
                   <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
                   <span className="text-sm font-medium text-accent-secondary">Customer Profile</span>
-                  <span className={`text-xs px-2 py-1 rounded-full border ${getHealthScoreColor(customer.quickMetrics.overallHealthScore)}`}>
-                    {customer.quickMetrics.overallHealthScore}
-                  </span>
+  
                 </div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
                   {customerName}
@@ -89,7 +87,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
                   <div className="flex items-center gap-1">
                     <span className="text-sm text-text-muted">Data Quality:</span>
                     <span className="text-sm font-medium text-accent-primary">
-                      {Math.round(customer.dataQuality.completenessScore)}%
+                      {customer.quickMetrics?.dataCompletenessScore ? Math.round(customer.quickMetrics.dataCompletenessScore) : 'N/A'}%
                     </span>
                   </div>
                 </div>

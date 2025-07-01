@@ -151,19 +151,19 @@ export const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({ cust
             </div>
           </div>
           <div className="text-3xl font-bold text-accent-primary mb-2">
-            {customer.quickMetrics.activityStatus === 'Active' ? '85' : 
-             customer.quickMetrics.activityStatus === 'Low' ? '45' : '25'}
+            {customer.quickMetrics?.activityStatus === 'Active' ? '85' : 
+             customer.quickMetrics?.activityStatus === 'Low' ? '45' : '25'}
           </div>
           <div className="flex items-center gap-2">
             <div className={`w-full bg-surface-secondary rounded-full h-2 ${
-              customer.quickMetrics.activityStatus === 'Active' ? 'bg-gradient-to-r from-success to-success-muted' :
-              customer.quickMetrics.activityStatus === 'Low' ? 'bg-gradient-to-r from-warning to-warning-muted' :
+              customer.quickMetrics?.activityStatus === 'Active' ? 'bg-gradient-to-r from-success to-success-muted' :
+              customer.quickMetrics?.activityStatus === 'Low' ? 'bg-gradient-to-r from-warning to-warning-muted' :
               'bg-gradient-to-r from-error to-error-muted'
             }`}>
               <div 
                 className="bg-accent-primary h-2 rounded-full transition-all duration-500"
-                style={{ width: `${customer.quickMetrics.activityStatus === 'Active' ? 85 : 
-                  customer.quickMetrics.activityStatus === 'Low' ? 45 : 25}%` }}
+                style={{ width: `${customer.quickMetrics?.activityStatus === 'Active' ? 85 : 
+                  customer.quickMetrics?.activityStatus === 'Low' ? 45 : 25}%` }}
               />
             </div>
           </div>

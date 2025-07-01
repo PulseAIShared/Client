@@ -5,12 +5,18 @@ import { getActivityColor, getRiskColor, getSubscriptionStatusColor } from '@/ut
 
 interface MobileCustomerCardsProps {
   customers: CustomerDisplayData[];
-  onCustomerSelect?: (customer: CustomerDisplayData) => void;
+  onCustomerClick?: (customerId: string) => void;
+  selectedCustomers: Set<string>;
+  onToggleSelection: (customerId: string, event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSingleDelete: (customer: CustomerDisplayData, event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({ 
   customers, 
-  onCustomerSelect 
+  onCustomerClick,
+  selectedCustomers,
+  onToggleSelection,
+  onSingleDelete
 }) => {
   // LTV is already formatted as a string in CustomerDisplayData
 
@@ -36,13 +42,13 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
                 to={`/app/customers/${customer.id}`}
                 className="text-text-primary font-medium hover:text-accent-primary transition-colors block truncate"
               >
-                {customer.name}
+                {customer.fullName}
               </Link>
               <p className="text-text-muted text-sm truncate">{customer.email}</p>
             </div>
             <div className="ml-3 flex flex-col items-end gap-1">
-              <div className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(customer.churnRisk)}`}>
-                {customer.churnRisk}%
+              <div className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(customer.churnRiskScore)}`}>
+                {customer.churnRiskScore}%
               </div>
               <div className={`px-2 py-1 rounded-full text-xs font-medium ${getSubscriptionStatusColor(customer.subscriptionStatus)}`}>
                 {customer.subscriptionStatus === 0 ? 'Active' : 
@@ -62,16 +68,16 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
             </div>
             <div>
               <span className="text-text-muted">LTV:</span>
-              <p className="text-text-primary font-medium">{customer.ltv}</p>
+              <p className="text-text-primary font-medium">${customer.lifetimeValue}</p>
             </div>
             <div>
               <span className="text-text-muted">Tenure:</span>
-              <p className="text-text-primary font-medium">{customer.monthsSubbed} months</p>
+              <p className="text-text-primary font-medium">{customer.tenureDisplay}</p>
             </div>
             <div>
               <span className="text-text-muted">Activity:</span>
-              <p className={`font-medium ${getActivityColor(customer.activityFrequency)}`}>
-                {customer.activityFrequency}
+              <p className={`font-medium ${getActivityColor(customer.activityStatus)}`}>
+                {customer.activityStatus}
               </p>
             </div>
           </div>
@@ -85,7 +91,7 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
               View Details
             </Link>
             <button
-              onClick={() => onCustomerSelect?.(customer)}
+              onClick={() => onCustomerClick?.(customer.id)}
               className="flex-1 bg-surface-tertiary hover:bg-surface-tertiary/80 text-text-secondary text-center py-2 px-3 rounded-lg text-sm font-medium transition-colors"
             >
               Actions

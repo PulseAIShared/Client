@@ -33,6 +33,20 @@ export const createAppRouter = () =>
       },
     },
     {
+      path: '/churn-calculator',
+      lazy: async () => {
+        const ChurnCalculatorPage = await import('./routes/churn-calculator');
+        return { Component: ChurnCalculatorPage.default };
+      },
+    },
+    {
+      path: '/book-demo',
+      lazy: async () => {
+        const BookDemoPage = await import('./routes/book-demo');
+        return { Component: BookDemoPage.default };
+      },
+    },
+    {
       path: '/success',
       lazy: async () => {
         const { AuthSuccessRoute } = await import('./routes/auth/success');
@@ -99,15 +113,15 @@ export const createAppRouter = () =>
         {
           path: 'campaigns',
           lazy: async () => {
-            const { Component } = await import('./routes/app/campaigns/campaigns');
-            return { Component };
+            const { CampaignsRoute } = await import('./routes/app/campaigns/campaigns');
+            return { Component: CampaignsRoute };
           },
         },
         {
           path: 'campaigns/create',
           lazy: async () => {
-            const { Component } = await import('./routes/app/campaigns/create');
-            return { Component };
+            const { CampaignCreateRoute } = await import('./routes/app/campaigns/create');
+            return { Component: CampaignCreateRoute };
           },
         },
         {

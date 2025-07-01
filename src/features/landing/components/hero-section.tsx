@@ -1,5 +1,6 @@
 import React from 'react';
 import './css/hero-section.css'; // Import custom styles
+import { useWaitlistModal } from '@/hooks/useWaitlistModal';
 import { 
   SiStripe, 
   SiHubspot, 
@@ -25,6 +26,8 @@ const Link = ({ to, children, className, ...props }: LinkProps) => (
 );
 
 export const HeroSection = () => {
+  const { openWaitlistModal } = useWaitlistModal();
+
   return (
     <>
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -148,16 +151,16 @@ export const HeroSection = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 opacity-0 animate-fade-in-up delay-900">
-          <Link 
-            to="/register" 
+          <button
+            onClick={() => openWaitlistModal('hero-section')}
             className="group px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:shadow-2xl hover:shadow-purple-500/25 transform hover:-translate-y-2 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            <span className="relative">Get Started Free</span>
+            <span className="relative">Join Waiting List</span>
             <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform relative" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-          </Link>
+          </button>
           <Link 
             to="#features" 
             className="px-8 py-4 text-lg font-semibold text-white bg-transparent border-2 border-slate-400/30 backdrop-blur-sm rounded-xl hover:bg-white/10 hover:border-white/50 hover:shadow-lg transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 relative overflow-hidden group"

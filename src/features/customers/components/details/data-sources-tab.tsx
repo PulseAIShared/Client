@@ -149,20 +149,20 @@ const getDataCategoryInfo = (category: string) => {
 export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer }) => {
   const { dataSourceDetails, dataQuality, sourceSummary } = customer;
 
-  // Combine all data sources for overview
+  // Combine all data sources for overview with null checking
   const allDataSources = [
-    ...dataSourceDetails.crmSources.map(source => ({ ...source, category: 'crm' })),
-    ...dataSourceDetails.paymentSources.map(source => ({ ...source, category: 'payment' })),
-    ...dataSourceDetails.marketingSources.map(source => ({ ...source, category: 'marketing' })),
-    ...dataSourceDetails.supportSources.map(source => ({ ...source, category: 'support' })),
-    ...dataSourceDetails.engagementSources.map(source => ({ ...source, category: 'engagement' })),
+    ...(dataSourceDetails?.crmSources || []).map(source => ({ ...source, category: 'crm' })),
+    ...(dataSourceDetails?.paymentSources || []).map(source => ({ ...source, category: 'payment' })),
+    ...(dataSourceDetails?.marketingSources || []).map(source => ({ ...source, category: 'marketing' })),
+    ...(dataSourceDetails?.supportSources || []).map(source => ({ ...source, category: 'support' })),
+    ...(dataSourceDetails?.engagementSources || []).map(source => ({ ...source, category: 'engagement' })),
   ];
 
   // Data completeness recommendations
   const getRecommendations = () => {
     const recommendations = [];
 
-    if (!sourceSummary.hasCrmData) {
+    if (!sourceSummary?.hasCrmData) {
       recommendations.push({
         type: 'CRM Integration',
         description: 'Connect Salesforce, HubSpot, or Pipedrive to enrich customer profiles',
@@ -172,7 +172,7 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
       });
     }
 
-    if (!sourceSummary.hasMarketingData) {
+    if (!sourceSummary?.hasMarketingData) {
       recommendations.push({
         type: 'Marketing Data',
         description: 'Integrate marketing automation platforms for campaign insights',
@@ -182,7 +182,7 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
       });
     }
 
-    if (!sourceSummary.hasSupportData) {
+    if (!sourceSummary?.hasSupportData) {
       recommendations.push({
         type: 'Support Integration',
         description: 'Connect help desk for complete customer journey view',
@@ -192,7 +192,7 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
       });
     }
 
-    if (dataQuality.missingCriticalData.length > 0) {
+    if (dataQuality?.missingCriticalData && dataQuality.missingCriticalData.length > 0) {
       recommendations.push({
         type: 'Data Enrichment',
         description: 'Fill missing critical fields to improve predictions',
@@ -220,35 +220,35 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-accent-primary">{Math.round(dataQuality.completenessScore)}%</div>
+            <div className="text-3xl font-bold text-accent-primary">{dataQuality?.completenessScore ? Math.round(dataQuality.completenessScore) : 'N/A'}%</div>
             <div className="text-sm text-text-muted">Completeness</div>
             <div className="w-full bg-surface-secondary rounded-full h-2 mt-2">
               <div 
                 className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${dataQuality.completenessScore}%` }}
+                style={{ width: `${dataQuality?.completenessScore || 0}%` }}
               />
             </div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-success">{dataSourceDetails.totalActiveSources}</div>
+            <div className="text-3xl font-bold text-success">{dataSourceDetails?.totalActiveSources || 0}</div>
             <div className="text-sm text-text-muted">Active Sources</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-accent-secondary">{dataSourceDetails.uniqueSourceNames.length}</div>
+            <div className="text-3xl font-bold text-accent-secondary">{dataSourceDetails?.uniqueSourceNames?.length || 0}</div>
             <div className="text-sm text-text-muted">Unique Platforms</div>
           </div>
           <div className="text-center">
             <div className={`text-3xl font-bold ${
-              dataQuality.overallQuality >= 80 ? 'text-success' :
-              dataQuality.overallQuality >= 60 ? 'text-warning' : 'text-error'
+              (dataQuality?.overallQuality || 0) >= 80 ? 'text-success' :
+              (dataQuality?.overallQuality || 0) >= 60 ? 'text-warning' : 'text-error'
             }`}>
-              {customer.quickMetrics.overallHealthScore}
+              {customer.quickMetrics?.overallHealthScore || 'N/A'}
             </div>
             <div className="text-sm text-text-muted">Health Score</div>
           </div>
         </div>
 
-        {dataQuality.missingCriticalData.length > 0 && (
+        {dataQuality?.missingCriticalData && dataQuality.missingCriticalData.length > 0 && (
           <div className="p-4 bg-warning/20 rounded-lg border border-warning/30">
             <h4 className="text-warning font-medium mb-2 flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,7 +272,7 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
         {['crm', 'payment', 'marketing', 'support', 'engagement'].map((category) => {
           const categoryInfo = getDataCategoryInfo(category);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const sources = dataSourceDetails[`${category}Sources` as keyof typeof dataSourceDetails] as any[];
+          const sources = dataSourceDetails?.[`${category}Sources` as keyof typeof dataSourceDetails] as any[] || [];
           const hasData = sources && sources.length > 0;
 
           return (
@@ -419,8 +419,8 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
               <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
               <span className="text-text-secondary font-medium">Data Freshness</span>
             </div>
-            <div className="text-2xl font-bold text-success">{dataQuality.dataFreshness}</div>
-            <div className="text-sm text-text-muted">Last sync: {formatDateTime(dataSourceDetails.lastOverallSync)}</div>
+            <div className="text-2xl font-bold text-success">{dataQuality?.dataFreshness || 'Unknown'}</div>
+            <div className="text-sm text-text-muted">Last sync: {dataSourceDetails?.lastOverallSync ? formatDateTime(dataSourceDetails.lastOverallSync) : 'Never'}</div>
           </div>
 
           <div className="p-4 bg-surface-secondary/30 rounded-lg border border-border-primary">
@@ -428,9 +428,9 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
               <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
               <span className="text-text-secondary font-medium">Active Sources</span>
             </div>
-            <div className="text-2xl font-bold text-accent-primary">{dataSourceDetails.totalActiveSources}</div>
+            <div className="text-2xl font-bold text-accent-primary">{dataSourceDetails?.totalActiveSources || 0}</div>
             <div className="text-sm text-text-muted">
-              {dataSourceDetails.uniqueSourceNames.join(', ') || 'None'}
+              {dataSourceDetails?.uniqueSourceNames?.join(', ') || 'None'}
             </div>
           </div>
 
@@ -440,10 +440,10 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
               <span className="text-text-secondary font-medium">Sync Health</span>
             </div>
             <div className="text-2xl font-bold text-accent-secondary">
-              {customer.quickMetrics.dataFreshnessStatus}
+              {customer.quickMetrics?.dataFreshnessStatus || 'Unknown'}
             </div>
             <div className="text-sm text-text-muted">
-              {customer.quickMetrics.daysSinceLastSync === 0 ? 'Just synced' : `${customer.quickMetrics.daysSinceLastSync} days ago`}
+              {customer.quickMetrics?.daysSinceLastSync === 0 ? 'Just synced' : customer.quickMetrics?.daysSinceLastSync ? `${customer.quickMetrics.daysSinceLastSync} days ago` : 'Never synced'}
             </div>
           </div>
         </div>

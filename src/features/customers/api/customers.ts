@@ -36,7 +36,9 @@ export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
   if (params.sortBy) queryParams.append('sortBy', params.sortBy);
   if (params.sortDescending !== undefined) queryParams.append('sortDescending', params.sortDescending.toString());
 
-  const response = await api.get(`/customers?${queryParams.toString()}`) as CustomersApiResponse;
+  const url = `/customers?${queryParams.toString()}`;
+  console.log('API Call URL:', url);
+  const response = await api.get(url) as CustomersApiResponse;
   
   // Transform API data to display format
   const customers = response.items.map(transformCustomerData);

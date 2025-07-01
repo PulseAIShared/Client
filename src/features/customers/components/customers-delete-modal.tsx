@@ -219,15 +219,15 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
             {customers.map((customer) => (
               <div key={customer.id} className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                  {customer.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  {customer.fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                 </div>
                 <div className="flex-1">
-                  <div className="text-white font-medium">{customer.name}</div>
+                  <div className="text-white font-medium">{customer.fullName}</div>
                   <div className="text-slate-400 text-sm">{customer.email}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-slate-300 text-sm">{customer.plan}</div>
-                  <div className="text-slate-400 text-xs">{customer.ltv} LTV</div>
+                  <div className="text-slate-400 text-xs">${customer.lifetimeValue} LTV</div>
                 </div>
               </div>
             ))}

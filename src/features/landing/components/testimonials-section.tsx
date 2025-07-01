@@ -1,6 +1,8 @@
 import React from 'react';
+import { useWaitlistModal } from '@/hooks/useWaitlistModal';
 
 export const TestimonialsSection = () => {
+  const { openWaitlistModal } = useWaitlistModal();
   const steps = [
     {
       number: "01",
@@ -93,12 +95,12 @@ export const TestimonialsSection = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="/register"
+              <button
+                onClick={() => openWaitlistModal('testimonials-section')}
                 className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-1 transition-all duration-200"
               >
-                Get Started Free
-              </a>
+                Join Waiting List
+              </button>
               <a
                 href="#features"
                 className="px-8 py-4 text-white border border-slate-600 rounded-xl hover:bg-slate-800 transition-colors duration-200"

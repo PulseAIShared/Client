@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Code } from '@mantine/core';
 import { useTheme } from '@/lib/theme-context';
+import { useWaitlistModal } from '@/hooks/useWaitlistModal';
 
 export const LandingNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toggleTheme } = useTheme();
+  const { openWaitlistModal } = useWaitlistModal();
 
   const Logo = () => {
     return (
@@ -20,12 +22,12 @@ export const LandingNavbar = () => {
     );
   };
 
-  const navLinks = [
-    { name: 'Features', href: '#features' },
-    { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Testimonials', href: '#testimonials' },
-    { name: 'Pricing', href: '#pricing' },
-    { name: 'Docs', href: '/app/docs/getting-started' },
+  const navLinks: { name: string; href: string }[] = [
+    // { name: 'Features', href: '#features' },
+    // { name: 'How It Works', href: '#how-it-works' },
+    // { name: 'Testimonials', href: '#testimonials' },
+    // { name: 'Pricing', href: '#pricing' },
+    // { name: 'Docs', href: '/app/docs/getting-started' },
   ];
 
   return (
@@ -116,13 +118,15 @@ export const LandingNavbar = () => {
               >
                 Sign In
               </Link>
-              <Link
-                to="/register"
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  openWaitlistModal('navbar-mobile');
+                }}
                 className="block w-full text-center bg-gradient-to-r from-accent-primary to-accent-secondary text-white px-4 py-2 rounded-lg font-semibold transition-all"
-                onClick={() => setIsMobileMenuOpen(false)}
               >
-                Get Started
-              </Link>
+                Join Waiting List
+              </button>
             </div>
           </div>
         </div>

@@ -130,9 +130,9 @@ export enum SubscriptionStatus {
 }
 
 export enum SubscriptionPlan {
-  Basic = 1,
-  Pro = 2,
-  Enterprise = 3
+  Basic = 0,
+  Pro = 1,
+  Enterprise = 2
 }
 
 export enum PaymentStatus {
@@ -149,7 +149,39 @@ export enum ChurnRiskLevel {
   Critical = 3
 }
 
-// Updated CustomerData interface to match your API response
+// Nested object types from the actual JSON
+export interface ChurnHistoryEntry {
+  id: string;
+  riskScore: number;
+  riskLevel: number;
+  predictionDate: string;
+  riskFactors: Record<string, number>;
+  modelVersion: string;
+}
+
+export interface QualityMetrics {
+  completenessScore: number;
+  hasMultipleSources: boolean;
+  lastDataSync: string;
+  missingFields: string[];
+  dataFreshness: string;
+  recommendedActions: string[];
+  qualityLevel: string;
+}
+
+export interface DataSources {
+  totalSources: number;
+  activeSources: number;
+  lastOverallSync: string;
+  sourceNames: string[];
+  hasPaymentData: boolean;
+  hasEngagementData: boolean;
+  hasSupportData: boolean;
+  hasMarketingData: boolean;
+  hasCrmData: boolean;
+}
+
+// Updated CustomerData interface to match actual detailed API response
 export interface CustomerData {
   id: string;
   firstName: string;
@@ -158,45 +190,84 @@ export interface CustomerData {
   phone?: string;
   companyName?: string;
   jobTitle?: string;
-  subscriptionStatus: SubscriptionStatus;
-  plan: SubscriptionPlan;
+  location?: string;
+  country?: string;
+  age?: number;
+  gender?: string;
+  timeZone?: string | null;
+  
+  // Churn data
+  churnRiskScore: number;
+  churnRiskLevel: number; // 0, 1, 2, 3 for Low, Medium, High, Critical
+  churnPredictionDate?: string;
+  
+  // Subscription data
+  subscriptionStatus: number; // 0, 1, 2, 3, 4 for subscription status
+  plan: number; // 0, 1, 2 for Basic, Pro, Enterprise
+  paymentStatus: number;
   monthlyRecurringRevenue: number;
   lifetimeValue: number;
+  currentBalance: number;
+  currency: string;
   subscriptionStartDate: string;
   subscriptionEndDate?: string;
-  lastLoginDate: string;
-  weeklyLoginFrequency: number;
-  featureUsagePercentage: number;
-  supportTicketCount: number;
-  churnRiskScore: number;
-  churnRiskLevel: ChurnRiskLevel;
-  churnPredictionDate?: string;
-  paymentStatus: PaymentStatus;
   lastPaymentDate?: string;
   nextBillingDate?: string;
   paymentFailureCount: number;
-  location?: string;
-  country?: string;
-  source: string;
-  lastSyncedAt: string;
+  paymentMethodType?: string;
+  trialStartDate?: string | null;
+  trialEndDate?: string | null;
+  
+  // Activity data
+  lastLoginDate?: string;
+  weeklyLoginFrequency: number;
+  featureUsagePercentage: number;
+  lastActivityDate?: string | null;
+  hasRecentActivity: boolean;
+  
+  // Support data
+  supportTicketCount: number;
+  openSupportTickets: number;
+  
+  // Sources
+  primaryCrmSource: string;
+  primaryPaymentSource: string;
+  primaryMarketingSource: string;
+  primarySupportSource: string;
+  primaryEngagementSource: string;
+  
+  // Metadata
   dateCreated: string;
+  lastSyncedAt: string;
+  
+  // Computed fields
+  fullName: string;
+  tenureDays: number;
+  tenureDisplay: string;
+  activityStatus: string;
+  riskStatus: string;
+  
+  // Complex nested data
+  recentActivities: any[]; // Can be typed later if needed
+  churnHistory: ChurnHistoryEntry[];
+  qualityMetrics: QualityMetrics;
+  dataSources: DataSources;
 }
 
 // Helper interface for display purposes (computed from CustomerData)
 export interface CustomerDisplayData {
   id: string;
-  name: string; // computed from firstName + lastName
+  fullName: string; // from API
   email: string;
-  monthsSubbed: number; // computed from subscriptionStartDate
-  ltv: string; // formatted lifetimeValue
-  churnRisk: number; // churnRiskScore as percentage
-  activityFrequency: 'High' | 'Medium' | 'Low'; // computed from weeklyLoginFrequency
-  lastActivity: string; // lastLoginDate
-  plan: string; // formatted plan name
-  planEnum: SubscriptionPlan;
-  subscriptionStatus: SubscriptionStatus;
-  paymentStatus: PaymentStatus;
-  churnRiskLevel: ChurnRiskLevel;
+  lifetimeValue: number; // raw number for sorting and display
+  churnRiskScore: number; // percentage from API
+  tenureDisplay: string; // pre-formatted from API
+  activityStatus: string; // from API ("Active" | "Inactive")
+  lastActivityDate: string; // ISO date from API
+  hasRecentActivity: boolean; // from API
+  plan: SubscriptionPlan; // converted from number
+  subscriptionStatus: SubscriptionStatus; // converted from status number
+  churnRiskLevel: ChurnRiskLevel; // converted from churnRisk number
 }
 
 // API response wrapper
@@ -311,18 +382,17 @@ export const formatCurrency = (amount: number): string => {
 export const transformCustomerData = (customer: CustomerData): CustomerDisplayData => {
   return {
     id: customer.id,
-    name: `${customer.firstName} ${customer.lastName}`.trim(),
+    fullName: customer.fullName,
     email: customer.email,
-    monthsSubbed: calculateMonthsSubscribed(customer.subscriptionStartDate),
-    ltv: formatCurrency(customer.lifetimeValue),
-    churnRisk: Math.round(customer.churnRiskScore),
-    activityFrequency: calculateActivityFrequency(customer.weeklyLoginFrequency),
-    lastActivity: customer.lastLoginDate,
-    plan: formatPlanName(customer.plan),
-    planEnum: customer.plan,
-    subscriptionStatus: customer.subscriptionStatus,
-    paymentStatus: customer.paymentStatus,
-    churnRiskLevel: customer.churnRiskLevel,
+    lifetimeValue: customer.lifetimeValue,
+    churnRiskScore: customer.churnRiskScore,
+    tenureDisplay: customer.tenureDisplay,
+    activityStatus: customer.activityStatus,
+    lastActivityDate: customer.lastActivityDate || customer.lastLoginDate || '',
+    hasRecentActivity: customer.hasRecentActivity,
+    plan: customer.plan as SubscriptionPlan,
+    subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus,
+    churnRiskLevel: customer.churnRiskLevel as ChurnRiskLevel,
   };
 };
 

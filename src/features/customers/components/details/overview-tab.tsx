@@ -151,13 +151,13 @@ export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ custom
               <div className="flex items-center justify-between p-3 bg-surface-secondary/30 rounded-lg">
                 <span className="text-text-secondary">Activity Status</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                  customer.quickMetrics.activityStatus === 'Active'
+                  customer.quickMetrics?.activityStatus === 'Active'
                     ? 'text-success bg-success/20 border-success/30'
-                    : customer.quickMetrics.activityStatus === 'Low'
+                    : customer.quickMetrics?.activityStatus === 'Low'
                     ? 'text-warning bg-warning/20 border-warning/30'
                     : 'text-error bg-error/20 border-error/30'
                 }`}>
-                  {customer.quickMetrics.activityStatus}
+                  {customer.quickMetrics?.activityStatus || 'Unknown'}
                 </span>
               </div>
               
@@ -231,7 +231,7 @@ export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ custom
           )}
           
           {/* Recommended Actions from Data Quality */}
-          {customer.dataQuality.recommendedActions && customer.dataQuality.recommendedActions.length > 0 && (
+          {customer.dataQuality?.recommendedActions && customer.dataQuality.recommendedActions.length > 0 && (
             <div className="p-4 bg-warning/20 rounded-lg border border-warning/30">
               <div className="flex items-center gap-3 mb-2">
                 <svg className="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">

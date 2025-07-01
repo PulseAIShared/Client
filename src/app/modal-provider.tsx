@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { WaitlistSignupModal } from '@/features/waitlist/components';
 
 interface ModalContextType {
   openModal: (content: ReactNode) => void;
   closeModal: () => void;
   isOpen: boolean;
+  openWaitlistModal: (source?: string) => void;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -28,6 +30,17 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     document.body.style.overflow = 'hidden';
   };
 
+  const openWaitlistModal = (source = 'landing') => {
+    const waitlistModal = (
+      <WaitlistSignupModal
+        isOpen={true}
+        onClose={closeModal}
+        source={source}
+      />
+    );
+    openModal(waitlistModal);
+  };
+
   const closeModal = () => {
     setIsOpen(false);
     setModalContent(null);
@@ -39,7 +52,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
   const modalRoot = document.getElementById('modal-root');
 
   return (
-    <ModalContext.Provider value={{ openModal, closeModal, isOpen }}>
+    <ModalContext.Provider value={{ openModal, closeModal, isOpen, openWaitlistModal }}>
       {children}
       {isOpen && modalContent && modalRoot && 
         createPortal(
