@@ -19,7 +19,7 @@ export interface WaitlistSignupResponse {
 }
 
 export const signupForWaitlist = async (data: WaitlistSignupRequest): Promise<WaitlistSignupResponse> => {
-  return api.post('/waitlist/signup', data);
+  return api.post('/waiting-list/join', data);
 };
 
 type UseWaitlistSignupOptions = {
