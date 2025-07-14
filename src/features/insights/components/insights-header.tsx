@@ -1,4 +1,8 @@
+import { useGetInsightsData } from '@/features/insights/api/insights';
+
 export const InsightsHeader = () => {
+  const { data: insights } = useGetInsightsData();
+
   return (
     <div className="relative">
       {/* Background gradient effect */}
@@ -22,12 +26,16 @@ export const InsightsHeader = () => {
           <div className="hidden lg:flex items-center gap-4">
             {/* Quick stats */}
             <div className="text-right">
-              <div className="text-2xl font-bold text-success-muted">87.3%</div>
+              <div className="text-2xl font-bold text-success-muted">
+                {insights?.header.predictionAccuracy ?? 87.3}%
+              </div>
               <div className="text-sm text-text-muted">prediction accuracy</div>
             </div>
             <div className="w-px h-12 bg-border-primary"></div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-accent-primary">$4.2M</div>
+              <div className="text-2xl font-bold text-accent-primary">
+                {insights?.header.revenueSaved ?? '$4.2M'}
+              </div>
               <div className="text-sm text-text-muted">revenue saved</div>
             </div>
           </div>

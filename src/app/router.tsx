@@ -174,6 +174,13 @@ export const createAppRouter = () =>
         },
       },
       {
+        path: 'admin/waiting-list',
+        lazy: async () => {
+          const { WaitingListAdminRoute } = await import('./routes/app/admin/waiting-list');
+          return { Component: WaitingListAdminRoute };
+        },
+      },
+      {
         path: 'docs/getting-started',
         lazy: async () => {
           const { GettingStartedDocsRoute } = await import('./routes/app/docs/getting-started');

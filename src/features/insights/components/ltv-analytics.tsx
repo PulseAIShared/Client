@@ -1,8 +1,8 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
-import { useGetLTVAnalytics } from '@/features/insights/api/insights';
+import { useGetInsightsData } from '@/features/insights/api/insights';
 
 export const LTVAnalytics = () => {
-  const { data, isLoading, error } = useGetLTVAnalytics();
+  const { data: insights, isLoading, error } = useGetInsightsData();
 
   if (isLoading) {
     return (
@@ -37,7 +37,7 @@ export const LTVAnalytics = () => {
     );
   }
 
-  if (error || !data) {
+  if (error || !insights) {
     return (
       <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="text-center py-8">
@@ -48,7 +48,7 @@ export const LTVAnalytics = () => {
     );
   }
 
-  const { ltvData, cohortData } = data;
+  const { ltvData, cohortData } = insights.ltvAnalytics;
 
   return (
     <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">

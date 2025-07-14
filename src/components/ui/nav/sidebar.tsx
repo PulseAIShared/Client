@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import { LinksGroup } from './links';
 
 import { Authorization, ROLES } from '@/lib/authorization';
-import { FaUsersCog, FaNetworkWired } from 'react-icons/fa';
+import { FaUsersCog, FaNetworkWired, FaListUl } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { useTheme } from '@/lib/theme-context';
 
@@ -72,6 +72,13 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
           link="/app/admin/users"
           onClick={handleLinkClick}
           key="admin-users"
+        />
+        <LinksGroup
+          name="Waiting List"
+          icon={FaListUl}
+          link="/app/admin/waiting-list"
+          onClick={handleLinkClick}
+          key="admin-waiting-list"
         />
         <LinksGroup
           name="Connection Diagnostics"

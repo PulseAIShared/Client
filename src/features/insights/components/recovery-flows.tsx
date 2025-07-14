@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useGetRecoveryFlows } from '@/features/insights/api/insights';
+import { useGetInsightsData } from '@/features/insights/api/insights';
 
 export const RecoveryFlows = () => {
-  const { data, isLoading, error } = useGetRecoveryFlows();
+  const { data: insights, isLoading, error } = useGetInsightsData();
   const [selectedTab, setSelectedTab] = useState<'active' | 'templates'>('active');
   const [activeFlow, setActiveFlow] = useState<string>('payment-failed');
 
@@ -35,7 +35,7 @@ export const RecoveryFlows = () => {
     );
   }
 
-  if (error || !data) {
+  if (error || !insights) {
     return (
       <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="text-center py-8">
@@ -46,7 +46,7 @@ export const RecoveryFlows = () => {
     );
   }
 
-  const { flows, templates } = data;
+  const { flows, templates } = insights.recoveryFlows;
   const selectedFlow = flows.find(f => f.id === activeFlow) || flows[0];
 
   const getChannelIcon = (channel: string) => {

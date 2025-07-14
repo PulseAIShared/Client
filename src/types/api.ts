@@ -1165,3 +1165,57 @@ export interface PagedResult<T> {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
 }
+
+// Insights API Types
+export interface InsightsResponse {
+  header: InsightsHeaderData;
+  analyticsOverview: AnalyticsOverviewData;
+  churnPrediction: ChurnPredictionResponse;
+  ltvAnalytics: LTVAnalyticsResponse;
+  demographicInsights: DemographicInsightsResponse;
+  recoveryFlows: RecoveryFlowsResponse;
+  aiRecommendations: AIRecommendationsData;
+}
+
+export interface InsightsHeaderData {
+  predictionAccuracy: number;
+  revenueSaved: string;
+}
+
+export interface AnalyticsOverviewData {
+  kpiData: KPIData[];
+  revenueData: RevenueData[];
+}
+
+export interface ChurnPredictionResponse {
+  predictionData: ChurnPredictionData[];
+  riskFactors: RiskFactor[];
+}
+
+export interface LTVAnalyticsResponse {
+  ltvData: LTVData[];
+  cohortData: CohortData[];
+}
+
+export interface DemographicInsightsResponse {
+  demographicData: DemographicData[];
+  behaviorInsights: BehaviorInsight[];
+}
+
+export interface RecoveryFlowsResponse {
+  flows: RecoveryFlow[];
+  templates: FlowTemplate[];
+}
+
+export interface AIRecommendationsData {
+  recommendations: AIRecommendation[];
+}
+
+export interface AIRecommendation {
+  type: string;
+  title: string;
+  description: string;
+  actionText: string;
+  iconType: string;
+  count: number;
+}

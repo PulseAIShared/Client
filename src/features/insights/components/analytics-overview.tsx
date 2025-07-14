@@ -1,8 +1,8 @@
 import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
-import { useGetRevenueAnalytics } from '@/features/insights/api/insights';
+import { useGetInsightsData } from '@/features/insights/api/insights';
 
 export const AnalyticsOverview = () => {
-  const { data, isLoading, error } = useGetRevenueAnalytics();
+  const { data: insights, isLoading, error } = useGetInsightsData();
 
   if (isLoading) {
     return (
@@ -27,7 +27,7 @@ export const AnalyticsOverview = () => {
     );
   }
 
-  if (error || !data) {
+  if (error || !insights) {
     return (
       <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="text-center py-8">
@@ -38,7 +38,7 @@ export const AnalyticsOverview = () => {
     );
   }
 
-  const { revenueData, kpiData } = data;
+  const { revenueData, kpiData } = insights.analyticsOverview;
 
   return (
     <div className="space-y-6">

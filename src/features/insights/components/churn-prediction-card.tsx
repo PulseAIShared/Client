@@ -1,9 +1,9 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
-import { useGetChurnPredictionData } from '@/features/insights/api/insights';
+import { useGetInsightsData } from '@/features/insights/api/insights';
 import { RiskFactor } from '@/types/api';
 
 export const ChurnPredictionCard = () => {
-  const { data, isLoading, error } = useGetChurnPredictionData();
+  const { data: insights, isLoading, error } = useGetInsightsData();
 
   if (isLoading) {
     return (
@@ -30,7 +30,7 @@ export const ChurnPredictionCard = () => {
     );
   }
 
-  if (error || !data) {
+  if (error || !insights) {
     return (
       <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="text-center py-8">
@@ -41,7 +41,7 @@ export const ChurnPredictionCard = () => {
     );
   }
 
-  const { data: predictionData, riskFactors } = data;
+  const { predictionData, riskFactors } = insights.churnPrediction;
 
   return (
     <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">

@@ -1,8 +1,8 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { useGetDemographicInsights } from '@/features/insights/api/insights';
+import { useGetInsightsData } from '@/features/insights/api/insights';
 
 export const DemographicInsights = () => {
-  const { data, isLoading, error } = useGetDemographicInsights();
+  const { data: insights, isLoading, error } = useGetInsightsData();
 
   if (isLoading) {
     return (
@@ -32,7 +32,7 @@ export const DemographicInsights = () => {
     );
   }
 
-  if (error || !data) {
+  if (error || !insights) {
     return (
       <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="text-center py-8">
@@ -43,7 +43,7 @@ export const DemographicInsights = () => {
     );
   }
 
-  const { demographicData, behaviorInsights } = data;
+  const { demographicData, behaviorInsights } = insights.demographicInsights;
 
   return (
     <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">

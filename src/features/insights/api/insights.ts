@@ -2,7 +2,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/react-query';
-import { BehaviorInsight, ChurnPredictionData, CohortData, DemographicData, FlowTemplate, KPIData, LTVData, RecoveryFlow, RevenueData, RiskFactor } from '@/types/api';
+import { 
+  BehaviorInsight, 
+  ChurnPredictionData, 
+  CohortData, 
+  DemographicData, 
+  FlowTemplate, 
+  KPIData, 
+  LTVData, 
+  RecoveryFlow, 
+  RevenueData, 
+  RiskFactor,
+  InsightsResponse
+} from '@/types/api';
 
 
 
@@ -145,95 +157,27 @@ const mockFlowTemplates: FlowTemplate[] = [
   { name: 'Upgrade Nudge', trigger: 'Usage limit reached', success_rate: 67 },
 ];
 
-// API Functions
-export const getChurnPredictionData = async (): Promise<{ data: ChurnPredictionData[], riskFactors: RiskFactor[] }> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get('/insights/churn-prediction');
-  return { data: mockChurnPredictionData, riskFactors: mockRiskFactors };
+
+export const getInsightsData = async (): Promise<InsightsResponse> => {
+  try {
+    return await api.get('/insights');
+  } catch (error) {
+    console.warn('Failed to fetch insights from API, falling back to mock data:', error);
+    throw error;
+  }
 };
 
-export const getRevenueAnalytics = async (): Promise<{ revenueData: RevenueData[], kpiData: KPIData[] }> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get('/insights/revenue-analytics');
-  return { revenueData: mockRevenueData, kpiData: mockKPIData };
-};
 
-export const getDemographicInsights = async (): Promise<{ demographicData: DemographicData[], behaviorInsights: BehaviorInsight[] }> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get('/insights/demographic');
-  return { demographicData: mockDemographicData, behaviorInsights: mockBehaviorInsights };
-};
 
-export const getLTVAnalytics = async (): Promise<{ ltvData: LTVData[], cohortData: CohortData[] }> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get('/insights/ltv-analytics');
-  return { ltvData: mockLTVData, cohortData: mockCohortData };
-};
-
-export const getRecoveryFlows = async (): Promise<{ flows: RecoveryFlow[], templates: FlowTemplate[] }> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get('/insights/recovery-flows');
-  return { flows: mockRecoveryFlows, templates: mockFlowTemplates };
-};
-
-// Query Options
-export const getChurnPredictionDataQueryOptions = () => ({
-  queryKey: ['insights', 'churn-prediction'],
-  queryFn: () => getChurnPredictionData(),
-});
-
-export const getRevenueAnalyticsQueryOptions = () => ({
-  queryKey: ['insights', 'revenue-analytics'],
-  queryFn: () => getRevenueAnalytics(),
-});
-
-export const getDemographicInsightsQueryOptions = () => ({
-  queryKey: ['insights', 'demographic'],
-  queryFn: () => getDemographicInsights(),
-});
-
-export const getLTVAnalyticsQueryOptions = () => ({
-  queryKey: ['insights', 'ltv-analytics'],
-  queryFn: () => getLTVAnalytics(),
-});
-
-export const getRecoveryFlowsQueryOptions = () => ({
-  queryKey: ['insights', 'recovery-flows'],
-  queryFn: () => getRecoveryFlows(),
+export const getInsightsDataQueryOptions = () => ({
+  queryKey: ['insights'],
+  queryFn: () => getInsightsData(),
 });
 
 // Hooks
-export const useGetChurnPredictionData = (queryConfig?: QueryConfig<typeof getChurnPredictionDataQueryOptions>) => {
+export const useGetInsightsData = (queryConfig?: QueryConfig<typeof getInsightsDataQueryOptions>) => {
   return useQuery({
-    ...getChurnPredictionDataQueryOptions(),
-    ...queryConfig,
-  });
-};
-
-export const useGetRevenueAnalytics = (queryConfig?: QueryConfig<typeof getRevenueAnalyticsQueryOptions>) => {
-  return useQuery({
-    ...getRevenueAnalyticsQueryOptions(),
-    ...queryConfig,
-  });
-};
-
-export const useGetDemographicInsights = (queryConfig?: QueryConfig<typeof getDemographicInsightsQueryOptions>) => {
-  return useQuery({
-    ...getDemographicInsightsQueryOptions(),
-    ...queryConfig,
-  });
-};
-
-export const useGetLTVAnalytics = (queryConfig?: QueryConfig<typeof getLTVAnalyticsQueryOptions>) => {
-  return useQuery({
-    ...getLTVAnalyticsQueryOptions(),
-    ...queryConfig,
-  });
-};
-
-export const useGetRecoveryFlows = (queryConfig?: QueryConfig<typeof getRecoveryFlowsQueryOptions>) => {
-  return useQuery({
-    ...getRecoveryFlowsQueryOptions(),
+    ...getInsightsDataQueryOptions(),
     ...queryConfig,
   });
 };
