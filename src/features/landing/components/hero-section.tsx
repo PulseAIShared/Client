@@ -141,11 +141,22 @@ export const HeroSection = () => {
           </h1>
         </div>
         
-        <p className="text-xl md:text-xl mb-10 max-w-4xl mx-auto text-slate-600 font-light leading-relaxed opacity-0 animate-fade-in-up delay-600">
-          Turn customer data into actionable insights. Identify at-risk customers, create targeted segments, 
-          <br className="hidden md:block" />
-          and launch personalized campaigns to reduce churn and recover revenue.
-        </p>
+            <div className="mb-10 opacity-0 animate-fade-in-up delay-600">
+          <p className="text-xl md:text-2xl max-w-4xl mx-auto text-slate-700 font-normal leading-relaxed">
+            Turn customer data into <span className="text-sky-600 font-semibold">actionable insights</span>. 
+            Identify <span className="text-blue-900 font-semibold">at-risk customers</span>, 
+            create <span className="text-blue-900 font-semibold">targeted segments</span>, 
+            and launch <span className="text-sky-600 font-semibold">personalized campaigns</span> to 
+            <span className="relative inline-block">
+              <span className="relative z-10 text-blue-900 font-bold">reduce churn</span>
+              <span className="absolute bottom-0 left-0 w-full h-2 bg-sky-400/30 -rotate-1"></span>
+            </span> and 
+            <span className="relative inline-block ml-1">
+              <span className="relative z-10 text-blue-900 font-bold">recover revenue</span>
+              <span className="absolute bottom-0 left-0 w-full h-2 bg-sky-400/30 rotate-1"></span>
+            </span>.
+          </p>
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12 opacity-0 animate-fade-in-up delay-900">
           <Button
