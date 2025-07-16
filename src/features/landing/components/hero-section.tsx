@@ -146,9 +146,9 @@ export const HeroSection = () => {
             Turn customer data into <span className="text-sky-600 font-semibold">actionable insights</span>. 
             Identify <span className="text-blue-900 font-semibold">at-risk customers</span>, 
             create <span className="text-blue-900 font-semibold">targeted segments</span>, 
-            and launch <span className="text-sky-600 font-semibold">personalized campaigns</span> to 
-            <span className="relative inline-block">
-              <span className="relative z-10 text-blue-900 font-bold">reduce churn</span>
+            and launch <span className="text-sky-600 font-semibold">personalized campaigns </span> to  {' '}
+            <span className="relative inline-block">  
+            <span className="relative z-10 text-blue-900 font-bold">reduce churn</span>
               <span className="absolute bottom-0 left-0 w-full h-2 bg-sky-400/30 -rotate-1"></span>
             </span> and 
             <span className="relative inline-block ml-1">
