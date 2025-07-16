@@ -1,7 +1,7 @@
 import React from 'react';
 import { useWaitlistModal } from '@/hooks/useWaitlistModal';
 
-export const TestimonialsSection = () => {
+export const HowItWorksSection = () => {
   const { openWaitlistModal } = useWaitlistModal();
   const steps = [
     {
@@ -35,7 +35,7 @@ export const TestimonialsSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
+    <section id="features" className="py-24 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20">
           <div className="inline-flex items-center gap-2 bg-sky-100 px-4 py-2 rounded-full mb-6">
@@ -84,32 +84,7 @@ export const TestimonialsSection = () => {
           ))}
         </div>
 
-        {/* CTA Section */}
-        <div className="mt-20 text-center">
-          <div className="bg-blue-900 rounded-2xl p-12 max-w-4xl mx-auto">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              Ready to start reducing churn?
-            </h3>
-            <p className="text-blue-200 mb-8 text-lg">
-              Join subscription businesses using PulseLTV to turn customer insights into revenue growth.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => openWaitlistModal('testimonials-section')}
-                className="px-8 py-4 bg-sky-500 text-white font-semibold rounded-xl hover:bg-sky-600 hover:shadow-lg hover:shadow-sky-500/25 transform hover:-translate-y-1 transition-all duration-200"
-              >
-                Join Waiting List
-              </button>
-              <a
-                href="#features"
-                className="px-8 py-4 text-white border border-blue-600 rounded-xl hover:bg-blue-800 transition-colors duration-200"
-              >
-                Learn More
-              </a>
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
   );
