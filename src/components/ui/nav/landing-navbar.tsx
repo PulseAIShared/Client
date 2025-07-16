@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Code } from '@mantine/core';
-import { useTheme } from '@/lib/theme-context';
+
 import { useWaitlistModal } from '@/hooks/useWaitlistModal';
 
 export const LandingNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { toggleTheme } = useTheme();
+
   const { openWaitlistModal } = useWaitlistModal();
 
   const Logo = () => {
     return (
       <Link className="flex items-center gap-2" to="/">
-        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+        <span className="text-xl font-bold bg-clip-text text-transparent bg-black">
           PulseLTV
         </span>
-        <Code fw={700} className="text-xs bg-purple-400/20 text-purple-400 border border-purple-400/30">
+        <Code fw={700} className="text-xs bg-blue-500">
           BETA
         </Code>
       </Link>
@@ -31,7 +31,7 @@ export const LandingNavbar = () => {
   ];
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 bg-slate-900/95 backdrop-blur-lg border-b border-slate-700/50 shadow-sm">
+    <nav className="fixed inset-x-0 top-0 z-50 bg-white backdrop-blur-lg border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -46,7 +46,7 @@ export const LandingNavbar = () => {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-slate-200 hover:text-white transition-colors duration-200 font-medium"
+                  className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium"
                 >
                   {link.name}
                 </a>
@@ -60,7 +60,7 @@ export const LandingNavbar = () => {
             {/* Sign In */}
             <Link
               to="/login"
-              className="text-slate-200 hover:text-white font-medium transition-colors duration-200"
+              className="text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
             >
               Sign In
             </Link>
@@ -68,7 +68,7 @@ export const LandingNavbar = () => {
             {/* Get Started CTA */}
             <Link
               to="/book-demo"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 transition-all duration-200"
+              className="bg-sky-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-sky-600 hover:shadow-lg hover:shadow-sky-500/25 transform hover:-translate-y-0.5 transition-all duration-200"
             >
               Book Demo
             </Link>
@@ -78,7 +78,7 @@ export const LandingNavbar = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-slate-800/50 transition-all"
+              className="p-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMobileMenuOpen ? (
@@ -94,13 +94,13 @@ export const LandingNavbar = () => {
 
       {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-surface-primary border-t border-border-primary/50">
+        <div className="md:hidden bg-white border-t border-gray-200">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
-                className="block px-3 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 rounded-lg transition-all"
+                className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.name}
@@ -113,7 +113,7 @@ export const LandingNavbar = () => {
             <div className="px-3 pt-4 space-y-2">
               <Link
                 to="/login"
-                className="block w-full text-center px-4 py-2 text-text-secondary hover:text-text-primary border border-border-primary rounded-lg transition-all"
+                className="block w-full text-center px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg transition-all"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Sign In
@@ -123,7 +123,7 @@ export const LandingNavbar = () => {
                   setIsMobileMenuOpen(false);
                   openWaitlistModal('navbar-mobile');
                 }}
-                className="block w-full text-center bg-gradient-to-r from-accent-primary to-accent-secondary text-white px-4 py-2 rounded-lg font-semibold transition-all"
+                className="block w-full text-center bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-sky-600 transition-all"
               >
                 Join Waiting List
               </button>

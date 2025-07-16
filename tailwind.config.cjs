@@ -15,7 +15,8 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter var', ...defaultTheme.fontFamily.sans],
+        sans: ['Inter', 'Inter var', ...defaultTheme.fontFamily.sans],
+        inter: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica', 'Apple Color Emoji', 'Arial', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',

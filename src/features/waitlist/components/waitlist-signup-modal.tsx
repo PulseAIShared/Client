@@ -70,10 +70,10 @@ export const WaitlistSignupModal: React.FC<WaitlistSignupModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative bg-surface-primary rounded-2xl shadow-2xl border border-border-primary max-w-md w-full max-h-[90vh] overflow-hidden"
+          className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-md w-full max-h-[90vh] overflow-hidden"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+          <div className="bg-sky-500 px-6 py-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 {isSuccess ? '🎉 Welcome to the Waitlist!' : 'Join Our Waitlist'}
@@ -102,49 +102,49 @@ export const WaitlistSignupModal: React.FC<WaitlistSignupModalProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-text-primary mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   You're on the list!
                 </h3>
-                <p className="text-text-secondary">
+                <p className="text-gray-600">
                   We'll notify you as soon as PulseLTV is ready. Get ready to transform your customer retention strategy!
                 </p>
               </motion.div>
             ) : (
               <>
-                <p className="text-text-secondary mb-6">
+                <p className="text-gray-600 mb-6">
                   Be the first to know when PulseLTV launches and get exclusive early access to our AI-powered churn reduction platform.
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-text-primary mb-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
                         First Name
                       </label>
                       <input
                         type="text"
                         value={formData.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        className="w-full px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-text-primary transition-all"
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent text-gray-900 transition-all"
                         placeholder="John"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-text-primary mb-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
                         Last Name
                       </label>
                       <input
                         type="text"
                         value={formData.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        className="w-full px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-text-primary transition-all"
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent text-gray-900 transition-all"
                         placeholder="Doe"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-text-primary mb-1">
+                    <label className="block text-sm font-medium text-gray-900 mb-1">
                       Email Address *
                     </label>
                     <input
@@ -152,20 +152,20 @@ export const WaitlistSignupModal: React.FC<WaitlistSignupModalProps> = ({
                       required
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-text-primary transition-all"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent text-gray-900 transition-all"
                       placeholder="john@company.com"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-text-primary mb-1">
+                    <label className="block text-sm font-medium text-gray-900 mb-1">
                       Company Name
                     </label>
                     <input
                       type="text"
                       value={formData.companyName}
                       onChange={(e) => handleInputChange('companyName', e.target.value)}
-                      className="w-full px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-text-primary transition-all"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent text-gray-900 transition-all"
                       placeholder="Acme Corp"
                     />
                   </div>
@@ -182,14 +182,14 @@ export const WaitlistSignupModal: React.FC<WaitlistSignupModalProps> = ({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="flex-1 px-4 py-2 border border-border-primary text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-colors"
+                      className="flex-1 px-4 py-2 border border-slate-300 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={!formData.email || waitlistSignup.isPending}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none disabled:hover:shadow-none"
+                      className="flex-1 bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-sky-600 hover:shadow-lg hover:shadow-sky-500/25 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none disabled:hover:shadow-none"
                     >
                       {waitlistSignup.isPending ? (
                         <div className="flex items-center justify-center space-x-2">
