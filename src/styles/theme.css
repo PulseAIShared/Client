@@ -2,32 +2,32 @@
 
 /* Define theme colors using Tailwind v4 @theme directive */
 :root {
-  /* Light theme variables - Sophisticated crimson & gold palette */
-  --bg-primary: 254 252 248; /* warm off-white with slight cream tint */
-  --bg-secondary: 249 247 243; /* slightly darker warm background */
+  /* Light theme variables - Sky Blue, Midnight Blue, Silver palette */
+  --bg-primary: 255 255 255; /* pure white background */
+  --bg-secondary: 248 250 252; /* slate-50 - light gray background */
   --surface-primary: 255 255 255; /* pure white for cards */
-  --surface-secondary: 254 252 248; /* warm off-white for secondary surfaces */
-  --text-primary: 17 24 39; /* slate-900 - crisp dark text */
+  --surface-secondary: 248 250 252; /* slate-50 - light gray for secondary surfaces */
+  --text-primary: 30 58 138; /* blue-900 - Midnight Blue for primary text */
   --text-secondary: 51 65 85; /* slate-700 - medium contrast */
-  --text-muted: 100 116 139; /* slate-500 - muted but readable */
+  --text-muted: 148 163 184; /* slate-400 - Silver for muted text */
   --border-primary: 226 232 240; /* slate-200 - clean borders */
-  --accent-primary: 153 27 27; /* red-800 - deep crimson/burgundy */
-  --accent-secondary: 180 83 9; /* amber-700 - rich gold complement */
-  --gradient-from: 254 252 248; /* warm off-white */
-  --gradient-via: 254 242 242; /* red-50 - subtle crimson tint */
-  --gradient-to: 252 246 232; /* amber-50 - subtle gold tint */
+  --accent-primary: 14 165 233; /* sky-500 - Sky Blue primary accent */
+  --accent-secondary: 30 58 138; /* blue-900 - Midnight Blue secondary accent */
+  --gradient-from: 255 255 255; /* white */
+  --gradient-via: 240 249 255; /* sky-50 - subtle sky blue tint */
+  --gradient-to: 241 245 249; /* slate-100 - subtle silver tint */
   --success: 34 197 94; /* green-500 - keep existing green */
   --success-muted: 74 222 128; /* green-400 */
   --success-bg: 34 197 94; /* green-500 */
-  --warning: 180 83 9; /* amber-700 - rich gold */
-  --warning-muted: 245 158 11; /* amber-500 - lighter gold */
-  --warning-bg: 180 83 9; /* amber-700 */
-  --error: 185 28 28; /* red-700 - deeper red for errors */
-  --error-muted: 220 38 38; /* red-600 - medium red */
-  --error-bg: 185 28 28; /* red-700 */
-  --info: 7 89 133; /* sky-800 - deep blue for contrast */
-  --info-muted: 14 116 144; /* cyan-700 - deeper cyan */
-  --info-bg: 7 89 133; /* sky-800 */
+  --warning: 245 158 11; /* amber-500 - complementary to sky blue */
+  --warning-muted: 251 191 36; /* amber-400 */
+  --warning-bg: 245 158 11; /* amber-500 */
+  --error: 220 38 38; /* red-600 - error color */
+  --error-muted: 248 113 113; /* red-400 */
+  --error-bg: 220 38 38; /* red-600 */
+  --info: 14 165 233; /* sky-500 - Sky Blue for info */
+  --info-muted: 56 189 248; /* sky-400 */
+  --info-bg: 14 165 233; /* sky-500 */
 }
 
 .dark {
