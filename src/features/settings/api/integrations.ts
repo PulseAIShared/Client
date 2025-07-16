@@ -2,7 +2,23 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
-import { Integration, IntegrationStats } from '@/types/api';
+import { 
+  Integration, 
+  IntegrationStats, 
+  IntegrationStatusResponse,
+  IntegrationType,
+  IntegrationStatus,
+  ConfigurationOptions,
+  StartConnectionResult,
+  OAuthCallbackRequest,
+  HandleCallbackResult,
+  SyncConfigRequest,
+  ConfigureIntegrationResult,
+  ReconnectIntegrationResult,
+  TestConnectionResult,
+  TriggerSyncResult,
+  DisconnectIntegrationResult
+} from '@/types/api';
 import { mockIntegrations } from './mock-data';
 
 // API Functions
@@ -10,119 +26,102 @@ export const getIntegrations = async ({
   type, 
   status 
 }: { 
-  type?: string; 
-  status?: string; 
-} = {}): Promise<Integration[]> => {
+  type?: IntegrationType; 
+  status?: IntegrationStatus; 
+} = {}): Promise<IntegrationStatusResponse[]> => {
   const queryParams = new URLSearchParams();
   
-  if (type && type !== 'all') {
+  if (type) {
     queryParams.append('type', type);
   }
   
-  if (status && status !== 'all') {
+  if (status) {
     queryParams.append('status', status);
   }
 
   const queryString = queryParams.toString();
   const url = queryString ? `/integrations?${queryString}` : '/integrations';
   
-  const response = await api.get(url) as Integration[];
-
-  return response;
+  return await api.get(url);
 };
 
+export const getIntegrationById = async (integrationId: string): Promise<IntegrationStatusResponse> => {
+  return await api.get(`/integrations/${integrationId}`);
+};
+
+export const getConfigurationOptions = async (type: IntegrationType): Promise<ConfigurationOptions> => {
+  return await api.get(`/integrations/${type}/config-options`);
+};
+
+// OAuth Flow Functions
+export const startConnection = async (type: IntegrationType): Promise<StartConnectionResult> => {
+  return await api.post(`/integrations/${type}/connect`);
+};
+
+export const handleCallback = async (
+  type: IntegrationType,
+  callbackData: OAuthCallbackRequest
+): Promise<HandleCallbackResult> => {
+  return await api.post(`/integrations/${type}/callback`, callbackData);
+};
+
+export const reconnectIntegration = async (integrationId: string): Promise<ReconnectIntegrationResult> => {
+  return await api.post(`/integrations/${integrationId}/reconnect`);
+};
+
+// Configuration Functions
+export const configureIntegration = async (
+  integrationId: string,
+  config: SyncConfigRequest
+): Promise<ConfigureIntegrationResult> => {
+  return await api.post(`/integrations/${integrationId}/configure`, config);
+};
+
+// Connection Management Functions
+export const testConnection = async (integrationId: string): Promise<TestConnectionResult> => {
+  return await api.post(`/integrations/${integrationId}/test`);
+};
+
+export const triggerSync = async (
+  integrationId: string,
+  options?: { incrementalSync?: boolean; syncFromDate?: Date }
+): Promise<TriggerSyncResult> => {
+  return await api.post(`/integrations/${integrationId}/sync`, options);
+};
+
+export const disconnectIntegration = async (integrationId: string): Promise<DisconnectIntegrationResult> => {
+  return await api.delete(`/integrations/${integrationId}`);
+};
+
+// Legacy function for backward compatibility
 export const getIntegrationStats = async (): Promise<IntegrationStats> => {
-  const response = await api.get('/integrations') as { 
-    integrations: Integration[]; 
-    stats: IntegrationStats 
-  };
-  return response.stats;
-};
-
-
-export const getIntegrationById = async ({ integrationId }: { integrationId: string }): Promise<Integration> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.get(`/integrations/${integrationId}`);
-  const integration = mockIntegrations.find(i => i.id === integrationId);
-  if (!integration) {
-    throw new Error('Integration not found');
-  }
-  return integration;
-};
-
-export const connectIntegration = async (data: {
-  type: string;
-  name: string;
-  configuration?: Record<string, unknown>;
-}): Promise<Integration> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.post('/integrations/connect', data);
-  
-  // Mock implementation
-  const newIntegration: Integration = {
-    id: Date.now().toString(),
-    type: data.type,
-    name: data.name,
-    status: 'Connected',
-    lastSyncedAt: new Date().toISOString(),
-    syncedRecordCount: Math.floor(Math.random() * 10000),
-    configuration: data.configuration
-  };
-  
-  return newIntegration;
-};
-
-export const disconnectIntegration = async ({ integrationId }: { integrationId: string }): Promise<void> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.post(`/integrations/${integrationId}/disconnect`);
-  
-  // Mock implementation - just return success
-  return Promise.resolve();
-};
-
-export const syncIntegration = async ({ integrationId }: { integrationId: string }): Promise<Integration> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.post(`/integrations/${integrationId}/sync`);
-  
-  // Mock implementation
-  const integration = mockIntegrations.find(i => i.id === integrationId);
-  if (!integration) {
-    throw new Error('Integration not found');
-  }
-  
+  const integrations = await getIntegrations();
   return {
-    ...integration,
-    lastSyncedAt: new Date().toISOString(),
-    syncedRecordCount: integration.syncedRecordCount + Math.floor(Math.random() * 100)
-  };
-};
-
-export const updateIntegration = async ({ 
-  integrationId, 
-  ...data 
-}: { 
-  integrationId: string; 
-  name?: string;
-  configuration?: Record<string, unknown>;
-}): Promise<Integration> => {
-  // TODO: Replace with actual API call when backend is ready
-  // return api.put(`/integrations/${integrationId}`, data);
-  
-  const integration = mockIntegrations.find(i => i.id === integrationId);
-  if (!integration) {
-    throw new Error('Integration not found');
-  }
-  
-  return {
-    ...integration,
-    ...data
+    connectedCount: integrations.filter(i => i.isConnected).length,
+    totalRecordsSynced: integrations.reduce((sum, i) => sum + i.syncedRecordCount, 0),
+    lastSyncTime: integrations
+      .filter(i => i.lastSyncedAt)
+      .sort((a, b) => new Date(b.lastSyncedAt!).getTime() - new Date(a.lastSyncedAt!).getTime())[0]
+      ?.lastSyncedAt || new Date().toISOString()
   };
 };
 
 // Query Options
-export const getIntegrationsQueryOptions = (params?: { type?: string; status?: string }) => ({
+export const getIntegrationsQueryOptions = (params?: { type?: IntegrationType; status?: IntegrationStatus }) => ({
   queryKey: ['integrations', params],
   queryFn: () => getIntegrations(params),
+});
+
+export const getIntegrationByIdQueryOptions = (integrationId: string) => ({
+  queryKey: ['integrations', integrationId],
+  queryFn: () => getIntegrationById(integrationId),
+  enabled: !!integrationId,
+});
+
+export const getConfigurationOptionsQueryOptions = (type: IntegrationType) => ({
+  queryKey: ['integrations', 'config-options', type],
+  queryFn: () => getConfigurationOptions(type),
+  enabled: !!type,
 });
 
 export const getIntegrationStatsQueryOptions = () => ({
@@ -130,26 +129,13 @@ export const getIntegrationStatsQueryOptions = () => ({
   queryFn: () => getIntegrationStats(),
 });
 
-export const getIntegrationByIdQueryOptions = (integrationId: string) => ({
-  queryKey: ['integrations', integrationId],
-  queryFn: () => getIntegrationById({ integrationId }),
-  enabled: !!integrationId,
-});
-
 // Hooks
 export const useGetIntegrations = (
-  params?: { type?: string; status?: string },
+  params?: { type?: IntegrationType; status?: IntegrationStatus },
   queryConfig?: QueryConfig<typeof getIntegrationsQueryOptions>
 ) => {
   return useQuery({
     ...getIntegrationsQueryOptions(params),
-    ...queryConfig,
-  });
-};
-
-export const useGetIntegrationStats = (queryConfig?: QueryConfig<typeof getIntegrationStatsQueryOptions>) => {
-  return useQuery({
-    ...getIntegrationStatsQueryOptions(),
     ...queryConfig,
   });
 };
@@ -161,47 +147,84 @@ export const useGetIntegrationById = (integrationId: string, queryConfig?: Query
   });
 };
 
+export const useGetConfigurationOptions = (type: IntegrationType, queryConfig?: QueryConfig<typeof getConfigurationOptionsQueryOptions>) => {
+  return useQuery({
+    ...getConfigurationOptionsQueryOptions(type),
+    ...queryConfig,
+  });
+};
+
+export const useGetIntegrationStats = (queryConfig?: QueryConfig<typeof getIntegrationStatsQueryOptions>) => {
+  return useQuery({
+    ...getIntegrationStatsQueryOptions(),
+    ...queryConfig,
+  });
+};
+
 // Mutations
-type UseConnectIntegrationOptions = {
-  mutationConfig?: MutationConfig<typeof connectIntegration>;
-};
-
-export const useConnectIntegration = ({ mutationConfig }: UseConnectIntegrationOptions = {}) => {
+export const useStartConnection = (mutationConfig?: MutationConfig<(type: IntegrationType) => Promise<StartConnectionResult>>) => {
   return useMutation({
-    mutationFn: connectIntegration,
+    mutationFn: (type: IntegrationType) => startConnection(type),
     ...mutationConfig,
   });
 };
 
-type UseDisconnectIntegrationOptions = {
-  mutationConfig?: MutationConfig<typeof disconnectIntegration>;
-};
-
-export const useDisconnectIntegration = ({ mutationConfig }: UseDisconnectIntegrationOptions = {}) => {
+export const useHandleCallback = (mutationConfig?: MutationConfig<(params: { type: IntegrationType; callbackData: OAuthCallbackRequest }) => Promise<HandleCallbackResult>>) => {
   return useMutation({
-    mutationFn: disconnectIntegration,
+    mutationFn: ({ type, callbackData }: { type: IntegrationType; callbackData: OAuthCallbackRequest }) =>
+      handleCallback(type, callbackData),
     ...mutationConfig,
   });
 };
 
-type UseSyncIntegrationOptions = {
-  mutationConfig?: MutationConfig<typeof syncIntegration>;
-};
-
-export const useSyncIntegration = ({ mutationConfig }: UseSyncIntegrationOptions = {}) => {
+export const useReconnectIntegration = (mutationConfig?: MutationConfig<(integrationId: string) => Promise<ReconnectIntegrationResult>>) => {
   return useMutation({
-    mutationFn: syncIntegration,
+    mutationFn: (integrationId: string) => reconnectIntegration(integrationId),
     ...mutationConfig,
   });
 };
 
-type UseUpdateIntegrationOptions = {
-  mutationConfig?: MutationConfig<typeof updateIntegration>;
+export const useConfigureIntegration = (mutationConfig?: MutationConfig<(params: { integrationId: string; config: SyncConfigRequest }) => Promise<ConfigureIntegrationResult>>) => {
+  return useMutation({
+    mutationFn: ({ integrationId, config }: { integrationId: string; config: SyncConfigRequest }) =>
+      configureIntegration(integrationId, config),
+    ...mutationConfig,
+  });
 };
 
-export const useUpdateIntegration = ({ mutationConfig }: UseUpdateIntegrationOptions = {}) => {
+export const useTestConnection = (mutationConfig?: MutationConfig<(integrationId: string) => Promise<TestConnectionResult>>) => {
   return useMutation({
-    mutationFn: updateIntegration,
+    mutationFn: (integrationId: string) => testConnection(integrationId),
+    ...mutationConfig,
+  });
+};
+
+export const useTriggerSync = (mutationConfig?: MutationConfig<(params: { integrationId: string; options?: { incrementalSync?: boolean; syncFromDate?: Date } }) => Promise<TriggerSyncResult>>) => {
+  return useMutation({
+    mutationFn: ({ integrationId, options }: { integrationId: string; options?: { incrementalSync?: boolean; syncFromDate?: Date } }) =>
+      triggerSync(integrationId, options),
+    ...mutationConfig,
+  });
+};
+
+export const useDisconnectIntegration = (mutationConfig?: MutationConfig<(integrationId: string) => Promise<DisconnectIntegrationResult>>) => {
+  return useMutation({
+    mutationFn: (integrationId: string) => disconnectIntegration(integrationId),
+    ...mutationConfig,
+  });
+};
+
+// Legacy mutations for backward compatibility
+export const useConnectIntegration = (mutationConfig?: MutationConfig<(params: { type: string; name?: string }) => Promise<StartConnectionResult>>) => {
+  return useMutation({
+    mutationFn: ({ type }: { type: string; name?: string }) => startConnection(type as IntegrationType),
+    ...mutationConfig,
+  });
+};
+
+export const useSyncIntegration = (mutationConfig?: MutationConfig<(params: { integrationId: string }) => Promise<TriggerSyncResult>>) => {
+  return useMutation({
+    mutationFn: ({ integrationId }: { integrationId: string }) => triggerSync(integrationId),
     ...mutationConfig,
   });
 };

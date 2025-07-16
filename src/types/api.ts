@@ -694,6 +694,161 @@ export interface FlowTemplate {
   success_rate: number;
 }
 
+// Integration Types and Enums
+export enum IntegrationType {
+  HubSpot = 'HubSpot',
+  Salesforce = 'Salesforce',
+  Mailchimp = 'Mailchimp',
+  Stripe = 'Stripe',
+  Slack = 'Slack'
+}
+
+export enum IntegrationStatus {
+  NotConnected = 'NotConnected',
+  Connected = 'Connected',
+  Error = 'Error',
+  Syncing = 'Syncing',
+  TokenExpired = 'TokenExpired'
+}
+
+export enum SyncFrequency {
+  Manual = 'Manual',
+  Hourly = 'Hourly',
+  Daily = 'Daily',
+  Weekly = 'Weekly'
+}
+
+// Integration Response Types
+export interface IntegrationStatusResponse {
+  id: string;
+  type: IntegrationType;
+  name: string;
+  status: IntegrationStatus;
+  isConnected: boolean;
+  lastSyncedAt?: string;
+  syncedRecordCount: number;
+  syncConfiguration?: SyncConfiguration;
+  errorMessage?: string;
+  connectionDetails?: ConnectionDetails;
+}
+
+export interface ConnectionDetails {
+  connectedAt: string;
+  connectedBy: string;
+  accountName?: string;
+  accountId?: string;
+  permissions: string[];
+}
+
+export interface SyncConfiguration {
+  syncEnabled: boolean;
+  syncFrequency: SyncFrequency;
+  dataTypes: string[];
+  customFields: Record<string, string>;
+  historicalSyncDays: number;
+  batchSize: number;
+  lastSuccessfulSync?: string;
+  nextScheduledSync?: string;
+}
+
+// Configuration Options
+export interface ConfigurationOptions {
+  availableDataTypes: DataTypeOption[];
+  availableCustomFields: CustomFieldOption[];
+  syncFrequencyOptions: SyncFrequencyOption[];
+  defaultHistoricalSyncDays: number;
+  maxHistoricalSyncDays: number;
+  defaultBatchSize: number;
+  maxBatchSize: number;
+}
+
+export interface DataTypeOption {
+  id: string;
+  name: string;
+  description: string;
+  isRequired: boolean;
+  isDefault: boolean;
+}
+
+export interface CustomFieldOption {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  options?: string[];
+}
+
+export interface SyncFrequencyOption {
+  value: SyncFrequency;
+  label: string;
+  description: string;
+}
+
+// OAuth Flow Types
+export interface StartConnectionResult {
+  authorizationUrl: string;
+  state: string;
+}
+
+export interface OAuthCallbackRequest {
+  code: string;
+  state: string;
+  error?: string;
+}
+
+export interface HandleCallbackResult {
+  success: boolean;
+  integrationId?: string;
+  requiresConfiguration: boolean;
+  errorMessage?: string;
+}
+
+// Sync Configuration Types
+export interface SyncConfigRequest {
+  syncEnabled: boolean;
+  syncFrequency: SyncFrequency;
+  dataTypes: string[];
+  customFields: Record<string, string>;
+  historicalSyncDays: number;
+  batchSize: number;
+}
+
+export interface ConfigureIntegrationResult {
+  success: boolean;
+  configurationId: string;
+  nextSyncScheduled?: string;
+  errorMessage?: string;
+}
+
+// Connection Management Types
+export interface ReconnectIntegrationResult {
+  success: boolean;
+  authorizationUrl?: string;
+  errorMessage?: string;
+}
+
+export interface TestConnectionResult {
+  success: boolean;
+  connectionStatus: string;
+  lastTested: string;
+  errorMessage?: string;
+  details?: Record<string, unknown>;
+}
+
+export interface TriggerSyncResult {
+  success: boolean;
+  syncJobId: string;
+  estimatedDuration?: string;
+  recordsToSync?: number;
+  errorMessage?: string;
+}
+
+export interface DisconnectIntegrationResult {
+  success: boolean;
+  message: string;
+}
+
+// Legacy interface for backwards compatibility
 export interface Integration {
   id: string;
   type: string;

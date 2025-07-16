@@ -7,9 +7,10 @@ import {
   useConnectIntegration,
   useDisconnectIntegration,
   useSyncIntegration,
+  useStartConnection,
 } from '../api/integrations';
 import { useNotifications } from '@/components/ui/notifications';
-import { Integration } from '@/types/api';
+import { Integration, IntegrationStatusResponse, IntegrationType } from '@/types/api';
 import { IntegrationSetupModal } from './integration-setup-modal';
 import { useModal } from '@/app/modal-provider';
 import { api } from '@/lib/api-client';
@@ -53,36 +54,44 @@ export const IntegrationsSection = () => {
   console.log(integrations);
   const { data: stats } = useGetIntegrationStats();
   const connectMutation = useConnectIntegration({
-    mutationConfig: {
-      onSuccess: () => {
-        addNotification({ type: 'success', title: 'Integration connected successfully' });
-        refetch(); // This will refresh the integrations from the server
-      },
-      onError: () => {
-        addNotification({ type: 'error', title: 'Failed to connect integration' });
-      }
+    onSuccess: () => {
+      addNotification({ type: 'success', title: 'Integration connected successfully' });
+      refetch(); // This will refresh the integrations from the server
+    },
+    onError: () => {
+      addNotification({ type: 'error', title: 'Failed to connect integration' });
     }
   });
   const disconnectMutation = useDisconnectIntegration({
-    mutationConfig: {
-      onSuccess: () => {
-        addNotification({ type: 'success', title: 'Integration disconnected successfully' });
-        refetch(); // This will refresh the integrations from the server
-      },
-      onError: () => {
-        addNotification({ type: 'error', title: 'Failed to disconnect integration' });
-      }
+    onSuccess: () => {
+      addNotification({ type: 'success', title: 'Integration disconnected successfully' });
+      refetch(); // This will refresh the integrations from the server
+    },
+    onError: () => {
+      addNotification({ type: 'error', title: 'Failed to disconnect integration' });
     }
   });
   const syncMutation = useSyncIntegration({
-    mutationConfig: {
-      onSuccess: () => {
-        addNotification({ type: 'success', title: 'Integration synced successfully' });
-        refetch(); // This will refresh the integrations from the server
-      },
-      onError: () => {
-        addNotification({ type: 'error', title: 'Failed to sync integration' });
-      }
+    onSuccess: () => {
+      addNotification({ type: 'success', title: 'Integration synced successfully' });
+      refetch(); // This will refresh the integrations from the server
+    },
+    onError: () => {
+      addNotification({ type: 'error', title: 'Failed to sync integration' });
+    }
+  });
+
+  const startConnectionMutation = useStartConnection({
+    onSuccess: (result) => {
+      // Redirect to OAuth provider
+      window.location.href = result.authorizationUrl;
+    },
+    onError: (error) => {
+      addNotification({ 
+        type: 'error', 
+        title: 'Failed to start connection',
+        message: error instanceof Error ? error.message : 'OAuth flow failed to start'
+      });
     }
   });
 
@@ -218,7 +227,7 @@ export const IntegrationsSection = () => {
     });
   }, [integrationTemplates, selectedCategory, searchTerm]);
 
-  const getIntegrationStatus = (templateId: string): Integration | undefined => {
+  const getIntegrationStatus = (templateId: string): IntegrationStatusResponse | undefined => {
     return integrations.find(integration => 
       integration.type.toLowerCase() === templateId.toLowerCase()
     );
@@ -248,44 +257,43 @@ export const IntegrationsSection = () => {
     }
   };
 
-  const handleConnect = async (templateId: string, templateName: string): Promise<void> => {
-    const integrationTemplate: IntegrationTemplate | undefined = integrationTemplates.find(
-      t => t.id === templateId
-    );
-    if (!integrationTemplate) return;
+  // Map template IDs to IntegrationType enum values
+  const getIntegrationType = (templateId: string): IntegrationType | null => {
+    const typeMap: Record<string, IntegrationType> = {
+      'hubspot': IntegrationType.HubSpot,
+      'salesforce': IntegrationType.Salesforce,
+      'mailchimp': IntegrationType.Mailchimp,
+      'stripe': IntegrationType.Stripe,
+      'slack': IntegrationType.Slack
+    };
+    return typeMap[templateId.toLowerCase()] || null;
+  };
 
-    // Handle HubSpot OAuth flow differently
-    if (templateId === 'hubspot') {
-      try {
-        // Start OAuth flow
-        const response = await api.post('/integrations/hubspot/connect') as HubSpotConnectResponse;
-        
-        // Redirect to HubSpot OAuth
-        window.location.href = response.authorizationUrl;
-        
-      } catch (error: unknown) {
-        console.error('Failed to start HubSpot OAuth:', error);
-        addNotification({
-          type: 'error',
-          title: 'Failed to connect HubSpot',
-          message: error instanceof Error ? error.message : 'OAuth flow failed to start'
-        });
-      }
+  const handleConnect = async (templateId: string, templateName: string): Promise<void> => {
+    const integrationType = getIntegrationType(templateId);
+    
+    if (!integrationType) {
+      addNotification({
+        type: 'error',
+        title: 'Integration not supported',
+        message: `${templateName} is not yet available for connection.`
+      });
       return;
     }
 
-    // For other integrations, use the modal flow
-    setSelectedIntegration(integrationTemplate);
-    openModal(
-      <IntegrationSetupModal
-        integration={integrationTemplate}
-        onConnect={handleConnectionComplete}
-        onClose={() => {
-          closeModal();
-          setSelectedIntegration(null);
-        }}
-      />
-    );
+    // Start OAuth flow for all supported integrations
+    try {
+      addNotification({
+        type: 'info',
+        title: 'Starting connection...',
+        message: `Redirecting to ${templateName} for authorization.`
+      });
+      
+      await startConnectionMutation.mutateAsync(integrationType);
+    } catch (error: unknown) {
+      console.error(`Failed to start ${templateName} OAuth:`, error);
+      // Error notification is handled by the mutation's onError callback
+    }
   };
 
   interface ConnectionConfig {
@@ -301,8 +309,7 @@ export const IntegrationsSection = () => {
     try {
       await connectMutation.mutateAsync({
         type: integrationId,
-        name: integrationName,
-        configuration: config
+        name: integrationName
       });
       
       addNotification({ 
@@ -337,7 +344,7 @@ export const IntegrationsSection = () => {
         await api.delete(`/integrations/hubspot/${integrationId}`);
       } else {
         // Use generic disconnect endpoint for other integrations
-        await disconnectMutation.mutateAsync({ integrationId });
+        await disconnectMutation.mutateAsync(integrationId);
       }
       
       addNotification({
@@ -653,10 +660,10 @@ export const IntegrationsSection = () => {
                       variant="default"
                       size="sm"
                       onClick={() => handleConnect(template.id, template.name)}
-                      disabled={connectMutation.isPending}
+                      disabled={startConnectionMutation.isPending}
                       className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary"
                     >
-                      {connectMutation.isPending ? 'Connecting...' : 'Connect'}
+                      {startConnectionMutation.isPending ? 'Connecting...' : 'Connect'}
                     </Button>
                   )}
                 </div>
