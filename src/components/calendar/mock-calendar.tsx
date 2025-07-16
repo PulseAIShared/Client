@@ -67,8 +67,8 @@ export const MockCalendar: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Date Selection */}
-        <div className="bg-surface-primary rounded-xl p-6 border border-border-primary">
-          <h3 className="text-lg font-semibold text-text-primary mb-4">Select a Date</h3>
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-semibold text-blue-900 mb-4">Select a Date</h3>
           <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto">
             {calendarDates.map((date, index) => (
               <motion.button
@@ -79,8 +79,8 @@ export const MockCalendar: React.FC = () => {
                 onClick={() => handleDateSelect(date)}
                 className={`p-3 rounded-lg text-left transition-all duration-200 ${
                   selectedDate?.toDateString() === date.toDateString()
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-bg-secondary hover:bg-blue-50 dark:hover:bg-slate-700 text-text-primary'
+                    ? 'bg-sky-600 text-white'
+                    : 'bg-gray-50 hover:bg-sky-50 text-blue-900'
                 }`}
               >
                 {formatDate(date)}
@@ -90,8 +90,8 @@ export const MockCalendar: React.FC = () => {
         </div>
 
         {/* Time Selection */}
-        <div className="bg-surface-primary rounded-xl p-6 border border-border-primary">
-          <h3 className="text-lg font-semibold text-text-primary mb-4">
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-semibold text-blue-900 mb-4">
             {selectedDate ? `Available Times - ${formatDate(selectedDate)}` : 'Select a Date First'}
           </h3>
           
@@ -107,10 +107,10 @@ export const MockCalendar: React.FC = () => {
                   disabled={!slot.available}
                   className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                     !slot.available
-                      ? 'bg-gray-100 dark:bg-slate-800 text-gray-400 cursor-not-allowed'
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : selectedTime === slot.time
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-bg-secondary hover:bg-blue-50 dark:hover:bg-slate-700 text-text-primary hover:border-blue-300'
+                      ? 'bg-sky-600 text-white'
+                      : 'bg-gray-50 hover:bg-sky-50 text-blue-900 hover:border-sky-300'
                   }`}
                 >
                   {slot.time}
@@ -122,7 +122,7 @@ export const MockCalendar: React.FC = () => {
               <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <p className="text-text-muted">Please select a date to view available times</p>
+              <p className="text-gray-500">Please select a date to view available times</p>
             </div>
           )}
         </div>
@@ -133,19 +133,19 @@ export const MockCalendar: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white"
+          className="mt-8 bg-blue-900 rounded-xl p-6 text-white"
         >
           <div className="text-center">
             <h3 className="text-xl font-semibold mb-2">Confirm Your Demo</h3>
             <p className="mb-4">
               <span className="font-medium">{formatDate(selectedDate)}</span> at <span className="font-medium">{selectedTime}</span>
             </p>
-            <p className="text-blue-100 mb-6 text-sm">
+            <p className="text-blue-200 mb-6 text-sm">
               Duration: 30 minutes • We'll send you a calendar invite with the meeting link
             </p>
             <button
               onClick={handleBookDemo}
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="bg-white text-blue-900 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               Confirm Demo Booking
             </button>
@@ -154,37 +154,37 @@ export const MockCalendar: React.FC = () => {
       )}
 
       {/* Demo Information */}
-      <div className="mt-8 bg-surface-primary rounded-xl p-6 border border-border-primary">
-        <h3 className="text-lg font-semibold text-text-primary mb-4">What to Expect in Your Demo</h3>
+      <div className="mt-8 bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <h3 className="text-lg font-semibold text-blue-900 mb-4">What to Expect in Your Demo</h3>
         <div className="grid md:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 002 2h2a2 2 0 012-2V7a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 00-2 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h4 className="font-semibold text-text-primary mb-2">Platform Walkthrough</h4>
-            <p className="text-text-muted text-sm">See PulseLTV in action with your data scenarios</p>
+            <h4 className="font-semibold text-blue-900 mb-2">Platform Walkthrough</h4>
+            <p className="text-gray-600 text-sm">See PulseLTV in action with your data scenarios</p>
           </div>
           
           <div className="text-center">
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h4 className="font-semibold text-text-primary mb-2">Q&A Session</h4>
-            <p className="text-text-muted text-sm">Get answers to your specific churn reduction questions</p>
+            <h4 className="font-semibold text-blue-900 mb-2">Q&A Session</h4>
+            <p className="text-gray-600 text-sm">Get answers to your specific churn reduction questions</p>
           </div>
           
           <div className="text-center">
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h4 className="font-semibold text-text-primary mb-2">Custom Strategy</h4>
-            <p className="text-text-muted text-sm">Discuss implementation plan for your business</p>
+            <h4 className="font-semibold text-blue-900 mb-2">Custom Strategy</h4>
+            <p className="text-gray-600 text-sm">Discuss implementation plan for your business</p>
           </div>
         </div>
       </div>

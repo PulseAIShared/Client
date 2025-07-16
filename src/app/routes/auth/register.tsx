@@ -176,12 +176,12 @@ export const RegisterRoute = () => {
 
   return (
     <AuthLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 flex items-center justify-center p-4">
         {/* Animated background pattern */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 25% 25%, #7c3aed 0%, transparent 50%), 
-                             radial-gradient(circle at 75% 75%, #3b82f6 0%, transparent 50%)`,
+            backgroundImage: `radial-gradient(circle at 25% 25%, #0ea5e9 0%, transparent 50%), 
+                             radial-gradient(circle at 75% 75%, #1e3a8a 0%, transparent 50%)`,
           }}></div>
         </div>
         
@@ -198,7 +198,7 @@ export const RegisterRoute = () => {
                 animationDuration: `${4 + Math.random() * 2}s`,
               }}
             >
-              <div className="w-2 h-2 bg-blue-400 rounded-full blur-sm"></div>
+              <div className="w-2 h-2 bg-sky-400 rounded-full blur-sm"></div>
             </div>
           ))}
         </div>
@@ -214,10 +214,10 @@ export const RegisterRoute = () => {
                 </span>
               </div>
               
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {headerContent.title}
               </h1>
-              <p className="text-slate-600">
+              <p className="text-gray-600">
                 {headerContent.subtitle}
               </p>
 
@@ -240,11 +240,11 @@ export const RegisterRoute = () => {
             {ssoLoading && (
               <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center z-50">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-slate-700 font-medium">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600 mx-auto mb-4"></div>
+                  <p className="text-gray-700 font-medium">
                     Complete authentication in the popup window
                   </p>
-                  <p className="text-slate-500 text-sm mt-1">
+                  <p className="text-gray-500 text-sm mt-1">
                     Signing up with {ssoLoading}...
                   </p>
                 </div>
@@ -263,7 +263,7 @@ export const RegisterRoute = () => {
               <button 
                 onClick={() => handleSSOLogin('google')}
                 disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaGoogle className="text-red-500" />
                 <span>Continue with Google</span>
@@ -272,7 +272,7 @@ export const RegisterRoute = () => {
               <button 
                 onClick={() => handleSSOLogin('facebook')}
                 disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaFacebook className="text-blue-600" />
                 <span>Continue with Facebook</span>
@@ -281,25 +281,25 @@ export const RegisterRoute = () => {
               <button 
                 onClick={() => handleSSOLogin('apple')}
                 disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaApple className="text-slate-800" />
+                <FaApple className="text-gray-800" />
                 <span>Continue with Apple</span>
               </button>
             </div>
 
             {/* Divider */}
             <div className="flex items-center mb-6">
-              <hr className="flex-grow border-slate-300" />
-              <span className="mx-4 text-sm text-slate-500 font-medium">OR</span>
-              <hr className="flex-grow border-slate-300" />
+              <hr className="flex-grow border-gray-300" />
+              <span className="mx-4 text-sm text-gray-500 font-medium">OR</span>
+              <hr className="flex-grow border-gray-300" />
             </div>
 
             {/* Email Authentication */}
             {step === 'email' ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                     Email Address
                   </label>
                   <input
@@ -308,7 +308,7 @@ export const RegisterRoute = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                     required
                   />
                 </div>
@@ -316,7 +316,7 @@ export const RegisterRoute = () => {
                   type="submit"
                   isLoading={sendCodeMutation.isPending}
                   icon={<IoMdMail className="mr-2" />}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                  className="w-full bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-semibold transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
                 >
                   Send Verification Code
                 </Button>
@@ -324,15 +324,15 @@ export const RegisterRoute = () => {
             ) : (
               <div className="space-y-4">
                 <div className="text-center mb-4">
-                  <p className="text-slate-600">
+                  <p className="text-gray-600">
                     Enter the verification code sent to
                   </p>
-                  <p className="font-semibold text-slate-900">{email}</p>
+                  <p className="font-semibold text-gray-900">{email}</p>
                 </div>
                 
                 <form onSubmit={handleVerifyCode} className="space-y-4">
                   <div>
-                    <label htmlFor="code" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
                       Verification Code
                     </label>
                     <input
@@ -341,7 +341,7 @@ export const RegisterRoute = () => {
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
                       placeholder="Enter 6-digit code"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-center text-lg tracking-widest"
                       maxLength={6}
                       required
                     />
@@ -350,7 +350,7 @@ export const RegisterRoute = () => {
                   <Button
                     type="submit"
                     isLoading={verifyCodeMutation.isPending}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    className="w-full bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-semibold transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
                   >
                     Verify & Create Account
                   </Button>
@@ -358,7 +358,7 @@ export const RegisterRoute = () => {
                   <button
                     type="button"
                     onClick={() => setStep('email')}
-                    className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                    className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     ← Back to email
                   </button>
@@ -368,11 +368,11 @@ export const RegisterRoute = () => {
 
             {/* Footer Links */}
             <div className="mt-8 text-center space-y-4">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-gray-600">
                 Already have an account?{" "}
                 <Link 
                   to="/login" 
-                  className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                  className="font-semibold text-sky-600 hover:text-sky-700 transition-colors"
                 >
                   Sign in
                 </Link>
@@ -380,8 +380,8 @@ export const RegisterRoute = () => {
             </div>
 
             {/* Trust indicator */}
-            <div className="mt-6 pt-6 border-t border-slate-200">
-              <p className="text-xs text-slate-500 text-center">
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="text-xs text-gray-500 text-center">
                 By creating an account, you agree to our Terms of Service and Privacy Policy
               </p>
             </div>

@@ -94,12 +94,12 @@ export const LoginRoute = () => {
 
   return (
     <AuthLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 flex items-center justify-center p-4">
         {/* Animated background pattern */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 25% 25%, #7c3aed 0%, transparent 50%), 
-                             radial-gradient(circle at 75% 75%, #3b82f6 0%, transparent 50%)`,
+            backgroundImage: `radial-gradient(circle at 25% 25%, #0ea5e9 0%, transparent 50%), 
+                             radial-gradient(circle at 75% 75%, #1e3a8a 0%, transparent 50%)`,
           }}></div>
         </div>
         
@@ -116,7 +116,7 @@ export const LoginRoute = () => {
                 animationDuration: `${4 + Math.random() * 2}s`,
               }}
             >
-              <div className="w-2 h-2 bg-blue-400 rounded-full blur-sm"></div>
+              <div className="w-2 h-2 bg-sky-400 rounded-full blur-sm"></div>
             </div>
           ))}
         </div>
@@ -126,14 +126,14 @@ export const LoginRoute = () => {
             {/* Header */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full mb-4">
-                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                <span className="text-sm font-medium text-blue-700">Welcome Back</span>
+                <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                <span className="text-sm font-medium text-sky-700">Welcome Back</span>
               </div>
               
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Sign in to PulseLTV
               </h1>
-              <p className="text-slate-600">
+              <p className="text-gray-600">
                 Access your AI-powered dashboard
               </p>
             </div>
@@ -142,11 +142,11 @@ export const LoginRoute = () => {
             {ssoLoading && (
               <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center z-50">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-slate-700 font-medium">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600 mx-auto mb-4"></div>
+                  <p className="text-gray-700 font-medium">
                     Complete authentication in the popup window
                   </p>
-                  <p className="text-slate-500 text-sm mt-1">
+                  <p className="text-gray-500 text-sm mt-1">
                     Signing in with {ssoLoading}...
                   </p>
                 </div>
@@ -165,7 +165,7 @@ export const LoginRoute = () => {
               <button 
                 onClick={() => handleSSOLogin('google')}
                 disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaGoogle className="text-red-500" />
                 <span>Continue with Google</span>
@@ -174,7 +174,7 @@ export const LoginRoute = () => {
               <button 
                 onClick={() => handleSSOLogin('facebook')}
                 disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaFacebook className="text-blue-600" />
                 <span>Continue with Facebook</span>
@@ -183,18 +183,18 @@ export const LoginRoute = () => {
               <button 
                 onClick={() => handleSSOLogin('apple')}
                 disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaApple className="text-slate-800" />
+                <FaApple className="text-gray-800" />
                 <span>Continue with Apple</span>
               </button>
             </div>
 
             {/* Divider */}
             <div className="flex items-center mb-6">
-              <hr className="flex-grow border-slate-300" />
-              <span className="mx-4 text-sm text-slate-500 font-medium">OR</span>
-              <hr className="flex-grow border-slate-300" />
+              <hr className="flex-grow border-gray-300" />
+              <span className="mx-4 text-sm text-gray-500 font-medium">OR</span>
+              <hr className="flex-grow border-gray-300" />
             </div>
 
             {/* Email/Password Authentication */}
@@ -202,11 +202,11 @@ export const LoginRoute = () => {
 
             {/* Footer Links */}
             <div className="mt-8 text-center space-y-4">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
                 <Link 
                   to="/register" 
-                  className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                  className="font-semibold text-sky-600 hover:text-sky-700 transition-colors"
                 >
                   Create one
                 </Link>
