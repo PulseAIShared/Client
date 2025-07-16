@@ -17,7 +17,8 @@
       "Bash(mv:*)",
       "Bash(npx tsc:*)",
       "Bash(grep:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }

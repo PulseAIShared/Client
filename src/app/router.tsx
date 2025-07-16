@@ -6,6 +6,7 @@ import {
 
 import { Spinner } from '@/components/ui/spinner';
 import { ProtectedRoute } from '@/lib/auth';
+import { GlobalLayout } from '@/components/layouts';
 
 import { AppRoot } from './routes/app/root';
 
@@ -13,61 +14,65 @@ export const createAppRouter = () =>
   createBrowserRouter([
     {
       path: '/',
-      lazy: async () => {
-        const { LandingRoute } = await import('./routes/landing');
-        return { Component: LandingRoute };
-      },
-    },
-     {
-      path: '/register',
-      lazy: async () => {
-        const { RegisterRoute } = await import('./routes/auth/register');
-        return { Component: RegisterRoute };
-     },
-    },
-    {
-      path: '/login',
-      lazy: async () => {
-        const { LoginRoute } = await import('./routes/auth/login');
-        return { Component: LoginRoute };
-      },
-    },
-    {
-      path: '/churn-calculator',
-      lazy: async () => {
-        const ChurnCalculatorPage = await import('./routes/churn-calculator');
-        return { Component: ChurnCalculatorPage.default };
-      },
-    },
-    {
-      path: '/book-demo',
-      lazy: async () => {
-        const BookDemoPage = await import('./routes/book-demo');
-        return { Component: BookDemoPage.default };
-      },
-    },
-    {
-      path: '/success',
-      lazy: async () => {
-        const { AuthSuccessRoute } = await import('./routes/auth/success');
-        return { Component: AuthSuccessRoute };
-      },
-    },
-    {
-      path: '/onboarding',
-      lazy: async () => {
-        const { ProtectedOnboardingRoute } = await import('./routes/auth/protected-onboarding');
-        return { Component: ProtectedOnboardingRoute };
-      },
-    },
-    {
-      path: '/app',
-      element: (
-        <ProtectedRoute>
-          <AppRoot />
-        </ProtectedRoute>
-      ),
+      element: <GlobalLayout />,
       children: [
+        {
+          index: true,
+          lazy: async () => {
+            const { LandingRoute } = await import('./routes/landing');
+            return { Component: LandingRoute };
+          },
+        },
+        {
+          path: 'register',
+          lazy: async () => {
+            const { RegisterRoute } = await import('./routes/auth/register');
+            return { Component: RegisterRoute };
+          },
+        },
+        {
+          path: 'login',
+          lazy: async () => {
+            const { LoginRoute } = await import('./routes/auth/login');
+            return { Component: LoginRoute };
+          },
+        },
+        {
+          path: 'churn-calculator',
+          lazy: async () => {
+            const ChurnCalculatorPage = await import('./routes/churn-calculator');
+            return { Component: ChurnCalculatorPage.default };
+          },
+        },
+        {
+          path: 'book-demo',
+          lazy: async () => {
+            const BookDemoPage = await import('./routes/book-demo');
+            return { Component: BookDemoPage.default };
+          },
+        },
+        {
+          path: 'success',
+          lazy: async () => {
+            const { AuthSuccessRoute } = await import('./routes/auth/success');
+            return { Component: AuthSuccessRoute };
+          },
+        },
+        {
+          path: 'onboarding',
+          lazy: async () => {
+            const { ProtectedOnboardingRoute } = await import('./routes/auth/protected-onboarding');
+            return { Component: ProtectedOnboardingRoute };
+          },
+        },
+        {
+          path: 'app',
+          element: (
+            <ProtectedRoute>
+              <AppRoot />
+            </ProtectedRoute>
+          ),
+          children: [
         {
           path: '',
           lazy: async () => {
@@ -194,15 +199,16 @@ export const createAppRouter = () =>
             return { Component: HubSpotOAuthCallback };
           },
         },
+          ],
+        },
+        {
+          path: '*',
+          lazy: async () => {
+            const { NotFoundRoute } = await import('./routes/not-found');
+            return { Component: NotFoundRoute };
+          },
+        },
       ],
-    },
-    
-    {
-      path: '*',
-      lazy: async () => {
-        const { NotFoundRoute } = await import('./routes/not-found');
-        return { Component: NotFoundRoute };
-      },
     },
   ]);
 
