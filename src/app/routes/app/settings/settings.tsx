@@ -8,13 +8,16 @@ import {
   BillingSection,
   SecuritySection 
 } from '@/features/settings/components';
+import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
+import { CompanyRole } from '@/types/api';
 
 type SettingsTab = 'integrations' | 'account' | 'notifications' | 'billing' | 'security';
 
 export const SettingsRoute = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('integrations');
+  const { checkCompanyPolicy } = useAuthorization();
 
-  const tabs = [
+  const allTabs = [
     { 
       id: 'integrations' as const, 
       label: 'Integrations', 
@@ -22,7 +25,8 @@ export const SettingsRoute = () => {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
-      )
+      ),
+      requiredPolicy: 'integrations:read' as const
     },
     { 
       id: 'account' as const, 
@@ -31,7 +35,8 @@ export const SettingsRoute = () => {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
-      )
+      ),
+      requiredPolicy: 'settings:read' as const
     },
     { 
       id: 'notifications' as const, 
@@ -40,7 +45,8 @@ export const SettingsRoute = () => {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5v3a6 6 0 10-12 0v3l-5 5h5m7 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
-      )
+      ),
+      requiredPolicy: 'settings:read' as const
     },
     { 
       id: 'billing' as const, 
@@ -49,7 +55,8 @@ export const SettingsRoute = () => {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
         </svg>
-      )
+      ),
+      requiredPolicy: 'company:billing' as const
     },
     { 
       id: 'security' as const, 
@@ -58,9 +65,20 @@ export const SettingsRoute = () => {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
-      )
+      ),
+      requiredPolicy: 'company:manage' as const
     }
   ];
+
+  // Filter tabs based on user permissions
+  const tabs = allTabs.filter(tab => checkCompanyPolicy(tab.requiredPolicy));
+
+  // Ensure activeTab is one the user can access
+  React.useEffect(() => {
+    if (tabs.length > 0 && !tabs.find(tab => tab.id === activeTab)) {
+      setActiveTab(tabs[0].id);
+    }
+  }, [tabs, activeTab]);
 
   const renderContent = () => {
     switch (activeTab) {

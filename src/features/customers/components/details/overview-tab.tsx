@@ -1,12 +1,13 @@
 import { CustomerDetailData, formatCurrency } from "@/types/api";
 import { calculateTenure, formatDate, getPaymentStatusName, getPlanName, getRiskColor, getSubscriptionStatusName } from "@/utils/customer-helpers";
-
+import { CompanyAuthorization } from '@/lib/authorization';
 
 interface CustomerOverviewTabProps {
   customer: CustomerDetailData;
+  canEditCustomers: boolean;
 }
 
-export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ customer }) => {
+export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ customer, canEditCustomers }) => {
   const tenure = calculateTenure(customer.subscriptionStartDate);
 
   return (
@@ -183,8 +184,19 @@ export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ custom
       </div>
 
       {/* AI Recommendations */}
-      <div className="bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg">
-        <h3 className="text-xl font-semibold text-text-primary mb-4">AI Recommendations</h3>
+      <CompanyAuthorization
+        policyCheck={canEditCustomers}
+        forbiddenFallback={
+          <div className="bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg">
+            <h3 className="text-xl font-semibold text-text-primary mb-4">AI Recommendations</h3>
+            <div className="p-4 bg-surface-secondary/30 rounded-lg border border-border-primary text-center">
+              <p className="text-text-muted">Staff or Owner permissions required to view AI recommendations</p>
+            </div>
+          </div>
+        }
+      >
+        <div className="bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg">
+          <h3 className="text-xl font-semibold text-text-primary mb-4">AI Recommendations</h3>
         <div className="space-y-4">
           {customer.churnRiskScore >= 70 ? (
             <>
@@ -250,7 +262,7 @@ export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ custom
             </div>
           )}
         </div>
-      </div>
+      </CompanyAuthorization>
     </div>
   );
 };

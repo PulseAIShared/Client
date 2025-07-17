@@ -4,7 +4,8 @@ import { ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
 import { useGetAllUsers, useDeleteUser } from '@/features/admin/api/users';
-import { AdminUserResponse, AdminUsersQueryParams } from '@/types/api';
+import { AdminUserResponse, AdminUsersQueryParams, formatPlatformRole, formatCompanyRole, PlatformRole } from '@/types/api';
+import { PlatformAuthorization, useAuthorization } from '@/lib/authorization';
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -16,12 +17,27 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const getRoleBadgeColor = (role: string) => {
-  switch (role.toLowerCase()) {
-    case 'admin':
+const getPlatformRoleBadgeColor = (role: number) => {
+  switch (role) {
+    case 2: // Admin
       return 'text-purple-400 bg-purple-500/20 border-purple-500/50';
-    case 'user':
+    case 1: // Moderator
       return 'text-blue-400 bg-blue-500/20 border-blue-500/50';
+    case 0: // User
+      return 'text-slate-400 bg-slate-500/20 border-slate-500/50';
+    default:
+      return 'text-slate-400 bg-slate-500/20 border-slate-500/50';
+  }
+};
+
+const getCompanyRoleBadgeColor = (role: number) => {
+  switch (role) {
+    case 2: // Owner
+      return 'text-green-400 bg-green-500/20 border-green-500/50';
+    case 1: // Staff
+      return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/50';
+    case 0: // Viewer
+      return 'text-gray-400 bg-gray-500/20 border-gray-500/50';
     default:
       return 'text-slate-400 bg-slate-500/20 border-slate-500/50';
   }
@@ -64,6 +80,7 @@ const DeleteUserModal = ({
 export const AdminUsersRoute = () => {
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
+  const { checkPlatformPolicy } = useAuthorization();
   
   const [queryParams, setQueryParams] = useState<AdminUsersQueryParams>({
     page: 1,
@@ -153,7 +170,18 @@ export const AdminUsersRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-8">
+      <PlatformAuthorization policyCheck={checkPlatformPolicy('admin:users')} forbiddenFallback={
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center bg-slate-800/50 backdrop-blur-lg p-8 rounded-2xl border border-slate-700/50">
+            <div className="text-red-400 text-6xl mb-4">🚫</div>
+            <h2 className="text-xl font-semibold text-white mb-2">Access Denied</h2>
+            <p className="text-slate-400">
+              You need Admin or Moderator platform role to access user management.
+            </p>
+          </div>
+        </div>
+      }>
+        <div className="space-y-8">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-2xl blur-3xl"></div>
@@ -196,8 +224,9 @@ export const AdminUsersRoute = () => {
                 onChange={(e) => setSelectedRole(e.target.value)}
                 className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
               >
-                <option value="">All Roles</option>
+                <option value="">All Platform Roles</option>
                 <option value="Admin">Admin</option>
+                <option value="Moderator">Moderator</option>
                 <option value="User">User</option>
               </select>
             </div>
@@ -225,8 +254,8 @@ export const AdminUsersRoute = () => {
               <thead>
                 <tr className="border-b border-slate-600/50">
                   <th className="text-left py-4 px-4 font-medium text-slate-300 uppercase tracking-wider">User</th>
-                  <th className="text-left py-4 px-4 font-medium text-slate-300 uppercase tracking-wider">Role</th>
-                  <th className="text-left py-4 px-4 font-medium text-slate-300 uppercase tracking-wider">Company Owner</th>
+                  <th className="text-left py-4 px-4 font-medium text-slate-300 uppercase tracking-wider">Platform Role</th>
+                  <th className="text-left py-4 px-4 font-medium text-slate-300 uppercase tracking-wider">Company Role</th>
                   <th className="text-left py-4 px-4 font-medium text-slate-300 uppercase tracking-wider">Created</th>
                   <th className="text-left py-4 px-4 font-medium text-slate-300 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -248,17 +277,13 @@ export const AdminUsersRoute = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getRoleBadgeColor(user.role)}`}>
-                        {user.role}
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getPlatformRoleBadgeColor(user.platformRole)}`}>
+                        {formatPlatformRole(user.platformRole)}
                       </span>
                     </td>
                     <td className="py-4 px-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                        user.isCompanyOwner 
-                          ? 'text-green-400 bg-green-500/20 border-green-500/50' 
-                          : 'text-slate-400 bg-slate-500/20 border-slate-500/50'
-                      }`}>
-                        {user.isCompanyOwner ? 'Yes' : 'No'}
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getCompanyRoleBadgeColor(user.companyRole)}`}>
+                        {formatCompanyRole(user.companyRole)}
                       </span>
                     </td>
                     <td className="py-4 px-4 text-slate-400 text-sm">
@@ -323,7 +348,8 @@ export const AdminUsersRoute = () => {
             onConfirm={confirmDelete}
           />
         )}
-      </div>
+        </div>
+      </PlatformAuthorization>
     </ContentLayout>
   );
 };

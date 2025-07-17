@@ -4,7 +4,8 @@ import { ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
 import { useGetUserById, useUpdateUser } from '@/features/admin/api/users';
-import { UpdateUserRequest } from '@/types/api';
+import { UpdateUserRequest, formatPlatformRole, formatCompanyRole, PlatformRole, CompanyRole } from '@/types/api';
+import { PlatformAuthorization, useAuthorization } from '@/lib/authorization';
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -20,14 +21,15 @@ export const AdminUserDetailRoute = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
+  const { checkPlatformPolicy } = useAuthorization();
   
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UpdateUserRequest>({
     firstName: '',
     lastName: '',
     email: '',
-    role: '',
-    isCompanyOwner: false,
+    platformRole: PlatformRole.User,
+    companyRole: CompanyRole.Viewer,
   });
 
   const { data: user, isLoading, error } = useGetUserById(userId!);
@@ -38,8 +40,8 @@ export const AdminUserDetailRoute = () => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        isCompanyOwner: user.isCompanyOwner,
+        platformRole: user.platformRole,
+        companyRole: user.companyRole,
       });
     }
   }, [user]);
@@ -86,8 +88,8 @@ export const AdminUserDetailRoute = () => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        isCompanyOwner: user.isCompanyOwner,
+        platformRole: user.platformRole,
+        companyRole: user.companyRole,
       });
     }
     setIsEditing(false);
@@ -130,7 +132,18 @@ export const AdminUserDetailRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-8">
+      <PlatformAuthorization policyCheck={checkPlatformPolicy('admin:users')} forbiddenFallback={
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center bg-slate-800/50 backdrop-blur-lg p-8 rounded-2xl border border-slate-700/50">
+            <div className="text-red-400 text-6xl mb-4">🚫</div>
+            <h2 className="text-xl font-semibold text-white mb-2">Access Denied</h2>
+            <p className="text-slate-400">
+              You need Admin or Moderator platform role to access user management.
+            </p>
+          </div>
+        </div>
+      }>
+        <div className="space-y-8">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-2xl blur-3xl"></div>
@@ -204,24 +217,28 @@ export const AdminUserDetailRoute = () => {
               
               <div className="space-y-3">
                 <div className="flex justify-between items-center py-2 px-3 bg-slate-700/30 rounded-lg">
-                  <span className="text-slate-400 text-sm">Role</span>
+                  <span className="text-slate-400 text-sm">Platform Role</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                    user.role === 'Admin' 
+                    user.platformRole === PlatformRole.Admin 
                       ? 'text-purple-400 bg-purple-500/20 border-purple-500/50' 
-                      : 'text-blue-400 bg-blue-500/20 border-blue-500/50'
+                      : user.platformRole === PlatformRole.Moderator
+                      ? 'text-blue-400 bg-blue-500/20 border-blue-500/50'
+                      : 'text-slate-400 bg-slate-500/20 border-slate-500/50'
                   }`}>
-                    {user.role}
+                    {formatPlatformRole(user.platformRole)}
                   </span>
                 </div>
                 
                 <div className="flex justify-between items-center py-2 px-3 bg-slate-700/30 rounded-lg">
-                  <span className="text-slate-400 text-sm">Company Owner</span>
+                  <span className="text-slate-400 text-sm">Company Role</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                    user.isCompanyOwner 
+                    user.companyRole === CompanyRole.Owner 
                       ? 'text-green-400 bg-green-500/20 border-green-500/50' 
-                      : 'text-slate-400 bg-slate-500/20 border-slate-500/50'
+                      : user.companyRole === CompanyRole.Staff
+                      ? 'text-yellow-400 bg-yellow-500/20 border-yellow-500/50'
+                      : 'text-gray-400 bg-gray-500/20 border-gray-500/50'
                   }`}>
-                    {user.isCompanyOwner ? 'Yes' : 'No'}
+                    {formatCompanyRole(user.companyRole)}
                   </span>
                 </div>
                 
@@ -296,54 +313,42 @@ export const AdminUserDetailRoute = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Role
+                  Platform Role
                 </label>
                 {isEditing ? (
                   <select
-                    value={formData.role}
-                    onChange={(e) => handleInputChange('role', e.target.value)}
+                    value={formData.platformRole}
+                    onChange={(e) => handleInputChange('platformRole', parseInt(e.target.value))}
                     className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   >
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
+                    <option value={PlatformRole.User}>User</option>
+                    <option value={PlatformRole.Moderator}>Moderator</option>
+                    <option value={PlatformRole.Admin}>Admin</option>
                   </select>
                 ) : (
                   <div className="px-4 py-2 bg-slate-700/30 rounded-lg text-white">
-                    {user.role}
+                    {formatPlatformRole(user.platformRole)}
                   </div>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Company Owner
+                  Company Role
                 </label>
                 {isEditing ? (
-                  <div className="flex items-center gap-3 px-4 py-2">
-                    <label className="flex items-center gap-2 text-white cursor-pointer">
-                      <input
-                        type="radio"
-                        name="isCompanyOwner"
-                        checked={formData.isCompanyOwner === true}
-                        onChange={() => handleInputChange('isCompanyOwner', true)}
-                        className="text-purple-500 focus:ring-purple-500/50"
-                      />
-                      Yes
-                    </label>
-                    <label className="flex items-center gap-2 text-white cursor-pointer">
-                      <input
-                        type="radio"
-                        name="isCompanyOwner"
-                        checked={formData.isCompanyOwner === false}
-                        onChange={() => handleInputChange('isCompanyOwner', false)}
-                        className="text-purple-500 focus:ring-purple-500/50"
-                      />
-                      No
-                    </label>
-                  </div>
+                  <select
+                    value={formData.companyRole}
+                    onChange={(e) => handleInputChange('companyRole', parseInt(e.target.value))}
+                    className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                  >
+                    <option value={CompanyRole.Viewer}>Viewer</option>
+                    <option value={CompanyRole.Staff}>Staff</option>
+                    <option value={CompanyRole.Owner}>Owner</option>
+                  </select>
                 ) : (
                   <div className="px-4 py-2 bg-slate-700/30 rounded-lg text-white">
-                    {user.isCompanyOwner ? 'Yes' : 'No'}
+                    {formatCompanyRole(user.companyRole)}
                   </div>
                 )}
               </div>
@@ -368,7 +373,8 @@ export const AdminUserDetailRoute = () => {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </PlatformAuthorization>
     </ContentLayout>
   );
 };

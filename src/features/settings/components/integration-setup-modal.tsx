@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
 import { FieldError, useForm, FieldValues } from 'react-hook-form';
+import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
 
 interface IntegrationSetupModalProps {
   integration: {
@@ -23,6 +24,7 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedSyncOptions, setSelectedSyncOptions] = useState(new Set<string>());
+  const { checkCompanyPolicy } = useAuthorization();
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
 
@@ -36,6 +38,31 @@ export const IntegrationSetupModal: React.FC<IntegrationSetupModalProps> = ({
   }, [integration, reset]);
 
   if (!integration) return null;
+
+  const canSetupIntegrations = checkCompanyPolicy('integrations:write');
+  
+  if (!canSetupIntegrations) {
+    return (
+      <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-surface-secondary/95 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-2xl w-full max-w-md p-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-warning/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-warning-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-text-primary mb-2">Access Denied</h3>
+            <p className="text-text-muted mb-6">
+              You need Staff or Owner role to set up integrations.
+            </p>
+            <Button onClick={onClose} className="w-full">
+              Close
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getIntegrationConfig = (type: string) => {
     const configs = {

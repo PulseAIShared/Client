@@ -14,6 +14,7 @@ import { Integration, IntegrationStatusResponse, IntegrationType } from '@/types
 import { IntegrationSetupModal } from './integration-setup-modal';
 import { useModal } from '@/app/modal-provider';
 import { api } from '@/lib/api-client';
+import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
 
 interface IntegrationTemplate {
   id: string;
@@ -45,6 +46,7 @@ export const IntegrationsSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIntegration, setSelectedIntegration] = useState<IntegrationTemplate | null>(null);
   const { openModal, closeModal } = useModal();
+  const { checkCompanyPolicy } = useAuthorization();
 
   const { addNotification } = useNotifications();
   
@@ -613,58 +615,64 @@ export const IntegrationsSection = () => {
                           >
                             Test Connection
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSync(integration!.id)}
-                            disabled={syncMutation.isPending}
-                            className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
-                          >
-                            {syncMutation.isPending ? 'Syncing...' : 'Sync'}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDisconnect(integration!.id)}
-                            disabled={disconnectMutation.isPending}
-                            className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
-                          >
-                            {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
-                          </Button>
+                          <CompanyAuthorization policyCheck={checkCompanyPolicy('integrations:write')}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSync(integration!.id)}
+                              disabled={syncMutation.isPending}
+                              className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
+                            >
+                              {syncMutation.isPending ? 'Syncing...' : 'Sync'}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDisconnect(integration!.id)}
+                              disabled={disconnectMutation.isPending}
+                              className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
+                            >
+                              {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
+                            </Button>
+                          </CompanyAuthorization>
                         </>
                       ) : (
                         <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSync(integration!.id)}
-                            disabled={syncMutation.isPending}
-                            className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
-                          >
-                            {syncMutation.isPending ? 'Syncing...' : 'Sync'}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDisconnect(integration!.id)}
-                            disabled={disconnectMutation.isPending}
-                            className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
-                          >
-                            {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
-                          </Button>
+                          <CompanyAuthorization policyCheck={checkCompanyPolicy('integrations:write')}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSync(integration!.id)}
+                              disabled={syncMutation.isPending}
+                              className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
+                            >
+                              {syncMutation.isPending ? 'Syncing...' : 'Sync'}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDisconnect(integration!.id)}
+                              disabled={disconnectMutation.isPending}
+                              className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
+                            >
+                              {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
+                            </Button>
+                          </CompanyAuthorization>
                         </>
                       )}
                     </>
                   ) : (
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => handleConnect(template.id, template.name)}
-                      disabled={startConnectionMutation.isPending}
-                      className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary"
-                    >
-                      {startConnectionMutation.isPending ? 'Connecting...' : 'Connect'}
-                    </Button>
+                    <CompanyAuthorization policyCheck={checkCompanyPolicy('integrations:write')}>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleConnect(template.id, template.name)}
+                        disabled={startConnectionMutation.isPending}
+                        className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary"
+                      >
+                        {startConnectionMutation.isPending ? 'Connecting...' : 'Connect'}
+                      </Button>
+                    </CompanyAuthorization>
                   )}
                 </div>
               </div>
@@ -730,9 +738,11 @@ export const IntegrationsSection = () => {
             Don't see your system listed? Our team can help you build custom integrations to connect any data source with PulseLTV's churn prediction engine.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary">
-              Request Custom Integration
-            </Button>
+            <CompanyAuthorization policyCheck={checkCompanyPolicy('integrations:write')}>
+              <Button className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary hover:to-accent-secondary">
+                Request Custom Integration
+              </Button>
+            </CompanyAuthorization>
             <Button variant="outline" className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary">
               View API Documentation
             </Button>

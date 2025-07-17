@@ -156,6 +156,15 @@ class SignalRConnectionManager {
     return this.connection?.state || 'Disconnected';
   }
 
+  // Method to invoke hub methods
+  async invoke(methodName: string, ...args: unknown[]) {
+    if (this.connection?.state === 'Connected') {
+      return await this.connection.invoke(methodName, ...args);
+    } else {
+      throw new Error('SignalR connection is not active');
+    }
+  }
+
   // Method to manually join user group (useful for testing)
   async joinUserGroup() {
     if (this.connection?.state === 'Connected') {

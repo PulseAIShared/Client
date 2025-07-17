@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CustomerDisplayData } from '@/types/api';
 import { getActivityColor, getRiskColor, getSubscriptionStatusColor } from '@/utils/customer-helpers';
+import { CompanyAuthorization } from '@/lib/authorization';
 
 interface MobileCustomerCardsProps {
   customers: CustomerDisplayData[];
@@ -9,6 +10,7 @@ interface MobileCustomerCardsProps {
   selectedCustomers: Set<string>;
   onToggleSelection: (customerId: string, event: React.ChangeEvent<HTMLInputElement>) => void;
   onSingleDelete: (customer: CustomerDisplayData, event: React.MouseEvent<HTMLButtonElement>) => void;
+  canEditCustomers: boolean;
 }
 
 export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({ 
@@ -16,7 +18,8 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
   onCustomerClick,
   selectedCustomers,
   onToggleSelection,
-  onSingleDelete
+  onSingleDelete,
+  canEditCustomers
 }) => {
   // LTV is already formatted as a string in CustomerDisplayData
 
@@ -90,12 +93,17 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
             >
               View Details
             </Link>
-            <button
-              onClick={() => onCustomerClick?.(customer.id)}
-              className="flex-1 bg-surface-tertiary hover:bg-surface-tertiary/80 text-text-secondary text-center py-2 px-3 rounded-lg text-sm font-medium transition-colors"
+            <CompanyAuthorization
+              policyCheck={canEditCustomers}
+              forbiddenFallback={null}
             >
-              Actions
-            </button>
+              <button
+                onClick={() => onCustomerClick?.(customer.id)}
+                className="flex-1 bg-surface-tertiary hover:bg-surface-tertiary/80 text-text-secondary text-center py-2 px-3 rounded-lg text-sm font-medium transition-colors"
+              >
+                Actions
+              </button>
+            </CompanyAuthorization>
           </div>
         </div>
       ))}

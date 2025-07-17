@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useGetImportHistory } from "../api/import";
 import { useNavigate } from "react-router-dom";
+import { useAuthorization } from '@/lib/authorization';
+import { useNotifications } from '@/components/ui/notifications';
 import { ImportJobStatus } from "@/types/api";
 
 // Import History Modal Component
@@ -11,9 +13,31 @@ interface ImportHistoryModalProps {
 export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose }) => {
   const [page, setPage] = useState(1);
   const { data: importHistory, isLoading } = useGetImportHistory({ page, pageSize: 10 });
+  const { checkCompanyPolicy } = useAuthorization();
+  const { addNotification } = useNotifications();
+  const navigate = useNavigate();
+  
+  // Check if user has write permissions for customers
+  const canViewImportHistory = checkCompanyPolicy('customers:write');
+  
+  // If user doesn't have permission, show error and close
+  React.useEffect(() => {
+    if (!canViewImportHistory) {
+      addNotification({
+        type: 'error',
+        title: 'Access Denied',
+        message: 'You need Staff or Owner permissions to view import history'
+      });
+      onClose();
+    }
+  }, [canViewImportHistory, addNotification, onClose]);
+  
+  // Don't render if user doesn't have permission
+  if (!canViewImportHistory) {
+    return null;
+  }
 
   console.log(importHistory);
-  const navigate = useNavigate();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed':

@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Spinner } from '@/components/ui/spinner';
 
 import { api, clearToken, setToken} from './api-client';
-import { AuthResponse, User, CompanyCreationRequest, VerifyCodeResponse } from '@/types/api';
+import { AuthResponse, User, CompanyCreationRequest, VerifyCodeResponse, PlatformRole, CompanyRole, isPlatformAdmin, isPlatformModerator, isCompanyOwner, hasCompanyEditAccess, canAccessPlatformAdmin } from '@/types/api';
 
 const getUser = async (): Promise<User> => {
   const response = await api.get('/auth/me') as AuthResponse;
@@ -93,6 +93,27 @@ export const needsOnboarding = (user: User): boolean => {
 
 export const getOnboardingStep = (user: User): number => {
   return user.onboardingCurrentStep || 1;
+};
+
+// Role-based utility functions
+export const hasAdminAccess = (user: User): boolean => {
+  return canAccessPlatformAdmin(user.platformRole);
+};
+
+export const canManageUsers = (user: User): boolean => {
+  return isPlatformAdmin(user.platformRole) || isPlatformModerator(user.platformRole);
+};
+
+export const canEditCompanyData = (user: User): boolean => {
+  return hasCompanyEditAccess(user.companyRole);
+};
+
+export const canManageCompany = (user: User): boolean => {
+  return isCompanyOwner(user.companyRole);
+};
+
+export const canViewAdminPanel = (user: User): boolean => {
+  return canAccessPlatformAdmin(user.platformRole);
 };
 
 const authConfig = {

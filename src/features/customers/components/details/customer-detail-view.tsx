@@ -7,6 +7,7 @@ import { CustomerOverviewTab } from './overview-tab';
 import { CustomerDetailData } from '@/types/api';
 import { CustomerAnalyticsTab } from './analytics-tab';
 import { CustomerDataSourcesTab } from './data-sources-tab';
+import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
 
 
 interface CustomerDetailViewProps {
@@ -17,6 +18,11 @@ interface CustomerDetailViewProps {
 export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'data-sources' | 'analytics'>('overview');
+  const { checkCompanyPolicy } = useAuthorization();
+  
+  // Check if user has write permissions for customers
+  const canEditCustomers = checkCompanyPolicy('customers:write');
+  const canReadCustomers = checkCompanyPolicy('customers:read');
 
   const customerName = `${customer.firstName} ${customer.lastName}`.trim();
   const tenure = calculateTenure(customer.subscriptionStartDate);
@@ -95,17 +101,22 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
             </div>
             
             <div className="flex items-center gap-3">
-              <Button 
-                variant="outline"
-                className="border-border-primary hover:border-accent-primary/50 hover:text-accent-primary"
+              <CompanyAuthorization
+                policyCheck={canEditCustomers}
+                forbiddenFallback={null}
               >
-                Send Message
-              </Button>
-              <Button 
-                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
-              >
-                Launch Campaign
-              </Button>
+                <Button 
+                  variant="outline"
+                  className="border-border-primary hover:border-accent-primary/50 hover:text-accent-primary"
+                >
+                  Send Message
+                </Button>
+                <Button 
+                  className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
+                >
+                  Launch Campaign
+                </Button>
+              </CompanyAuthorization>
             </div>
           </div>
         </div>
@@ -132,9 +143,9 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
         
         {/* Content Area - We'll add components for each tab */}
         <div className="p-6">
-          {activeTab === 'overview' && <CustomerOverviewTab customer={customer} />}
-          {activeTab === 'data-sources' && <CustomerDataSourcesTab customer={customer} />}
-          {activeTab === 'analytics' && <CustomerAnalyticsTab customer={customer} />}
+          {activeTab === 'overview' && <CustomerOverviewTab customer={customer} canEditCustomers={canEditCustomers} />}
+          {activeTab === 'data-sources' && <CustomerDataSourcesTab customer={customer} canEditCustomers={canEditCustomers} />}
+          {activeTab === 'analytics' && <CustomerAnalyticsTab customer={customer} canEditCustomers={canEditCustomers} />}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { useChatbotStore } from '../store';
 
 export const ChatbotButton: React.FC = () => {
-  const { isOpen, openChat, closeChat } = useChatbotStore();
+  const { isOpen, openChat, closeChat, supportSession } = useChatbotStore();
 
   const handleToggle = () => {
     if (isOpen) {
@@ -52,8 +52,31 @@ export const ChatbotButton: React.FC = () => {
         )}
       </svg>
       
-      {/* Notification dot for new messages */}
-      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full opacity-0 scale-0 transition-all duration-200" />
+      {/* Support session indicators */}
+      {supportSession && (
+        <div className="absolute -top-1 -right-1 flex items-center justify-center">
+          {supportSession.status === 'AdminActive' && (
+            <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">👤</span>
+            </div>
+          )}
+          {supportSession.status === 'AiActive' && (
+            <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">🤖</span>
+            </div>
+          )}
+          {supportSession.status === 'Pending' && (
+            <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center animate-pulse">
+              <span className="text-white text-xs">⏳</span>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Default notification dot for new messages */}
+      {!supportSession && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full opacity-0 scale-0 transition-all duration-200" />
+      )}
     </button>
   );
 };

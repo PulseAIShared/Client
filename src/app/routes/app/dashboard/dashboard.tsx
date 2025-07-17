@@ -13,9 +13,14 @@ import {
 } from '@/features/dashboard/components';
 import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
 import { Spinner } from '@/components/ui/spinner';
+import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
 
 export const DashboardRoute = () => {
+  const { checkCompanyPolicy } = useAuthorization();
   const { data: dashboardData, isLoading, error } = useGetDashboardData();
+
+  // Check if user has read access to analytics
+  const canViewAnalytics = checkCompanyPolicy('analytics:read');
 
   if (isLoading) {
     return (
@@ -65,55 +70,72 @@ export const DashboardRoute = () => {
   }
 
   return (
-    <ContentLayout>
-      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-        {/* Header */}
-        <DashboardHeader />
+    <CompanyAuthorization
+      policyCheck={canViewAnalytics}
+      forbiddenFallback={
+        <ContentLayout>
+          <div className="flex items-center justify-center min-h-96">
+            <div className="text-center bg-surface-secondary/50 backdrop-blur-lg p-8 rounded-2xl border border-border-primary/50">
+              <div className="text-warning-muted text-6xl mb-4">🔒</div>
+              <h2 className="text-xl font-semibold text-text-primary mb-2">Access Restricted</h2>
+              <p className="text-text-muted">
+                You need analytics read permissions to view the dashboard. Please contact your company owner.
+              </p>
+            </div>
+          </div>
+        </ContentLayout>
+      }
+    >
+      <ContentLayout>
+        <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+          {/* Header */}
+          <DashboardHeader />
 
-        {/* Top Stats Grid */}
-        <StatCard 
-          stats={dashboardData?.stats} 
-          isLoading={isLoading} 
-          error={error} 
-        />
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {/* Churn Risk Predictor */}
-          <ChurnRiskChart 
-            data={dashboardData?.churnRiskTrend} 
+          {/* Top Stats Grid */}
+          <StatCard 
+            stats={dashboardData?.stats} 
             isLoading={isLoading} 
             error={error} 
           />
 
-          {/* At-Risk Customers */}
-          <AtRiskCustomersTable 
-            data={dashboardData?.atRiskCustomers} 
-            isLoading={isLoading} 
-            error={error} 
-          />
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {/* Churn Risk Predictor */}
+            <ChurnRiskChart 
+              data={dashboardData?.churnRiskTrend} 
+              isLoading={isLoading} 
+              error={error} 
+            />
+
+            {/* At-Risk Customers */}
+            <AtRiskCustomersTable 
+              data={dashboardData?.atRiskCustomers} 
+              isLoading={isLoading} 
+              error={error} 
+            />
+          </div>
+
+          {/* Bottom Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+            {/* Customer Insights Chart */}
+            <CustomerInsightsPie 
+              data={dashboardData?.customerInsights} 
+              isLoading={isLoading} 
+              error={error} 
+            />
+
+            {/* Customer Insights Table */}
+            <CustomerInsightsTable 
+              data={dashboardData?.customerInsights} 
+              isLoading={isLoading} 
+              error={error} 
+            />
+          </div>
+
+          {/* Quick Actions */}
+          <QuickActionsCard />
         </div>
-
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          {/* Customer Insights Chart */}
-          <CustomerInsightsPie 
-            data={dashboardData?.customerInsights} 
-            isLoading={isLoading} 
-            error={error} 
-          />
-
-          {/* Customer Insights Table */}
-          <CustomerInsightsTable 
-            data={dashboardData?.customerInsights} 
-            isLoading={isLoading} 
-            error={error} 
-          />
-        </div>
-
-        {/* Quick Actions */}
-        <QuickActionsCard />
-      </div>
-    </ContentLayout>
+      </ContentLayout>
+    </CompanyAuthorization>
   );
 };

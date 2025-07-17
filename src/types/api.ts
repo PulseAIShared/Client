@@ -23,12 +23,27 @@ export type OnboardingStatus = {
   completedSteps: string[];
 };
 
+
+export enum PlatformRole {
+  User = 'User',       // Basic platform access (customers)
+  Moderator = 'Moderator',  // Content moderation and user management
+  Admin = 'Admin'     // Full system administration
+}
+
+// Company Role System - Company-specific permissions
+export enum CompanyRole {
+  Viewer = 'Viewer',     // Read-only access to company data
+  Staff = 'Staff',      // Operational access (configurable by Owner)
+  Owner = 'Owner'       // Full control over company data and settings
+}
+
 export type User = Entity<{
   firstName: string;
   lastName: string;
   email: string;
   avatar: string;
-  role: 'Admin' | 'User';
+  platformRole: PlatformRole;
+  companyRole: CompanyRole;
   dateCreated: string;
   companyId?: string;
   isFirstLogin?: boolean;
@@ -42,7 +57,8 @@ export type UserProfile = Entity<{
   lastName: string;
   email: string;
   avatar: string;
-  role: string;
+  platformRole: PlatformRole;
+  companyRole: CompanyRole;
   friendCode: string;
 }>;
 
@@ -1290,8 +1306,8 @@ export interface AdminUserResponse {
   firstName: string;
   lastName: string;
   dateCreated: string;
-  role: string;
-  isCompanyOwner: boolean;
+  platformRole: PlatformRole;
+  companyRole: CompanyRole;
   companyId: string;
   avatar?: string;
 }
@@ -1300,15 +1316,16 @@ export interface UpdateUserRequest {
   firstName: string;
   lastName: string;
   email: string;
-  role: string;
-  isCompanyOwner: boolean;
+  platformRole: PlatformRole;
+  companyRole: CompanyRole;
 }
 
 export interface AdminUsersQueryParams {
   page?: number;
   pageSize?: number;
   searchTerm?: string;
-  role?: string;
+  platformRole?: PlatformRole;
+  companyRole?: CompanyRole;
 }
 
 export interface PagedResult<T> {
@@ -1374,3 +1391,50 @@ export interface AIRecommendation {
   iconType: string;
   count: number;
 }
+
+// Helper functions for role system
+export const formatPlatformRole = (role: PlatformRole): string => {
+  switch (role) {
+    case PlatformRole.User:
+      return 'User';
+    case PlatformRole.Moderator:
+      return 'Moderator';
+    case PlatformRole.Admin:
+      return 'Admin';
+    default:
+      return 'Unknown';
+  }
+};
+
+export const formatCompanyRole = (role: CompanyRole): string => {
+  switch (role) {
+    case CompanyRole.Viewer:
+      return 'Viewer';
+    case CompanyRole.Staff:
+      return 'Staff';
+    case CompanyRole.Owner:
+      return 'Owner';
+    default:
+      return 'Unknown';
+  }
+};
+
+export const isPlatformAdmin = (platformRole: PlatformRole): boolean => {
+  return platformRole === PlatformRole.Admin;
+};
+
+export const isPlatformModerator = (platformRole: PlatformRole): boolean => {
+  return platformRole === PlatformRole.Moderator;
+};
+
+export const isCompanyOwner = (companyRole: CompanyRole): boolean => {
+  return companyRole === CompanyRole.Owner;
+};
+
+export const hasCompanyEditAccess = (companyRole: CompanyRole): boolean => {
+  return companyRole === CompanyRole.Staff || companyRole === CompanyRole.Owner;
+};
+
+export const canAccessPlatformAdmin = (platformRole: PlatformRole): boolean => {
+  return platformRole === PlatformRole.Admin || platformRole === PlatformRole.Moderator;
+};

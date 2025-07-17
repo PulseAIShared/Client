@@ -11,7 +11,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { LinksGroup } from './links';
 
-import { Authorization, ROLES } from '@/lib/authorization';
+import { PlatformAuthorization } from '@/lib/authorization';
+import { PlatformRole } from '@/types/api';
 import { FaUsersCog, FaNetworkWired, FaListUl } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { useTheme } from '@/lib/theme-context';
@@ -61,7 +62,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
   };
 
   const adminSection = (
-    <Authorization allowedRoles={[ROLES.Admin]}>
+    <PlatformAuthorization allowedPlatformRoles={[PlatformRole.Admin, PlatformRole.Moderator]}>
       <div className="mt-6 pt-6 border-t border-border-primary/50">
         <div className="px-4 mb-3">
           <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Admin</h3>
@@ -88,7 +89,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
           key="admin-connection-diagnostics"
         />
       </div>
-    </Authorization>
+    </PlatformAuthorization>
   );
 
   const sidebarContent = (

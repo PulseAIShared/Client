@@ -3,15 +3,18 @@ import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/components/ui/notifications";
 import { useCheckChurnDataCompleteness, useRunChurnAnalysis } from "@/features/analytics/api/churn-analysis";
 import { CompletenessDataResponse } from "@/types/api";
+import { CompanyAuthorization, useAuthorization } from "@/lib/authorization";
 import { useEffect, useState } from "react";
 
 export const RunChurnAnalysisRoute = () => {
+  const { checkCompanyPolicy } = useAuthorization();
   const [step, setStep] = useState<'loading' | 'selection' | 'started'>('loading');
   const [completenessData, setCompletenessData] = useState<CompletenessDataResponse | null>(null);
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
   const [analysisStarted, setAnalysisStarted] = useState(false);
   
   const { addNotification } = useNotifications();
+  const canRunAnalysis = checkCompanyPolicy('company:write');
 
   const checkCompleteness = useCheckChurnDataCompleteness({
     mutationConfig: {
@@ -51,9 +54,11 @@ export const RunChurnAnalysisRoute = () => {
   });
 
   useEffect(() => {
-    // Automatically start checking completeness when component mounts
-    checkCompleteness.mutate({ customerIds: [] }); // Empty array to check all customers
-  }, []);
+    // Only start checking completeness if user has permissions
+    if (canRunAnalysis) {
+      checkCompleteness.mutate({ customerIds: [] }); // Empty array to check all customers
+    }
+  }, [canRunAnalysis]);
 
   const handleCustomerToggle = (customerId: string) => {
     const newSelected = new Set(selectedCustomers);
@@ -98,6 +103,39 @@ export const RunChurnAnalysisRoute = () => {
     if (score >= 60) return 'text-warning-muted bg-warning/20 border-warning/30';
     return 'text-error-muted bg-error/20 border-error/30';
   };
+
+  // Show access denied if user doesn't have permission
+  if (!canRunAnalysis) {
+    return (
+      <CompanyAuthorization
+        policyCheck={canRunAnalysis}
+        forbiddenFallback={
+          <ContentLayout>
+            <div className="flex items-center justify-center min-h-96">
+              <div className="text-center bg-surface-secondary/50 backdrop-blur-lg p-8 rounded-2xl border border-border-primary/50">
+                <div className="text-warning-muted text-6xl mb-4">🔒</div>
+                <h2 className="text-xl font-semibold text-text-primary mb-2">Staff Access Required</h2>
+                <p className="text-text-muted mb-4">
+                  You need Staff or Owner permissions to run churn analysis. This feature allows you to:
+                </p>
+                <ul className="text-text-muted text-sm space-y-1 mb-6">
+                  <li>• Run AI-powered churn risk analysis</li>
+                  <li>• Generate customer intervention recommendations</li>
+                  <li>• Create targeted recovery campaigns</li>
+                  <li>• Export detailed analytics reports</li>
+                </ul>
+                <p className="text-text-muted text-sm">
+                  Please contact your company owner to upgrade your access level.
+                </p>
+              </div>
+            </div>
+          </ContentLayout>
+        }
+      >
+        <></>
+      </CompanyAuthorization>
+    );
+  }
 
   if (step === 'loading') {
     return (

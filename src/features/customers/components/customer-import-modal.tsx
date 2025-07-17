@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/components/ui/notifications';
 import { useUploadImport } from '@/features/customers/api/import';
+import { useAuthorization } from '@/lib/authorization';
 import pulseTemplateUrl from '@/assets/pulse-template.csv?url';
 interface CustomerImportModalProps {
   onClose: () => void;
@@ -51,6 +52,27 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
   
   const { addNotification } = useNotifications();
   const uploadImport = useUploadImport();
+  const { checkCompanyPolicy } = useAuthorization();
+  
+  // Check if user has write permissions for customers
+  const canImportCustomers = checkCompanyPolicy('customers:write');
+  
+  // If user doesn't have permission, show error and close
+  React.useEffect(() => {
+    if (!canImportCustomers) {
+      addNotification({
+        type: 'error',
+        title: 'Access Denied',
+        message: 'You need Staff or Owner permissions to import customers'
+      });
+      onClose();
+    }
+  }, [canImportCustomers, addNotification, onClose]);
+  
+  // Don't render if user doesn't have permission
+  if (!canImportCustomers) {
+    return null;
+  }
 
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -496,7 +518,7 @@ const downloadTemplate = (mode: ImportMode) => {
             {currentStep === 3 && (
               <Button
                 onClick={() => handleUpload(false)}
-                disabled={uploadImport.isPending || !csvFile}
+                disabled={uploadImport.isPending || !csvFile || !canImportCustomers}
                 isLoading={uploadImport.isPending}
                 className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80 w-full sm:w-auto"
               >

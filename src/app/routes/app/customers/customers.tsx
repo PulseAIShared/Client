@@ -13,6 +13,7 @@ import { MobileCustomerCards } from '@/features/customers/components/mobile-cust
 import { DeleteCustomersModal } from '@/features/customers/components/customers-delete-modal';
 import { getActivityColor, getRiskColor, getSubscriptionStatusColor } from '@/utils/customer-helpers';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
 import { 
   SubscriptionStatus, 
   SubscriptionPlan, 
@@ -21,6 +22,7 @@ import {
   CustomersQueryParams,
   formatSubscriptionStatus,
   CustomerDisplayData,
+  CompanyRole
 } from '@/types/api';
 
 type SortField = 'fullName' | 'tenureDays' | 'lifetimeValue' | 'churnRiskScore' | 'activityStatus' | 'email' | 'plan';
@@ -60,6 +62,11 @@ export const CustomersRoute = () => {
   const queryClient = useQueryClient();
   const { addNotification } = useNotifications();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { checkCompanyPolicy } = useAuthorization();
+  
+  // Check if user has write permissions for customers
+  const canEditCustomers = checkCompanyPolicy('customers:write');
+  const canReadCustomers = checkCompanyPolicy('customers:read');
 
   // Import modal states
   const [showImportModal, setShowImportModal] = useState(false);
@@ -186,6 +193,105 @@ export const CustomersRoute = () => {
     });
   };
 
+  const handleExportAll = () => {
+    if (!canEditCustomers) {
+      addNotification({
+        type: 'error',
+        title: 'Access Denied',
+        message: 'You need Staff or Owner permissions to export customers'
+      });
+      return;
+    }
+    
+    // Generate CSV content from current customers
+    const csvHeaders = ['Full Name', 'Email', 'Plan', 'Lifetime Value', 'Churn Risk Score', 'Activity Status', 'Tenure'];
+    const csvRows = customers.map(customer => [
+      customer.fullName,
+      customer.email,
+      customer.plan,
+      customer.lifetimeValue,
+      customer.churnRiskScore,
+      customer.activityStatus,
+      customer.tenureDisplay
+    ]);
+    
+    const csvContent = [csvHeaders, ...csvRows]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `customers-export-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    addNotification({
+      type: 'success',
+      title: 'Export Complete',
+      message: `Successfully exported ${customers.length} customers`
+    });
+  };
+
+  const handleExportSelected = () => {
+    if (!canEditCustomers) {
+      addNotification({
+        type: 'error',
+        title: 'Access Denied',
+        message: 'You need Staff or Owner permissions to export customers'
+      });
+      return;
+    }
+    
+    const selectedCustomerData = customers.filter(customer => 
+      selectedCustomers.has(customer.id)
+    );
+    
+    if (selectedCustomerData.length === 0) {
+      addNotification({
+        type: 'warning',
+        title: 'No Selection',
+        message: 'Please select customers to export'
+      });
+      return;
+    }
+    
+    // Generate CSV content from selected customers
+    const csvHeaders = ['Full Name', 'Email', 'Plan', 'Lifetime Value', 'Churn Risk Score', 'Activity Status', 'Tenure'];
+    const csvRows = selectedCustomerData.map(customer => [
+      customer.fullName,
+      customer.email,
+      customer.plan,
+      customer.lifetimeValue,
+      customer.churnRiskScore,
+      customer.activityStatus,
+      customer.tenureDisplay
+    ]);
+    
+    const csvContent = [csvHeaders, ...csvRows]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `customers-selected-export-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    addNotification({
+      type: 'success',
+      title: 'Export Complete',
+      message: `Successfully exported ${selectedCustomerData.length} selected customers`
+    });
+  };
+
   const filterCounts = useMemo(() => ({
     all: pagination?.totalCount || 0,
     active: customers.filter(c => c.subscriptionStatus === SubscriptionStatus.Active).length,
@@ -257,37 +363,55 @@ export const CustomersRoute = () => {
               
               {/* Mobile-First Button Layout */}
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-                {/* Primary Action - Always Prominent */}
-                <button 
-                  onClick={() => setShowImportModal(true)}
-                  className="order-1 w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm sm:text-sm flex items-center justify-center gap-2 whitespace-nowrap"
+                {/* Primary Action - Staff+ only */}
+                <CompanyAuthorization
+                  policyCheck={canEditCustomers}
+                  forbiddenFallback={null}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <span className="hidden sm:inline">Import Customers</span>
-                  <span className="sm:hidden">Import</span>
-                </button>
+                  <button 
+                    onClick={() => setShowImportModal(true)}
+                    className="order-1 w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm sm:text-sm flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <span className="hidden sm:inline">Import Customers</span>
+                    <span className="sm:hidden">Import</span>
+                  </button>
+                </CompanyAuthorization>
                 
                 {/* Secondary Actions */}
                 <div className="order-2 flex flex-row gap-2 w-full sm:w-auto">
-                  <button 
-                    onClick={() => setShowImportHistory(true)}
-                    className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center justify-center gap-2 whitespace-nowrap"
+                  <CompanyAuthorization
+                    policyCheck={canEditCustomers}
+                    forbiddenFallback={null}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="hidden sm:inline">Import History</span>
-                    <span className="sm:hidden">History</span>
-                  </button>
-                  <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center justify-center gap-2 whitespace-nowrap">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span className="hidden sm:inline">Export Data</span>
-                    <span className="sm:hidden">Export</span>
-                  </button>
+                    <button 
+                      onClick={() => setShowImportHistory(true)}
+                      className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center justify-center gap-2 whitespace-nowrap"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="hidden sm:inline">Import History</span>
+                      <span className="sm:hidden">History</span>
+                    </button>
+                  </CompanyAuthorization>
+                  <CompanyAuthorization
+                    policyCheck={canEditCustomers}
+                    forbiddenFallback={null}
+                  >
+                    <button 
+                      onClick={handleExportAll}
+                      className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center justify-center gap-2 whitespace-nowrap"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="hidden sm:inline">Export Data</span>
+                      <span className="sm:hidden">Export</span>
+                    </button>
+                  </CompanyAuthorization>
                 </div>
               </div>
             </div>
@@ -372,6 +496,7 @@ export const CustomersRoute = () => {
               selectedCustomers={selectedCustomers}
               onToggleSelection={toggleCustomerSelection}
               onSingleDelete={handleSingleDelete}
+              canEditCustomers={canEditCustomers}
             />
           </div>
         ) : (
@@ -426,18 +551,31 @@ export const CustomersRoute = () => {
                         <span className="text-sm text-text-muted">
                           {selectedCustomers.size} selected
                         </span>
-                        <button 
-                          onClick={handleBulkDelete}
-                          className="px-3 py-1 bg-error/20 text-error rounded-lg hover:bg-error/30 transition-colors text-sm border border-error/30 flex items-center gap-2"
+                        <CompanyAuthorization
+                          policyCheck={canEditCustomers}
+                          forbiddenFallback={null}
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Delete Selected
-                        </button>
-                        <button className="px-3 py-1 bg-info-bg text-info rounded-lg hover:bg-info-bg/80 transition-colors text-sm border border-info/30">
-                          Export Selected
-                        </button>
+                          <button 
+                            onClick={handleBulkDelete}
+                            className="px-3 py-1 bg-error/20 text-error rounded-lg hover:bg-error/30 transition-colors text-sm border border-error/30 flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete Selected
+                          </button>
+                        </CompanyAuthorization>
+                        <CompanyAuthorization
+                          policyCheck={canEditCustomers}
+                          forbiddenFallback={null}
+                        >
+                          <button 
+                            onClick={handleExportSelected}
+                            className="px-3 py-1 bg-info-bg text-info rounded-lg hover:bg-info-bg/80 transition-colors text-sm border border-info/30"
+                          >
+                            Export Selected
+                          </button>
+                        </CompanyAuthorization>
                       </div>
                     )}
                   </div>
@@ -448,14 +586,19 @@ export const CustomersRoute = () => {
                 <table className="w-full">
                   <thead className="bg-surface-secondary/30">
                     <tr>
-                      <th className="text-left py-4 px-6 font-semibold text-text-secondary">
-                        <input
-                          type="checkbox"
-                          checked={selectedCustomers.size === customers.length && customers.length > 0}
-                          onChange={toggleSelectAll}
-                          className="rounded border-border-primary bg-surface-secondary focus:ring-accent-primary"
-                        />
-                      </th>
+                      <CompanyAuthorization
+                        policyCheck={canEditCustomers}
+                        forbiddenFallback={<th className="text-left py-4 px-6 font-semibold text-text-secondary w-12"></th>}
+                      >
+                        <th className="text-left py-4 px-6 font-semibold text-text-secondary">
+                          <input
+                            type="checkbox"
+                            checked={selectedCustomers.size === customers.length && customers.length > 0}
+                            onChange={toggleSelectAll}
+                            className="rounded border-border-primary bg-surface-secondary focus:ring-accent-primary"
+                          />
+                        </th>
+                      </CompanyAuthorization>
                       <th 
                         className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors" 
                         onClick={() => handleSort('fullName')}
@@ -510,7 +653,12 @@ export const CustomersRoute = () => {
                           <SortIcon field="activityStatus" />
                         </div>
                       </th>
-                      <th className="text-left py-4 px-6 font-semibold text-text-secondary">Actions</th>
+                      <CompanyAuthorization
+                        policyCheck={canEditCustomers}
+                        forbiddenFallback={<th className="text-left py-4 px-6 font-semibold text-text-secondary w-16"></th>}
+                      >
+                        <th className="text-left py-4 px-6 font-semibold text-text-secondary">Actions</th>
+                      </CompanyAuthorization>
                     </tr>
                   </thead>
                   <tbody>
@@ -520,14 +668,19 @@ export const CustomersRoute = () => {
                         className="border-t border-border-primary hover:bg-surface-secondary/20 cursor-pointer transition-colors"
                         onClick={() => handleCustomerClick(customer.id)}
                       >
-                        <td className="py-4 px-6">
-                          <input
-                            type="checkbox"
-                            checked={selectedCustomers.has(customer.id)}
-                            onChange={(e) => toggleCustomerSelection(customer.id, e)}
-                            className="rounded border-border-primary bg-surface-secondary focus:ring-accent-primary"
-                          />
-                        </td>
+                        <CompanyAuthorization
+                          policyCheck={canEditCustomers}
+                          forbiddenFallback={<td className="py-4 px-6"></td>}
+                        >
+                          <td className="py-4 px-6">
+                            <input
+                              type="checkbox"
+                              checked={selectedCustomers.has(customer.id)}
+                              onChange={(e) => toggleCustomerSelection(customer.id, e)}
+                              className="rounded border-border-primary bg-surface-secondary focus:ring-accent-primary"
+                            />
+                          </td>
+                        </CompanyAuthorization>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-text-primary font-semibold text-sm">
@@ -558,17 +711,22 @@ export const CustomersRoute = () => {
                             {customer.activityStatus}
                           </span>
                         </td>
-                        <td className="py-4 px-6">
-                          <button 
-                            onClick={(e) => handleSingleDelete(customer, e)}
-                            className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"
-                            title="Delete customer"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </td>
+                        <CompanyAuthorization
+                          policyCheck={canEditCustomers}
+                          forbiddenFallback={<td className="py-4 px-6"></td>}
+                        >
+                          <td className="py-4 px-6">
+                            <button 
+                              onClick={(e) => handleSingleDelete(customer, e)}
+                              className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"
+                              title="Delete customer"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </td>
+                        </CompanyAuthorization>
                       </tr>
                     ))}
                   </tbody>

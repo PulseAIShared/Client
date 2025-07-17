@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mantine/hooks';
 import { Code } from '@mantine/core';
 import { useUser, useLogout } from '@/lib/auth';
+import { formatPlatformRole, formatCompanyRole } from '@/types/api';
 import { NotificationsBell } from '@/components/ui/notifications';
 import { useTheme } from '@/lib/theme-context';
 
@@ -142,10 +143,15 @@ export const TopNav = () => {
                   <div className="flex-1 min-w-0">
                     <div className="text-text-primary font-medium truncate">{getUserDisplayName()}</div>
                     <div className="text-text-secondary text-sm truncate">{user.data?.email}</div>
-                    <div className="text-text-tertiary text-xs mt-2">
-                      {user.data?.role && (
+                    <div className="text-text-tertiary text-xs mt-2 flex flex-wrap gap-1">
+                      {user.data?.platformRole !== undefined && (
                         <span className="px-2 py-0.5 bg-accent-primary/20 text-accent-primary rounded-full text-xs font-medium border border-accent-primary/30">
-                          {user.data.role}
+                          {formatPlatformRole(user.data.platformRole)}
+                        </span>
+                      )}
+                      {user.data?.companyRole !== undefined && (
+                        <span className="px-2 py-0.5 bg-accent-secondary/20 text-accent-secondary rounded-full text-xs font-medium border border-accent-secondary/30">
+                          {formatCompanyRole(user.data.companyRole)}
                         </span>
                       )}
                     </div>

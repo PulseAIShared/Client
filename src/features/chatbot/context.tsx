@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useChatbotStore, ChatbotContext, QuickAction } from './store';
+import { useGetActiveSupportSession } from './api/chatbot';
 
 interface ChatbotProviderProps {
   children: React.ReactNode;
@@ -150,17 +151,35 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
 export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) => {
   const location = useLocation();
   const params = useParams();
-  const { updateContext, setQuickActions } = useChatbotStore();
+  const { 
+    updatePageContext, 
+    setPageQuickActions, 
+    setSupportSession,
+    supportSession
+  } = useChatbotStore();
+
+  // Load active support session on mount
+  const { data: activeSession } = useGetActiveSupportSession();
 
   const updateContextFromRoute = React.useCallback(() => {
     const { context, quickActions } = getContextFromRoute(location.pathname, params);
-    updateContext(context);
-    setQuickActions(quickActions);
-  }, [location.pathname, params, updateContext, setQuickActions]);
+    updatePageContext(context);
+    setPageQuickActions(quickActions);
+  }, [location.pathname, params, updatePageContext, setPageQuickActions]);
 
+  // Update page context when route changes
   useEffect(() => {
     updateContextFromRoute();
   }, [updateContextFromRoute]);
+
+  // Update support session when API data changes
+  useEffect(() => {
+    if (activeSession && !supportSession) {
+      setSupportSession(activeSession);
+    } else if (!activeSession && supportSession) {
+      setSupportSession(null);
+    }
+  }, [activeSession, supportSession, setSupportSession]);
 
   return (
     <ChatbotContextProvider.Provider value={{ updateContextFromRoute }}>

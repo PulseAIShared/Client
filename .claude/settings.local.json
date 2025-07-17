@@ -18,7 +18,8 @@
       "Bash(npx tsc:*)",
       "Bash(grep:*)",
       "Bash(curl:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": []
   }

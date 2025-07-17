@@ -5,6 +5,7 @@ import { formatDateTime, getSyncStatusColor } from '@/utils/customer-helpers';
 
 interface DataSourcesTabProps {
   customer: CustomerDetailData;
+  canEditCustomers: boolean;
 }
 
 // Helper function to get source icon
@@ -146,7 +147,7 @@ const getDataCategoryInfo = (category: string) => {
 
 
 
-export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer }) => {
+export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer, canEditCustomers }) => {
   const { dataSourceDetails, dataQuality, sourceSummary } = customer;
 
   // Combine all data sources for overview with null checking

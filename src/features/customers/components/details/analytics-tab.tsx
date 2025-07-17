@@ -49,9 +49,10 @@ const getActivityIcon = (type: string) => {
 
 interface CustomerAnalyticsTabProps {
   customer: CustomerDetailData;
+  canEditCustomers: boolean;
 }
 
-export const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({ customer }) => {
+export const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({ customer, canEditCustomers }) => {
   return (
     <div className="space-y-8">
       {/* Activity Timeline */}

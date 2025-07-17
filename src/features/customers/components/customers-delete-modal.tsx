@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useDeleteCustomers, type DeleteCustomersResponse } from '@/features/customers/api/customers';
+import { useAuthorization } from '@/lib/authorization';
+import { useNotifications } from '@/components/ui/notifications';
 import { CustomerDisplayData } from '@/types/api';
 
 interface DeleteCustomersModalProps {
@@ -17,6 +19,28 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
 }) => {
   const [showResults, setShowResults] = useState(false);
   const [deletionResults, setDeletionResults] = useState<DeleteCustomersResponse | null>(null);
+  const { checkCompanyPolicy } = useAuthorization();
+  const { addNotification } = useNotifications();
+  
+  // Check if user has write permissions for customers
+  const canDeleteCustomers = checkCompanyPolicy('customers:write');
+  
+  // If user doesn't have permission, show error and close
+  React.useEffect(() => {
+    if (!canDeleteCustomers) {
+      addNotification({
+        type: 'error',
+        title: 'Access Denied',
+        message: 'You need Staff or Owner permissions to delete customers'
+      });
+      onClose();
+    }
+  }, [canDeleteCustomers, addNotification, onClose]);
+  
+  // Don't render if user doesn't have permission
+  if (!canDeleteCustomers) {
+    return null;
+  }
 
   const deleteCustomers = useDeleteCustomers({
     mutationConfig: {
@@ -257,7 +281,7 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
           </Button>
           <Button
             onClick={handleConfirmDelete}
-            disabled={deleteCustomers.isPending}
+            disabled={deleteCustomers.isPending || !canDeleteCustomers}
             isLoading={deleteCustomers.isPending}
             className="bg-red-600 hover:bg-red-700 text-white"
           >
