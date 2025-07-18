@@ -11,14 +11,14 @@ export const LandingNavbar = () => {
 
   const Logo = () => {
     return (
-      <Link className="flex items-center gap-2" to="/">
+      <a className="flex items-center gap-2" href="#hero">
         <span className="text-xl font-bold bg-clip-text text-transparent bg-black">
           PulseLTV
         </span>
         <Code fw={700} className="text-xs bg-blue-500">
           BETA
         </Code>
-      </Link>
+      </a>
     );
   };
 
