@@ -36,7 +36,7 @@ export const ChurnRiskCalculatorSection = () => {
           <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">
          See how much you can save with our
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-600 to-blue-900">
           churn risk calculator
             </span>
           </h2>
