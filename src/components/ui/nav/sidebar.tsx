@@ -13,7 +13,7 @@ import { LinksGroup } from './links';
 
 import { PlatformAuthorization } from '@/lib/authorization';
 import { PlatformRole } from '@/types/api';
-import { FaUsersCog, FaNetworkWired, FaListUl } from 'react-icons/fa';
+import { FaUsersCog, FaNetworkWired, FaListUl, FaHeadset } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { useTheme } from '@/lib/theme-context';
 
@@ -73,6 +73,13 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
           link="/app/admin/users"
           onClick={handleLinkClick}
           key="admin-users"
+        />
+        <LinksGroup
+          name="Support Dashboard"
+          icon={FaHeadset}
+          link="/app/admin/support"
+          onClick={handleLinkClick}
+          key="admin-support"
         />
         <LinksGroup
           name="Waiting List"

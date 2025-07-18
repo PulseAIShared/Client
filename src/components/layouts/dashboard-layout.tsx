@@ -7,6 +7,7 @@ import { GiProgression } from "react-icons/gi";
 import { FaUser } from "react-icons/fa";
 import { useMediaQuery } from "@mantine/hooks";
 import { MdSegment, MdCampaign } from "react-icons/md";
+import { BsChatDots } from "react-icons/bs";
 import { useTheme } from "@/lib/theme-context";
 
 
@@ -45,10 +46,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       link: '/app/insights'
     },
     {
+      name: 'Conversations',
+      icon: BsChatDots,
+      link: '/app/conversations'
+    },
+    {
       name: 'Settings',
       icon: IoMdSettings,
       link: '/app/settings'
-    },
+    }
   ];
 
   return (

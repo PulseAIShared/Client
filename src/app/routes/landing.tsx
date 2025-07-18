@@ -1,11 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router';
 import { LandingLayout } from '@/components/layouts';
-import { FeaturesSection } from '@/features/landing/components/features-section';
+import { ChurnRiskCalculatorSection } from '@/features/landing/components/churn-risk-calculator-section';
 import { FeatureIconsSection } from '@/features/landing/components/features-icon-section';
 import { HowItWorksSection } from '@/features/landing/components/howitoworks-section';
 import { CTASection } from '@/features/landing/components/cta-section';
 import { HeroSection } from '@/features/landing/components/hero-section';
+import { ChurnRiskCalculator } from '@/components/calculators';
 
 export const LandingRoute = () => {
 
@@ -13,7 +13,7 @@ export const LandingRoute = () => {
     <LandingLayout>
     <HeroSection/>
       <HowItWorksSection />
-      <FeaturesSection />
+      <ChurnRiskCalculatorSection /> 
       <FeatureIconsSection />
       <CTASection />
     </LandingLayout>

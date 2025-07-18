@@ -1,11 +1,11 @@
 import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { signalRConnection } from '@/lib/signalr-connection';
+import { signalRConnection } from '@/lib/signalr';
 import { useUser } from '@/lib/auth';
 import { getToken } from '@/lib/api-client';
-import { registerNotificationEvents, unregisterNotificationEvents } from '@/lib/signalr-event-helper';
 import { useChatbotStore } from '@/features/chatbot/store';
 import type { SupportSession, SupportMessage } from '@/features/chatbot/api/chatbot';
+import { PlatformRole } from '@/types/api';
 
 export const useRealTimeNotifications = () => {
   const queryClient = useQueryClient();
@@ -104,14 +104,14 @@ export const useRealTimeNotifications = () => {
     console.log('New support request for admin:', session);
     
     // Only handle if user is admin
-    if (user.data?.role === 'Admin') {
+    if (user.data?.platformRole === PlatformRole.Admin) {
       // Invalidate admin support queries
       queryClient.invalidateQueries({ queryKey: ['support', 'admin'] });
       
       // Show notification (could add toast notification here)
       console.log('Admin notification: New support request from', session.userEmail);
     }
-  }, [user.data?.role, queryClient]);
+  }, [user.data?.platformRole, queryClient]);
 
   useEffect(() => {
     let isSubscribed = true;
@@ -134,9 +134,11 @@ export const useRealTimeNotifications = () => {
         
         if (!isSubscribed) return;
 
-        // Register specific event handlers
-        registerNotificationEvents.analysisCompleted(handleAnalysisCompleted);
-        registerNotificationEvents.importCompleted(handleImportCompleted);
+        // Register specific event handlers AFTER connection is established
+        signalRConnection.on('analysis_completed', handleAnalysisCompleted);
+        signalRConnection.on('import_completed', handleImportCompleted);
+        
+        console.log('Notification event handlers registered');
         
         // Register support session event handlers with type-safe wrappers
         signalRConnection.on('SupportSessionCreated', (session: unknown) => 
@@ -158,15 +160,8 @@ export const useRealTimeNotifications = () => {
           handleNewSupportRequest(session as SupportSession)
         );
         
-        // Join admin support group if user is admin
-        if (user.data?.role === 'Admin') {
-          try {
-            await signalRConnection.invoke('JoinAdminSupport');
-            console.log('Joined admin support group');
-          } catch (err) {
-            console.error('Failed to join admin support group:', err);
-          }
-        }
+        // Note: Admin support group joining is handled automatically by the server
+        // based on user permissions when they connect
         
         console.log('SignalR event handlers registered');
         
@@ -179,7 +174,10 @@ export const useRealTimeNotifications = () => {
 
     return () => {
       isSubscribed = false;
-      unregisterNotificationEvents.all();
+      
+      // Clean up event handlers
+      signalRConnection.off('analysis_completed', handleAnalysisCompleted);
+      signalRConnection.off('import_completed', handleImportCompleted);
       
       // Note: SignalR automatically cleans up handlers on disconnect
       // We don't need to manually remove them since they're wrapped
@@ -194,7 +192,7 @@ export const useRealTimeNotifications = () => {
     handleSupportSessionClosed,
     handleSupportMessageReceived,
     handleNewSupportRequest,
-    user.data?.role
+    user.data?.platformRole
   ]);
 
   return {

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useChatbotStore } from '../store';
 import { ChatMessages } from './chat-messages';
 import { ChatInput } from './chat-input';
 import { QuickActions } from './quick-actions';
-import { useSendChatMessage, useCreateSupportSession, type ChatbotContext } from '../api/chatbot';
+import { useSendChatMessage, useCreateSupportSession, useGetChatHistory, useGetUserConversations, type ChatbotContext, ChatContextType } from '../api/chatbot';
 
 export const PageHelpInterface: React.FC = () => {
+  const queryClient = useQueryClient();
   const { 
     pageContext, 
     pageMessages, 
@@ -15,15 +17,83 @@ export const PageHelpInterface: React.FC = () => {
     isLoading, 
     setLoading, 
     setActiveMode,
-    conversationId, 
-    startNewConversation 
+    startNewConversation,
+    convertAPIMessagesToChatMessages,
+    setCurrentConversation,
+    setPageMessages,
+    currentConversation,
+    generateContextKey,
+    createConversationForContext,
+    loadConversationForContext,
+    currentContextKey
   } = useChatbotStore();
 
   const sendChatMessage = useSendChatMessage();
   const createSupportSession = useCreateSupportSession();
+  const { data: chatHistory, refetch: refetchHistory } = useGetChatHistory(currentConversation?.id || '', 1, 50);
+  const { data: userConversations } = useGetUserConversations();
+
+  // Sync user conversations from API with store
+  useEffect(() => {
+    if (userConversations) {
+      useChatbotStore.setState((state) => ({
+        allConversations: userConversations
+      }));
+    }
+  }, [userConversations]);
+
+  // Load conversation history when currentConversation changes
+  useEffect(() => {
+    if (currentConversation?.id) {
+      // Invalidate any existing cache for this conversation
+      queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversation', currentConversation.id] });
+      
+      // Trigger refetch
+      refetchHistory();
+    }
+  }, [currentConversation?.id, queryClient, refetchHistory]);
+
+  // Update messages when chatHistory changes
+  useEffect(() => {
+    if (chatHistory?.messages) {
+      const apiMessages = convertAPIMessagesToChatMessages(chatHistory.messages);
+      setPageMessages(apiMessages);
+      setLoading(false);
+    }
+  }, [chatHistory, convertAPIMessagesToChatMessages, setPageMessages, setLoading]);
+
+  // Load or create conversation for current context
+  useEffect(() => {
+    const contextKey = generateContextKey(pageContext);
+    
+    if (contextKey !== currentContextKey) {
+      // Context has changed, load or create conversation
+      const existingConversation = useChatbotStore.getState().conversationsByContext[contextKey];
+      
+      if (existingConversation) {
+        loadConversationForContext(contextKey);
+      } else {
+        // Create new conversation for this context
+        createConversationForContext(contextKey, pageContext);
+      }
+    }
+  }, [pageContext, generateContextKey, currentContextKey, loadConversationForContext, createConversationForContext]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
+
+    // Check if user is requesting support
+    const lowerContent = content.toLowerCase();
+    if (lowerContent.includes('contact support') || lowerContent.includes('live support') || lowerContent.includes('human support')) {
+      // Add user message
+      addPageMessage({
+        content,
+        sender: 'user',
+      });
+      
+      await handleRequestSupport();
+      return;
+    }
 
     // Add user message
     addPageMessage({
@@ -34,14 +104,14 @@ export const PageHelpInterface: React.FC = () => {
     setLoading(true);
 
     try {
-      let currentConversationId = conversationId;
-      if (!currentConversationId) {
-        startNewConversation();
-        currentConversationId = conversationId;
+      // Ensure we have a conversation for the current context
+      if (!currentConversation) {
+        const contextKey = generateContextKey(pageContext);
+        createConversationForContext(contextKey, pageContext);
       }
 
       // Send to regular chatbot API
-      const response = await sendChatMessage.mutateAsync({
+      const chatRequest = {
         message: content,
         context: {
           type: pageContext.type,
@@ -49,13 +119,56 @@ export const PageHelpInterface: React.FC = () => {
           analysisId: pageContext.analysisId,
           routePath: pageContext.routePath,
         },
-        conversationId: currentConversationId,
-      });
+        conversationId: currentConversation?.id || undefined,
+      };
+      
+      const response = await sendChatMessage.mutateAsync(chatRequest);
 
+      // Update conversation ID if we got a new one from the API
+      if (response.conversationId && response.conversationId !== currentConversation?.id) {
+        const contextKey = generateContextKey(pageContext);
+        const updatedConversation = {
+          id: response.conversationId,
+          title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
+          lastMessage: typeof response.message.content === 'string' 
+            ? response.message.content 
+            : (response.message.content && typeof response.message.content === 'object' && 'content' in response.message.content)
+              ? (response.message.content as any).content
+              : JSON.stringify(response.message.content),
+          lastMessageAt: new Date().toISOString(),
+          messageCount: pageMessages.length + 2, // +2 for user message and bot response
+          createdAt: new Date().toISOString(),
+        };
+        
+        // Update the store with the new conversation ID
+        setCurrentConversation(updatedConversation);
+        
+        // Update the conversation in the context mapping
+        useChatbotStore.setState((state) => ({
+          conversationsByContext: {
+            ...state.conversationsByContext,
+            [contextKey]: updatedConversation,
+          },
+          allConversations: state.allConversations.map(c => 
+            c.id === currentConversation?.id ? updatedConversation : c
+          ),
+        }));
+      }
+
+      // Add the bot's response message
       addPageMessage({
-        content: response.message,
+        content: response.message.content,
         sender: 'bot',
       });
+
+      // Invalidate and refetch related queries
+      queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversation', response.conversationId] });
+      
+      // Refetch current conversation history
+      if (currentConversation?.id) {
+        refetchHistory();
+      }
     } catch (error) {
       console.warn('API call failed, using fallback response:', error);
       
@@ -120,14 +233,14 @@ export const PageHelpInterface: React.FC = () => {
         topic: getTopicFromContext(pageContext),
         initialMessage: 'User requested live support',
         originalContext: {
-          type: pageContext.type as any,
+          type: pageContext.type,
           routePath: pageContext.routePath,
           customerId: pageContext.customerId,
           analysisId: pageContext.analysisId,
           additionalContext: {}
         },
         currentContext: {
-          type: pageContext.type as any,
+          type: pageContext.type,
           routePath: pageContext.routePath,
           customerId: pageContext.customerId,
           analysisId: pageContext.analysisId,
@@ -152,18 +265,19 @@ export const PageHelpInterface: React.FC = () => {
 
   const getTopicFromContext = (context: any): string => {
     switch (context.type) {
-      case 'customer_detail':
+      case ChatContextType.CustomerDetail:
         return 'Customer Analysis Help';
-      case 'dashboard':
+      case ChatContextType.Dashboard:
         return 'Dashboard Assistance';
-      case 'segments':
+      case ChatContextType.Segments:
         return 'Segmentation Help';
-      case 'insights':
-        return 'Insights Support';
-      case 'settings':
-        return 'Settings Configuration';
-      case 'analytics':
+      case ChatContextType.Analytics:
         return 'Analytics Support';
+      case ChatContextType.Integrations:
+        return 'Integrations Support';
+      case ChatContextType.Import:
+        return 'Import Support';
+      case ChatContextType.General:
       default:
         return 'General Support';
     }
@@ -171,18 +285,19 @@ export const PageHelpInterface: React.FC = () => {
 
   const getContextTitle = () => {
     switch (pageContext.type) {
-      case 'customer_detail':
+      case ChatContextType.CustomerDetail:
         return `Customer ${pageContext.customerId} Assistant`;
-      case 'dashboard':
+      case ChatContextType.Dashboard:
         return 'Dashboard Assistant';
-      case 'segments':
+      case ChatContextType.Segments:
         return 'Segmentation Assistant';
-      case 'insights':
-        return 'Insights Assistant';
-      case 'analytics':
+      case ChatContextType.Analytics:
         return 'Analytics Assistant';
-      case 'settings':
-        return 'Settings Assistant';
+      case ChatContextType.Integrations:
+        return 'Integrations Assistant';
+      case ChatContextType.Import:
+        return 'Import Assistant';
+      case ChatContextType.General:
       default:
         return 'PulseAI Assistant';
     }
@@ -191,15 +306,15 @@ export const PageHelpInterface: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Page Context Header */}
-      <div className="px-4 py-3 border-b border-border-primary bg-surface-secondary">
-        <h4 className="font-medium text-text-primary">{getContextTitle()}</h4>
+      <div className="px-4 py-2 border-b border-border-primary bg-surface-secondary">
+        <h4 className="font-medium text-text-primary text-sm">{getContextTitle()}</h4>
         <p className="text-xs text-text-muted">
-          {pageContext.type !== 'general' ? 'Context-aware assistant' : 'General support'}
+          {pageContext.type !== ChatContextType.General ? 'Context-aware assistant' : 'General support'}
         </p>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0">
         <ChatMessages 
           messages={pageMessages} 
           isTyping={isLoading}
@@ -209,31 +324,15 @@ export const PageHelpInterface: React.FC = () => {
       {/* Quick Actions */}
       <QuickActions actions={pageQuickActions} onActionClick={handleQuickAction} />
 
-      {/* Support Request Button */}
-      <div className="px-4 py-3 border-t border-border-primary bg-surface-primary">
-        <button
-          onClick={handleRequestSupport}
-          disabled={isLoading}
-          className="
-            w-full px-4 py-2 text-sm font-medium
-            bg-accent-primary hover:bg-accent-secondary
-            text-white rounded-lg
-            disabled:opacity-50 disabled:cursor-not-allowed
-            transition-colors duration-200
-          "
-        >
-          Contact Live Support
-        </button>
-      </div>
 
       {/* Chat Input */}
       <ChatInput
         onSendMessage={handleSendMessage}
         disabled={isLoading}
         placeholder={
-          pageContext.type === 'customer_detail'
+          pageContext.type === ChatContextType.CustomerDetail
             ? 'Ask about this customer...'
-            : pageContext.type === 'dashboard'
+            : pageContext.type === ChatContextType.Dashboard
             ? 'Ask about your metrics...'
             : 'How can I help you?'
         }

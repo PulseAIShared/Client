@@ -5,7 +5,7 @@ export const CTASection = () => {
   const { openWaitlistModal } = useWaitlistModal();
 
   return (
-    <section className="py-24 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 relative overflow-hidden" id="cta">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 right-10 w-72 h-72 bg-sky-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -16,12 +16,8 @@ export const CTASection = () => {
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           {/* Header */}
-          <div className="mb-12">
-            <div className="inline-flex items-center gap-2 bg-sky-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-sky-400/30 mb-6">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-sky-200">Ready to Get Started?</span>
-            </div>
-            
+          <div className="mb-12 animate-fade-in-up">
+
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Stop losing customers.
               <br />
@@ -36,7 +32,7 @@ export const CTASection = () => {
           </div>
           
           {/* Main CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <button 
               onClick={() => openWaitlistModal('cta-section')}
               className="group px-8 py-4 text-lg font-semibold text-white bg-sky-500 rounded-xl hover:bg-sky-600 hover:shadow-2xl hover:shadow-sky-500/25 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3"
@@ -55,7 +51,7 @@ export const CTASection = () => {
           </div>
 
           {/* Trust indicators and features */}
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid md:grid-cols-3 gap-8 mb-16 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
             <div className="text-center">
               <div className="bg-green-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

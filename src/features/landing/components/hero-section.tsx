@@ -136,7 +136,7 @@ export const HeroSection = () => {
             </span>
             <br />
             <span className="text-blue-900 text-3xl md:text-4xl font-normal opacity-0 animate-fade-in-up delay-300">
-              Predict. Prevent. Recover.
+              Predict. Prevent. Profit.
             </span>
           </h1>
         </div>
@@ -168,7 +168,7 @@ export const HeroSection = () => {
             Join Waiting List
           </Button>
           <Link 
-            to="#features" 
+            to="#how-it-works" 
             className="h-12 px-8 py-3 text-base font-semibold text-blue-900 bg-transparent border-2 border-slate-400 backdrop-blur-sm rounded-xl hover:bg-slate-100 hover:border-slate-500 hover:shadow-lg transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 relative overflow-hidden group flex items-center justify-center"
           >
             <span className="relative">See How It Works</span>

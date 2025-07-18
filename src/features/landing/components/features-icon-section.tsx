@@ -2,7 +2,7 @@ import React from 'react';
 import { useWaitlistModal } from '@/hooks/useWaitlistModal';
 
 export const FeatureIconsSection = () => {
-  const { openWaitlistModal } = useWaitlistModal();
+
   const features = [
     {
       name: 'Churn Prediction',
@@ -67,13 +67,41 @@ export const FeatureIconsSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-sky-100 px-4 py-2 rounded-full mb-6">
-            <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
-            <span className="text-sm font-medium text-sky-700">Complete Platform</span>
-          </div>
+    <section className="py-24 bg-white relative overflow-hidden" id="features">
+      {/* Subtle background elements */}
+      <div className="absolute inset-0">
+        <div className="absolute w-96 h-96 bg-sky-500/8 rounded-full blur-3xl animate-pulse" 
+             style={{ 
+               top: '20%', 
+               left: '5%', 
+               animationDuration: '12s',
+               animationDelay: '1s'
+             }}></div>
+        <div className="absolute w-80 h-80 bg-blue-400/10 rounded-full blur-3xl animate-pulse" 
+             style={{ 
+               bottom: '10%', 
+               right: '8%', 
+               animationDuration: '8s',
+               animationDelay: '4s'
+             }}></div>
+        <div className="absolute w-56 h-56 bg-green-400/6 rounded-full blur-3xl animate-pulse" 
+             style={{ 
+               top: '5%', 
+               right: '20%', 
+               animationDuration: '10s',
+               animationDelay: '6s'
+             }}></div>
+        <div className="absolute w-64 h-64 bg-purple-500/7 rounded-full blur-3xl animate-pulse" 
+             style={{ 
+               top: '75%', 
+               left: '75%', 
+               animationDuration: '9s',
+               animationDelay: '2s'
+             }}></div>
+      </div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-16 animate-fade-in-up">
+
           <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">
             Everything you need to
             <br />
@@ -90,7 +118,8 @@ export const FeatureIconsSection = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group relative bg-gray-50 hover:bg-white p-8 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300"
+              className="group relative bg-gray-50 hover:bg-white p-8 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Gradient background that appears on hover */}
               <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300`}></div>
@@ -125,31 +154,7 @@ export const FeatureIconsSection = () => {
           ))}
         </div>
 
-        {/* Call to action */}
-        <div className="text-center mt-16">
-          <div className="bg-blue-900 rounded-2xl p-8 max-w-4xl mx-auto">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              Ready to reduce churn and recover revenue?
-            </h3>
-            <p className="text-blue-200 mb-6 max-w-2xl mx-auto">
-              Join hundreds of subscription businesses using PulseLTV to automatically predict, prevent, and recover from customer churn.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={() => openWaitlistModal('features-icon-section')}
-                className="px-6 py-3 bg-sky-500 text-white font-semibold rounded-lg hover:bg-sky-600 hover:shadow-lg hover:shadow-sky-500/25 transform hover:-translate-y-1 transition-all duration-200"
-              >
-                Join Waiting List
-              </button>
-              <a 
-                href="/book-demo"
-                className="px-6 py-3 text-white border border-blue-600 rounded-lg hover:bg-blue-800 transition-colors duration-200 text-center inline-block"
-              >
-                Schedule Demo
-              </a>
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
   );

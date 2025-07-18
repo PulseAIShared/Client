@@ -15,10 +15,6 @@ export default function BookDemoPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 bg-sky-500/10 backdrop-blur-sm px-4 py-2 rounded-full border border-sky-400/20 mb-6">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-sky-600">Book Your Personal Demo</span>
-            </div>
 
             <h1 className="text-4xl md:text-6xl font-bold text-blue-900 mb-6">
               See PulseLTV in

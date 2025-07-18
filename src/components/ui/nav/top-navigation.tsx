@@ -20,14 +20,14 @@ export const TopNav = () => {
   
   const Logo = () => {
     return (
-      <Link className="flex items-center gap-2" to="/app">
+      <div className="flex items-center gap-2">
         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
           PulseLTV
         </span>
         <Code fw={700} className="text-xs bg-accent-secondary/20 text-accent-secondary border border-accent-secondary/30">
           BETA
         </Code>
-      </Link>
+      </div>
     );
   };
 

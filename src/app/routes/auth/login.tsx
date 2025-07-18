@@ -125,10 +125,7 @@ export const LoginRoute = () => {
           <div className="bg-white/95 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/20">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full mb-4">
-                <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
-                <span className="text-sm font-medium text-sky-700">Welcome Back</span>
-              </div>
+
               
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Sign in to PulseLTV

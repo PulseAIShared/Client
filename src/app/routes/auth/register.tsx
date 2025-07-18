@@ -166,7 +166,6 @@ export const RegisterRoute = () => {
     }
 
     return {
-      badge: { text: "Get Started", color: "bg-green-100", textColor: "text-green-700" },
       title: "Create your PulseLTV account",
       subtitle: "Start predicting and recovering revenue with AI"
     };
@@ -207,12 +206,7 @@ export const RegisterRoute = () => {
           <div className="bg-white/95 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/20">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className={`inline-flex items-center gap-2 ${headerContent.badge.color} px-4 py-2 rounded-full mb-4`}>
-                <div className={`w-2 h-2 ${invitationInfo.hasInvitation ? 'bg-blue-600' : 'bg-green-600'} rounded-full`}></div>
-                <span className={`text-sm font-medium ${headerContent.badge.textColor}`}>
-                  {headerContent.badge.text}
-                </span>
-              </div>
+
               
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {headerContent.title}

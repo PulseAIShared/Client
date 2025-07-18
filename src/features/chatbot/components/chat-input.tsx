@@ -4,12 +4,14 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  onTyping?: (isTyping: boolean) => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   disabled = false,
-  placeholder = 'Type your message...'
+  placeholder = 'Type your message...',
+  onTyping
 }) => {
   const [message, setMessage] = useState('');
 
@@ -17,6 +19,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (message.trim() && !disabled) {
       onSendMessage(message.trim());
       setMessage('');
+      onTyping?.(false);
+    }
+  };
+
+  const handleMessageChange = (value: string) => {
+    setMessage(value);
+    
+    // Trigger typing indicator
+    if (onTyping) {
+      onTyping(value.length > 0);
     }
   };
 
@@ -33,7 +45,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <div className="flex-1">
           <textarea
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => handleMessageChange(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
             disabled={disabled}

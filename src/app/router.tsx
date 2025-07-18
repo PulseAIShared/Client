@@ -4,7 +4,6 @@ import {
   createBrowserRouter,
 } from 'react-router-dom';
 
-import { Spinner } from '@/components/ui/spinner';
 import { ProtectedRoute } from '@/lib/auth';
 import { GlobalLayout } from '@/components/layouts';
 
@@ -144,6 +143,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'conversations',
+          lazy: async () => {
+            const { ConversationsRoute } = await import('./routes/app/conversations/conversations');
+            return { Component: ConversationsRoute };
+          },
+        },
+        {
         path: 'analytics/run-churn-analysis',
         lazy: async () => {
           const { RunChurnAnalysisRoute } = await import('./routes/app/analytics/run-churn-analysis');
@@ -183,6 +189,13 @@ export const createAppRouter = () =>
         lazy: async () => {
           const { WaitingListAdminRoute } = await import('./routes/app/admin/waiting-list');
           return { Component: WaitingListAdminRoute };
+        },
+      },
+      {
+        path: 'admin/support',
+        lazy: async () => {
+          const AdminSupportPage = await import('./routes/app/admin/support');
+          return { Component: AdminSupportPage.default };
         },
       },
       {

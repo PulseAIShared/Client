@@ -23,11 +23,9 @@ export const LandingNavbar = () => {
   };
 
   const navLinks: { name: string; href: string }[] = [
-    // { name: 'Features', href: '#features' },
-    // { name: 'How It Works', href: '#how-it-works' },
-    // { name: 'Testimonials', href: '#testimonials' },
-    // { name: 'Pricing', href: '#pricing' },
-    // { name: 'Docs', href: '/app/docs/getting-started' },
+    { name: 'How It Works', href: '#how-it-works' },
+        { name: 'Churn Calculator', href: '#calculator' },
+    { name: 'Features', href: '#features' }
   ];
 
   return (

@@ -35,13 +35,34 @@ export const HowItWorksSection = () => {
   ];
 
   return (
-    <section id="features" className="py-24 bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-sky-100 px-4 py-2 rounded-full mb-6">
-            <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
-            <span className="text-sm font-medium text-sky-700">How It Works</span>
-          </div>
+    <section id="how-it-works" className="py-24 bg-white relative overflow-hidden">
+      {/* Subtle background elements */}
+      <div className="absolute inset-0">
+        <div className="absolute w-96 h-96 bg-blue-500/6 rounded-full blur-3xl animate-pulse" 
+             style={{ 
+               top: '10%', 
+               right: '5%', 
+               animationDuration: '8s',
+               animationDelay: '1s'
+             }}></div>
+        <div className="absolute w-72 h-72 bg-sky-400/8 rounded-full blur-3xl animate-pulse" 
+             style={{ 
+               bottom: '15%', 
+               left: '8%', 
+               animationDuration: '10s',
+               animationDelay: '3s'
+             }}></div>
+        <div className="absolute w-48 h-48 bg-purple-400/5 rounded-full blur-3xl animate-pulse" 
+             style={{ 
+               top: '60%', 
+               left: '70%', 
+               animationDuration: '12s',
+               animationDelay: '5s'
+             }}></div>
+      </div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-20 animate-fade-in-up">
+
           <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">
             From data to insights in four simple steps
           </h2>
@@ -54,7 +75,8 @@ export const HowItWorksSection = () => {
           {steps.map((step, index) => (
             <div 
               key={index}
-              className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
+              className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden group animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.2}s` }}
             >
               {/* Gradient background that appears on hover */}
               <div className={`absolute inset-0 bg-gradient-to-br ${step.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
@@ -84,6 +106,35 @@ export const HowItWorksSection = () => {
           ))}
         </div>
 
+        {/* Call to action */}
+        <div className="text-center mt-20 animate-fade-in-up" style={{ animationDelay: '1.0s' }}>
+          <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 rounded-2xl p-8 max-w-4xl mx-auto shadow-xl border border-blue-700/50 relative overflow-hidden">
+            {/* Subtle background pattern */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl"></div>
+            <div className="relative z-10">
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                Ready to reduce churn and recover revenue?
+              </h3>
+              <p className="text-blue-200 mb-6 max-w-2xl mx-auto">
+                Join hundreds of subscription businesses using PulseLTV to automatically predict, prevent, and recover from customer churn.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button 
+                  onClick={() => openWaitlistModal('how-it-works-section')}
+                  className="px-6 py-3 bg-sky-500 text-white font-semibold rounded-lg hover:bg-sky-600 hover:shadow-lg hover:shadow-sky-500/25 transform hover:-translate-y-1 transition-all duration-200"
+                >
+                  Join Waiting List
+                </button>
+                <a 
+                  href="/book-demo"
+                  className="px-6 py-3 text-white border border-blue-400/50 rounded-lg hover:bg-blue-700/50 transition-colors duration-200 text-center inline-block"
+                >
+                  Schedule Demo
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
 
       </div>
     </section>

@@ -318,7 +318,7 @@ export const AdminUserDetailRoute = () => {
                 {isEditing ? (
                   <select
                     value={formData.platformRole}
-                    onChange={(e) => handleInputChange('platformRole', parseInt(e.target.value))}
+                    onChange={(e) => handleInputChange('platformRole', e.target.value as PlatformRole)}
                     className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   >
                     <option value={PlatformRole.User}>User</option>
@@ -339,7 +339,7 @@ export const AdminUserDetailRoute = () => {
                 {isEditing ? (
                   <select
                     value={formData.companyRole}
-                    onChange={(e) => handleInputChange('companyRole', parseInt(e.target.value))}
+                    onChange={(e) => handleInputChange('companyRole', e.target.value as CompanyRole)}
                     className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   >
                     <option value={CompanyRole.Viewer}>Viewer</option>

@@ -262,6 +262,7 @@ export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ custom
             </div>
           )}
         </div>
+        </div>
       </CompanyAuthorization>
     </div>
   );

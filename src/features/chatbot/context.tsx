@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useChatbotStore, ChatbotContext, QuickAction } from './store';
-import { useGetActiveSupportSession } from './api/chatbot';
+import { useGetActiveSupportSession, ChatContextType } from './api/chatbot';
 
 interface ChatbotProviderProps {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   if (!pathname.startsWith('/app')) {
     return {
       context: {
-        type: 'general',
+        type: ChatContextType.General,
         routePath: pathname,
       },
       quickActions: [
@@ -34,7 +34,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   if (pathname.includes('/customers/') && params.customerId) {
     return {
       context: {
-        type: 'customer_detail',
+        type: ChatContextType.CustomerDetail,
         customerId: params.customerId,
         routePath: pathname,
       },
@@ -50,7 +50,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   if (pathname.includes('/analytics/churn-analysis/') && params.analysisId) {
     return {
       context: {
-        type: 'analytics',
+        type: ChatContextType.Analytics,
         analysisId: params.analysisId,
         routePath: pathname,
       },
@@ -65,7 +65,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   if (pathname.includes('/imports/') && params.importJobId) {
     return {
       context: {
-        type: 'general',
+        type: ChatContextType.Import,
         importJobId: params.importJobId,
         routePath: pathname,
       },
@@ -81,7 +81,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   if (pathname.includes('/dashboard')) {
     return {
       context: {
-        type: 'dashboard',
+        type: ChatContextType.Dashboard,
         routePath: pathname,
       },
       quickActions: [
@@ -95,7 +95,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   if (pathname.includes('/segments')) {
     return {
       context: {
-        type: 'segments',
+        type: ChatContextType.Segments,
         routePath: pathname,
       },
       quickActions: [
@@ -109,7 +109,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   if (pathname.includes('/insights')) {
     return {
       context: {
-        type: 'insights',
+        type: ChatContextType.Analytics,
         routePath: pathname,
       },
       quickActions: [
@@ -123,7 +123,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   if (pathname.includes('/settings')) {
     return {
       context: {
-        type: 'settings',
+        type: ChatContextType.Integrations,
         routePath: pathname,
       },
       quickActions: [
@@ -137,7 +137,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   // Default app context
   return {
     context: {
-      type: 'general',
+      type: ChatContextType.General,
       routePath: pathname,
     },
     quickActions: [

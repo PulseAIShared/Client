@@ -4,7 +4,7 @@ import { ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
 import { useGetAllUsers, useDeleteUser } from '@/features/admin/api/users';
-import { AdminUserResponse, AdminUsersQueryParams, formatPlatformRole, formatCompanyRole, PlatformRole } from '@/types/api';
+import { AdminUserResponse, AdminUsersQueryParams, formatPlatformRole, formatCompanyRole, PlatformRole, CompanyRole } from '@/types/api';
 import { PlatformAuthorization, useAuthorization } from '@/lib/authorization';
 
 const formatDate = (dateString: string) => {
@@ -17,26 +17,26 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const getPlatformRoleBadgeColor = (role: number) => {
+const getPlatformRoleBadgeColor = (role: PlatformRole) => {
   switch (role) {
-    case 2: // Admin
+    case PlatformRole.Admin:
       return 'text-purple-400 bg-purple-500/20 border-purple-500/50';
-    case 1: // Moderator
+    case PlatformRole.Moderator:
       return 'text-blue-400 bg-blue-500/20 border-blue-500/50';
-    case 0: // User
+    case PlatformRole.User:
       return 'text-slate-400 bg-slate-500/20 border-slate-500/50';
     default:
       return 'text-slate-400 bg-slate-500/20 border-slate-500/50';
   }
 };
 
-const getCompanyRoleBadgeColor = (role: number) => {
+const getCompanyRoleBadgeColor = (role: CompanyRole) => {
   switch (role) {
-    case 2: // Owner
+    case CompanyRole.Owner:
       return 'text-green-400 bg-green-500/20 border-green-500/50';
-    case 1: // Staff
+    case CompanyRole.Staff:
       return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/50';
-    case 0: // Viewer
+    case CompanyRole.Viewer:
       return 'text-gray-400 bg-gray-500/20 border-gray-500/50';
     default:
       return 'text-slate-400 bg-slate-500/20 border-slate-500/50';

@@ -10,10 +10,10 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
   const isUser = message.sender === 'user';
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}>
       <div
         className={`
-          max-w-[80%] p-3 rounded-lg
+          max-w-[85%] px-3 py-2 rounded-lg
           ${isUser 
             ? 'bg-accent-primary text-white rounded-br-sm' 
             : 'bg-surface-secondary text-text-primary rounded-bl-sm'
@@ -21,7 +21,7 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
         `}
       >
         <div className="text-sm leading-relaxed whitespace-pre-wrap">
-          {message.content}
+          {typeof message.content === 'string' ? message.content : JSON.stringify(message.content)}
         </div>
         <div 
           className={`
@@ -66,7 +66,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isTyping }
   }, [messages, isTyping]);
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto bg-bg-primary">
+    <div className="h-full px-3 py-2 overflow-y-auto bg-bg-primary">
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">

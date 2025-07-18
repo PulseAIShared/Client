@@ -1,11 +1,11 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 
-// Types
+// Chat Types
 export interface ChatRequest {
   message: string;
   context: {
-    type: string;
+    type: ChatContextType;
     customerId?: string;
     analysisId?: string;
     routePath: string;
@@ -13,17 +13,54 @@ export interface ChatRequest {
   conversationId?: string;
 }
 
+export interface ChatMessageResponse {
+  id: string;
+  conversationId: string;
+  content: string;
+  sender: MessageSender;
+  type: MessageType;
+  timestamp: string;
+  metadata?: any;
+}
+
 export interface ChatResponse {
-  message: string;
+  message: ChatMessageResponse;
   conversationId: string;
   suggestions?: string[];
+  requiresHumanHandoff?: boolean;
+  metadata?: any;
+}
+
+export interface ChatMessage {
+  id: string;
+  content: string;
+  isFromUser: boolean;
+  timestamp: string;
+  conversationId: string;
+  sender: MessageSender;
+}
+
+export interface ChatConversation {
+  id: string;
+  title: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  messageCount: number;
+  createdAt: string;
+}
+
+export interface ConversationHistoryResponse {
+  conversationId: string;
+  messages: ChatMessage[];
+  totalMessages: number;
+  hasMoreMessages: boolean;
 }
 
 export interface ContactRequest {
   email: string;
   message: string;
   context?: {
-    type: string;
+    type: ChatContextType;
     routePath: string;
     customerId?: string;
   };
@@ -39,6 +76,7 @@ export interface ContactResponse {
 export interface SupportSession {
   id: string;
   userId: string;
+  customerEmail: string;
   userEmail: string;
   topic: string;
   initialMessage: string;
@@ -69,13 +107,36 @@ export interface SupportSession {
 }
 
 export interface ChatbotContext {
-  type: 'General' | 'Dashboard' | 'CustomerDetail' | 'Analytics' | 'Segments' | 'Integrations' | 'Import';
+  type: ChatContextType;
   routePath: string;
   customerId?: string;
   analysisId?: string;
   importJobId?: string;
   segmentId?: string;
   additionalContext?: Record<string, string>;
+}
+
+export enum ChatContextType {
+  General = 0,
+  Dashboard = 1,
+  CustomerDetail = 2,
+  Analytics = 3,
+  Segments = 4,
+  Integrations = 5,
+  Import = 6
+}
+
+export enum MessageSender {
+  User = 0,
+  Bot = 1,
+  Admin = 2
+}
+
+export enum MessageType {
+  Text = 0,
+  QuickAction = 1,
+  ContactRequest = 2,
+  SystemMessage = 3
 }
 
 export interface SupportMessage {
@@ -121,15 +182,27 @@ export interface AdminInfo {
 
 // API Functions
 export const sendChatMessage = (request: ChatRequest): Promise<ChatResponse> => {
-  return api.post('/chatbot/chat', request);
+  return api.post('/chatbot/send', request);
 };
 
 export const sendContactRequest = (request: ContactRequest): Promise<ContactResponse> => {
   return api.post('/chatbot/contact', request);
 };
 
-export const getChatHistory = (conversationId: string) => {
-  return api.get(`/chatbot/conversations/${conversationId}`);
+export const getChatHistory = (conversationId: string, page: number = 1, pageSize: number = 20): Promise<ConversationHistoryResponse> => {
+  return api.get(`/chatbot/history/${conversationId}?page=${page}&pageSize=${pageSize}`);
+};
+
+export const getUserConversations = (): Promise<ChatConversation[]> => {
+  return api.get('/chatbot/conversations');
+};
+
+export const deleteConversation = (conversationId: string): Promise<void> => {
+  return api.delete(`/chatbot/conversations/${conversationId}`);
+};
+
+export const clearConversationMessages = (conversationId: string): Promise<void> => {
+  return api.delete(`/chatbot/conversations/${conversationId}/messages`);
 };
 
 // Support Session API Functions
@@ -176,10 +249,15 @@ export const getActiveSupportSessions = (): Promise<SupportSession[]> => {
 };
 
 // Query Options
-export const getChatHistoryQueryOptions = (conversationId: string) => ({
-  queryKey: ['chatbot', 'conversation', conversationId],
-  queryFn: () => getChatHistory(conversationId),
+export const getChatHistoryQueryOptions = (conversationId: string, page: number = 1, pageSize: number = 20) => ({
+  queryKey: ['chatbot', 'conversation', conversationId, page, pageSize],
+  queryFn: () => getChatHistory(conversationId, page, pageSize),
   enabled: !!conversationId,
+});
+
+export const getUserConversationsQueryOptions = () => ({
+  queryKey: ['chatbot', 'conversations'],
+  queryFn: getUserConversations,
 });
 
 // Hooks
@@ -206,9 +284,33 @@ export const useSendContactRequest = () => {
   });
 };
 
-export const useGetChatHistory = (conversationId: string) => {
+export const useGetChatHistory = (conversationId: string, page: number = 1, pageSize: number = 20) => {
   return useQuery({
-    ...getChatHistoryQueryOptions(conversationId),
+    ...getChatHistoryQueryOptions(conversationId, page, pageSize),
+  });
+};
+
+export const useGetUserConversations = () => {
+  return useQuery({
+    ...getUserConversationsQueryOptions(),
+  });
+};
+
+export const useDeleteConversation = () => {
+  return useMutation({
+    mutationFn: deleteConversation,
+    onError: (error) => {
+      console.error('Failed to delete conversation:', error);
+    },
+  });
+};
+
+export const useClearConversationMessages = () => {
+  return useMutation({
+    mutationFn: clearConversationMessages,
+    onError: (error) => {
+      console.error('Failed to clear conversation messages:', error);
+    },
   });
 };
 

@@ -15,10 +15,6 @@ export const DashboardHeader = () => {
       <div className="relative bg-surface-secondary/50 backdrop-blur-lg p-8 rounded-2xl border border-border-primary/50 shadow-xl">
         <div className="flex items-center justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-4">
-              <div className="w-2 h-2 bg-success-muted rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-accent-secondary">AI Dashboard</span>
-            </div>
             <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
               Welcome back, {user?.data?.firstName}
             </h1>

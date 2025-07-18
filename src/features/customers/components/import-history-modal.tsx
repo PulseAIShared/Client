@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetImportHistory } from "../api/import";
 import { useNavigate } from "react-router-dom";
 import { useAuthorization } from '@/lib/authorization';
@@ -21,7 +21,7 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
   const canViewImportHistory = checkCompanyPolicy('customers:write');
   
   // If user doesn't have permission, show error and close
-  React.useEffect(() => {
+  useEffect(() => {
     if (!canViewImportHistory) {
       addNotification({
         type: 'error',

@@ -1326,6 +1326,7 @@ export interface AdminUsersQueryParams {
   searchTerm?: string;
   platformRole?: PlatformRole;
   companyRole?: CompanyRole;
+  role?: string;
 }
 
 export interface PagedResult<T> {
