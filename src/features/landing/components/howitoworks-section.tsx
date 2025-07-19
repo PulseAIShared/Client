@@ -1,8 +1,14 @@
 import React from 'react';
 import { useWaitlistModal } from '@/hooks/useWaitlistModal';
+import { useScrollAnimation, useStaggeredAnimation } from '@/hooks/useScrollAnimation';
+import './css/hero-section.css';
 
 export const HowItWorksSection = () => {
   const { openWaitlistModal } = useWaitlistModal();
+  const { elementRef: headerRef, isVisible: headerVisible } = useScrollAnimation();
+  const { elementRef: gridRef, visibleItems } = useStaggeredAnimation(4);
+  const { elementRef: ctaRef, isVisible: ctaVisible } = useScrollAnimation();
+  
   const steps = [
     {
       number: "01",
@@ -36,32 +42,63 @@ export const HowItWorksSection = () => {
 
   return (
     <section id="how-it-works" className="py-24 bg-white relative overflow-hidden">
-      {/* Subtle background elements */}
+      {/* Enhanced flowing background elements */}
       <div className="absolute inset-0">
-        <div className="absolute w-96 h-96 bg-blue-500/6 rounded-full blur-3xl animate-pulse" 
+        {/* Main flowing orbs similar to hero */}
+        <div className="absolute w-96 h-96 bg-sky-500/8 rounded-full blur-3xl animate-flow-bg" 
              style={{ 
                top: '10%', 
                right: '5%', 
-               animationDuration: '8s',
-               animationDelay: '1s'
+               animationDelay: '0s'
              }}></div>
-        <div className="absolute w-72 h-72 bg-sky-400/8 rounded-full blur-3xl animate-pulse" 
+        <div className="absolute w-80 h-80 bg-blue-600/10 rounded-full blur-3xl animate-flow-bg" 
              style={{ 
                bottom: '15%', 
                left: '8%', 
-               animationDuration: '10s',
-               animationDelay: '3s'
+               animationDelay: '7s'
              }}></div>
-        <div className="absolute w-48 h-48 bg-purple-400/5 rounded-full blur-3xl animate-pulse" 
+        <div className="absolute w-64 h-64 bg-blue-900/6 rounded-full blur-3xl animate-flow-bg" 
              style={{ 
                top: '60%', 
                left: '70%', 
-               animationDuration: '12s',
-               animationDelay: '5s'
+               animationDelay: '14s'
              }}></div>
+        
+        {/* Smaller floating particles */}
+        {[...Array(8)].map((_, i) => {
+          const size = 2 + Math.random() * 3;
+          const delay = Math.random() * 5;
+          const duration = 4 + Math.random() * 4;
+          return (
+            <div
+              key={`particle-${i}`}
+              className="absolute opacity-30"
+              style={{
+                top: `${15 + Math.random() * 70}%`,
+                left: `${10 + Math.random() * 80}%`,
+                animation: `floatGentle ${duration}s ${delay}s infinite ease-in-out`,
+              }}
+            >
+              <div 
+                className="bg-sky-400 rounded-full"
+                style={{
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  filter: 'blur(0.5px)',
+                }}
+              ></div>
+            </div>
+          );
+        })}
       </div>
+      
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-20 animate-fade-in-up">
+        <div 
+          ref={headerRef}
+          className={`text-center mb-20 transition-all duration-800 ${
+            headerVisible ? 'scroll-animate animate' : 'scroll-animate'
+          }`}
+        >
 
           <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">
             From data to insights in four simple steps
@@ -71,12 +108,16 @@ export const HowItWorksSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+        <div ref={gridRef} className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
           {steps.map((step, index) => (
             <div 
               key={index}
-              className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden group animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.2}s` }}
+              className={`bg-white p-8 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-500 relative overflow-hidden group transform hover:-translate-y-2 hover:scale-105 ${
+                visibleItems.has(index) ? 'scroll-animate animate' : 'scroll-animate'
+              }`}
+              style={{ 
+                transitionDelay: `${index * 100}ms`,
+              }}
             >
               {/* Gradient background that appears on hover */}
               <div className={`absolute inset-0 bg-gradient-to-br ${step.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
@@ -107,7 +148,12 @@ export const HowItWorksSection = () => {
         </div>
 
         {/* Call to action */}
-        <div className="text-center mt-20 animate-fade-in-up" style={{ animationDelay: '1.0s' }}>
+        <div 
+          ref={ctaRef}
+          className={`text-center mt-20 transition-all duration-800 ${
+            ctaVisible ? 'scroll-animate animate' : 'scroll-animate'
+          }`}
+        >
           <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 rounded-2xl p-8 max-w-4xl mx-auto shadow-xl border border-blue-700/50 relative overflow-hidden">
             {/* Subtle background pattern */}
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl"></div>

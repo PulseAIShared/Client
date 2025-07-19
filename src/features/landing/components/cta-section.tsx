@@ -1,8 +1,13 @@
 import React from 'react';
 import { useWaitlistModal } from '@/hooks/useWaitlistModal';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import './css/hero-section.css';
 
 export const CTASection = () => {
   const { openWaitlistModal } = useWaitlistModal();
+  const { elementRef: headerRef, isVisible: headerVisible } = useScrollAnimation();
+  const { elementRef: buttonsRef, isVisible: buttonsVisible } = useScrollAnimation();
+  const { elementRef: featuresRef, isVisible: featuresVisible } = useScrollAnimation();
 
   return (
     <section className="py-24 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 relative overflow-hidden" id="cta">
@@ -16,7 +21,12 @@ export const CTASection = () => {
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           {/* Header */}
-          <div className="mb-12 animate-fade-in-up">
+          <div 
+            ref={headerRef}
+            className={`mb-12 transition-all duration-800 ${
+              headerVisible ? 'scroll-animate animate' : 'scroll-animate'
+            }`}
+          >
 
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Stop losing customers.
@@ -32,7 +42,12 @@ export const CTASection = () => {
           </div>
           
           {/* Main CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div 
+            ref={buttonsRef}
+            className={`flex flex-col sm:flex-row gap-6 justify-center mb-16 transition-all duration-800 ${
+              buttonsVisible ? 'scroll-animate-scale animate' : 'scroll-animate-scale'
+            }`}
+          >
             <button 
               onClick={() => openWaitlistModal('cta-section')}
               className="group px-8 py-4 text-lg font-semibold text-white bg-sky-500 rounded-xl hover:bg-sky-600 hover:shadow-2xl hover:shadow-sky-500/25 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3"
@@ -51,7 +66,12 @@ export const CTASection = () => {
           </div>
 
           {/* Trust indicators and features */}
-          <div className="grid md:grid-cols-3 gap-8 mb-16 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+          <div 
+            ref={featuresRef}
+            className={`grid md:grid-cols-3 gap-8 mb-16 transition-all duration-800 ${
+              featuresVisible ? 'scroll-animate animate' : 'scroll-animate'
+            }`}
+          >
             <div className="text-center">
               <div className="bg-green-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

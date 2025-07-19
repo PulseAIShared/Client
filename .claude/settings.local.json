@@ -19,7 +19,8 @@
       "Bash(grep:*)",
       "Bash(curl:*)",
       "Bash(mkdir:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

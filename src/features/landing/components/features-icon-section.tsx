@@ -1,7 +1,11 @@
 import React from 'react';
 import { useWaitlistModal } from '@/hooks/useWaitlistModal';
+import { useScrollAnimation, useStaggeredAnimation } from '@/hooks/useScrollAnimation';
+import './css/hero-section.css';
 
 export const FeatureIconsSection = () => {
+  const { elementRef: headerRef, isVisible: headerVisible } = useScrollAnimation();
+  const { elementRef: gridRef, visibleItems } = useStaggeredAnimation(6);
 
   const features = [
     {
@@ -68,39 +72,77 @@ export const FeatureIconsSection = () => {
 
   return (
     <section className="py-24 bg-white relative overflow-hidden" id="features">
-      {/* Subtle background elements */}
+      {/* Enhanced flowing background elements */}
       <div className="absolute inset-0">
-        <div className="absolute w-96 h-96 bg-sky-500/8 rounded-full blur-3xl animate-pulse" 
+        {/* Main flowing orbs */}
+        <div className="absolute w-96 h-96 bg-sky-500/10 rounded-full blur-3xl animate-flow-bg" 
              style={{ 
-               top: '20%', 
+               top: '15%', 
                left: '5%', 
-               animationDuration: '12s',
-               animationDelay: '1s'
+               animationDelay: '5s'
              }}></div>
-        <div className="absolute w-80 h-80 bg-blue-400/10 rounded-full blur-3xl animate-pulse" 
+        <div className="absolute w-88 h-88 bg-blue-400/12 rounded-full blur-3xl animate-flow-bg" 
              style={{ 
-               bottom: '10%', 
+               bottom: '5%', 
                right: '8%', 
-               animationDuration: '8s',
-               animationDelay: '4s'
+               animationDelay: '12s'
              }}></div>
-        <div className="absolute w-56 h-56 bg-green-400/6 rounded-full blur-3xl animate-pulse" 
+        <div className="absolute w-72 h-72 bg-green-400/8 rounded-full blur-3xl animate-flow-bg" 
              style={{ 
                top: '5%', 
-               right: '20%', 
-               animationDuration: '10s',
-               animationDelay: '6s'
+               right: '15%', 
+               animationDelay: '18s'
              }}></div>
-        <div className="absolute w-64 h-64 bg-purple-500/7 rounded-full blur-3xl animate-pulse" 
+        <div className="absolute w-80 h-80 bg-purple-500/9 rounded-full blur-3xl animate-flow-bg" 
              style={{ 
-               top: '75%', 
-               left: '75%', 
-               animationDuration: '9s',
+               top: '70%', 
+               left: '70%', 
                animationDelay: '2s'
              }}></div>
+        <div className="absolute w-60 h-60 bg-indigo-400/7 rounded-full blur-3xl animate-flow-bg" 
+             style={{ 
+               top: '40%', 
+               left: '40%', 
+               animationDelay: '15s'
+             }}></div>
+
+        {/* Feature-themed floating particles */}
+        {[...Array(12)].map((_, i) => {
+          const size = 1.5 + Math.random() * 3;
+          const delay = Math.random() * 8;
+          const duration = 6 + Math.random() * 6;
+          const colors = ['bg-sky-400', 'bg-blue-400', 'bg-green-400', 'bg-purple-400', 'bg-indigo-400'];
+          const color = colors[i % colors.length];
+          return (
+            <div
+              key={`feature-particle-${i}`}
+              className="absolute opacity-20"
+              style={{
+                top: `${5 + Math.random() * 90}%`,
+                left: `${5 + Math.random() * 90}%`,
+                animation: `floatGentle ${duration}s ${delay}s infinite ease-in-out`,
+              }}
+            >
+              <div 
+                className={`${color} rounded-full`}
+                style={{
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  filter: 'blur(0.5px)',
+                }}
+              ></div>
+            </div>
+          );
+        })}
       </div>
+      
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16 animate-fade-in-up">
+        <div 
+          ref={headerRef}
+          className={`text-center mb-16 transition-all duration-800 ${
+            headerVisible ? 'scroll-animate animate' : 'scroll-animate'
+          }`}
+        >
 
           <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">
             Everything you need to
@@ -114,19 +156,29 @@ export const FeatureIconsSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="group relative bg-gray-50 hover:bg-white p-8 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {features.map((feature, index) => {
+            // Create different entrance directions for visual interest
+            const animationClass = index % 3 === 0 ? 'scroll-animate-left' : 
+                                   index % 3 === 1 ? 'scroll-animate' : 
+                                   'scroll-animate-right';
+            
+            return (
+              <div
+                key={index}
+                className={`group relative bg-gray-50 hover:bg-white p-8 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 ${
+                  visibleItems.has(index) ? `${animationClass} animate` : animationClass
+                }`}
+                style={{ 
+                  transitionDelay: `${index * 120}ms`,
+                }}
+              >
               {/* Gradient background that appears on hover */}
               <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300`}></div>
               
               <div className="relative">
                 {/* Icon */}
-                <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br ${feature.color} mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br ${feature.color} mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 animate-float-gentle`}>
                   <div className="text-white">
                     {feature.icon}
                   </div>
@@ -151,7 +203,8 @@ export const FeatureIconsSection = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
 
