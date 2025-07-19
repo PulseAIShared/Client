@@ -1,32 +1,57 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Code } from '@mantine/core';
 
 import { useWaitlistModal } from '@/hooks/useWaitlistModal';
+import { navigateToSection } from '@/utils/navigation';
 
 export const LandingNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { openWaitlistModal } = useWaitlistModal();
 
   const Logo = () => {
+    const handleLogoClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      
+      // If we're already on the landing page, scroll to top
+      if (window.location.pathname === '/') {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'smooth'
+        });
+      } else {
+        // If we're on a different page, navigate to landing page
+        navigate('/');
+      }
+    };
+
     return (
-      <a className="flex items-center gap-2" href="#hero">
+      <button 
+        onClick={handleLogoClick}
+        className="flex items-center gap-2"
+      >
         <span className="text-xl font-bold bg-clip-text text-transparent bg-black">
           PulseLTV
         </span>
         <Code fw={700} className="text-xs bg-blue-500">
           BETA
         </Code>
-      </a>
+      </button>
     );
   };
 
-  const navLinks: { name: string; href: string }[] = [
-    { name: 'How It Works', href: '#how-it-works' },
-        { name: 'Churn Calculator', href: '#calculator' },
-    { name: 'Features', href: '#features' }
+  const navLinks: { name: string; sectionId: string }[] = [
+    { name: 'How It Works', sectionId: '#how-it-works' },
+    { name: 'Features', sectionId: '#features' },
+    { name: 'Churn Calculator', sectionId: '#calculator' },
   ];
+
+  const handleNavClick = (sectionId: string) => {
+    navigateToSection(sectionId);
+  };
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50 bg-white backdrop-blur-lg border-b border-gray-200 shadow-sm">
@@ -41,13 +66,13 @@ export const LandingNavbar = () => {
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-8">
               {navLinks.map((link) => (
-                <a
+                <button
                   key={link.name}
-                  href={link.href}
+                  onClick={() => handleNavClick(link.sectionId)}
                   className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium"
                 >
                   {link.name}
-                </a>
+                </button>
               ))}
             </div>
           </div>
@@ -95,14 +120,16 @@ export const LandingNavbar = () => {
         <div className="md:hidden bg-white border-t border-gray-200">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navLinks.map((link) => (
-              <a
+              <button
                 key={link.name}
-                href={link.href}
-                className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  handleNavClick(link.sectionId);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
               >
                 {link.name}
-              </a>
+              </button>
             ))}
             
 

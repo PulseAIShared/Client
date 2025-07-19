@@ -20,7 +20,9 @@
       "Bash(curl:*)",
       "Bash(mkdir:*)",
       "Bash(npx eslint:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(kill:*)",
+      "Bash(lsof:*)"
     ],
     "deny": []
   }

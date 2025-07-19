@@ -1,6 +1,7 @@
 import React from 'react';
 import './css/hero-section.css'; // Import custom styles
 import { useWaitlistModal } from '@/hooks/useWaitlistModal';
+import { scrollToSection } from '@/utils/navigation';
 import { 
   SiStripe, 
   SiHubspot, 
@@ -167,12 +168,12 @@ export const HeroSection = () => {
           >
             Join Waiting List
           </Button>
-          <Link 
-            to="#how-it-works" 
+          <button 
+            onClick={() => scrollToSection('#how-it-works')}
             className="h-12 px-8 py-3 text-base font-semibold text-blue-900 bg-transparent border-2 border-slate-400 backdrop-blur-sm rounded-xl hover:bg-slate-100 hover:border-slate-500 hover:shadow-lg transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 relative overflow-hidden group flex items-center justify-center"
           >
             <span className="relative">See How It Works</span>
-          </Link>
+          </button>
         </div>
 
         {/* Key capabilities with staggered animations */}
