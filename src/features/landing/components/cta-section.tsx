@@ -103,43 +103,6 @@ export const CTASection = () => {
             </div>
           </div>
 
-          {/* Social proof */}
-          <div className="border-t border-blue-700 pt-12">
-            <p className="text-sm text-blue-300 mb-8">Trusted by subscription businesses of all sizes</p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-8 items-center max-w-4xl mx-auto opacity-60">
-              <div className="text-center">
-                <div className="bg-blue-800 rounded-lg px-4 py-3 border border-blue-700">
-                  <div className="font-bold text-blue-200 text-sm">TechFlow SaaS</div>
-                  <div className="text-xs text-blue-400">-52% churn</div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="bg-blue-800 rounded-lg px-4 py-3 border border-blue-700">
-                  <div className="font-bold text-blue-200 text-sm">LearnHub Pro</div>
-                  <div className="text-xs text-blue-400">+$180K recovered</div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="bg-blue-800 rounded-lg px-4 py-3 border border-blue-700">
-                  <div className="font-bold text-blue-200 text-sm">FitnessPro</div>
-                  <div className="text-xs text-blue-400">78% recovery rate</div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="bg-blue-800 rounded-lg px-4 py-3 border border-blue-700">
-                  <div className="font-bold text-blue-200 text-sm">StreamMax</div>
-                  <div className="text-xs text-blue-400">-41% churn</div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="bg-blue-800 rounded-lg px-4 py-3 border border-blue-700">
-                  <div className="font-bold text-blue-200 text-sm">CloudStore</div>
-                  <div className="text-xs text-blue-400">+$320K saved</div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
