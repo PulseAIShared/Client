@@ -122,8 +122,8 @@ export default function BookDemoPage() {
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">Email Us</h3>
                   <p className="text-white/80 text-sm mb-3">Get in touch with our sales team</p>
-                  <a href="mailto:demo@pulseltvapp.com" className="text-white underline font-medium">
-                    demo@pulseltvapp.com
+                  <a href="mailto:hello@pulseltv.com" className="text-white underline font-medium">
+                    hello@pulseltv.com
                   </a>
                 </div>
 
