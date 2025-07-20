@@ -27,7 +27,17 @@ export const QuickActionsCard = () => {
               Your AI assistant has identified 12 high-risk customers and 3 optimization opportunities.
             </p>
 
-            {/* Action items - hidden on mobile to save space */}
+            {/* Mobile: Condensed action summary */}
+            <div className="sm:hidden mb-4">
+              <div className="flex items-center gap-2 text-text-secondary bg-surface-primary/30 px-3 py-2 rounded-lg border border-border-primary/30">
+                <svg className="w-4 h-4 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span className="text-sm font-medium">12 opportunities ready</span>
+              </div>
+            </div>
+
+            {/* Desktop: Detailed action items */}
             <div className="hidden sm:block space-y-2 sm:space-y-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-2 sm:gap-3 text-text-secondary">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent-primary rounded-full"></div>
@@ -62,14 +72,16 @@ export const QuickActionsCard = () => {
           </div>
         </div>
 
-        {/* Progress indicator */}
+        {/* Action summary footer */}
         <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border-primary/50">
-          <div className="flex items-center justify-between text-xs sm:text-sm text-text-secondary mb-1 sm:mb-2">
-            <span>Monthly Goal Progress</span>
-            <span>73% Complete</span>
-          </div>
-          <div className="w-full bg-surface-primary/50 rounded-full h-1.5 sm:h-2">
-            <div className="bg-gradient-to-r from-accent-primary to-accent-secondary h-1.5 sm:h-2 rounded-full w-[73%] transition-all duration-1000 ease-out"></div>
+          <div className="flex items-center justify-between text-xs sm:text-sm text-text-secondary">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-success-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>AI-powered recommendations</span>
+            </div>
+            <span className="text-accent-primary font-medium">Take action now</span>
           </div>
         </div>
       </div>

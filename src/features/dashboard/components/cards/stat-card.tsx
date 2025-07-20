@@ -70,29 +70,26 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
           
           <div className="relative">
             <h3 className="text-text-secondary text-xs sm:text-sm font-medium mb-2 sm:mb-3 uppercase tracking-wider">{stat.title}</h3>
-            <div className="flex items-end justify-between">
+            <div className="flex items-center justify-between mb-2">
               <p className={`text-xl sm:text-2xl lg:text-3xl font-bold ${stat.color} group-hover:scale-105 transition-transform duration-300`}>
                 {stat.value}
               </p>
-              {/* Trending indicator - hidden on small screens */}
-              <div className="hidden sm:flex items-center gap-1 text-success-muted text-xs lg:text-sm font-medium">
-                <svg className="w-3 h-3 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Trending indicator - now visible on all screen sizes */}
+              <div className="flex items-center gap-1 text-success-muted text-xs sm:text-sm font-medium bg-success-bg/20 px-2 py-1 rounded-full border border-success/30">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
                 <span>+5.2%</span>
               </div>
             </div>
             
-            {/* Progress bar */}
-            <div className="mt-3 sm:mt-4">
-              <div className="flex justify-between text-xs text-text-muted mb-1">
-                <span>Progress</span>
-                <span>87%</span>
-              </div>
-              <div className="w-full bg-surface-primary/50 rounded-full h-1 sm:h-1.5">
-                <div className="bg-gradient-to-r from-accent-primary to-accent-secondary h-1 sm:h-1.5 rounded-full w-[87%] transition-all duration-1000 ease-out"></div>
-              </div>
-            </div>
+            {/* Additional context instead of progress bar */}
+            <p className="text-xs text-text-muted">
+              {stat.title === 'Total Users' ? 'Active customers in system' :
+               stat.title === 'Churn Risk' ? 'Customers at risk this month' :
+               stat.title === 'Recovered Revenue' ? 'Revenue saved this quarter' :
+               'Average customer lifetime value'}
+            </p>
           </div>
         </div>
       ))}

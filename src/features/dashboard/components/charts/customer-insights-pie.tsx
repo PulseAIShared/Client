@@ -21,9 +21,9 @@ export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data: 
           </div>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div className="h-48 w-48 bg-surface-primary rounded-full"></div>
-          <div className="ml-6 space-y-3 flex-1">
+        <div className="space-y-6">
+          <div className="h-48 w-full bg-surface-primary rounded-xl"></div>
+          <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (
               <div key={index} className="h-12 bg-surface-primary rounded"></div>
             ))}
@@ -53,7 +53,57 @@ export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data: 
         </div>
       </div>
       
-      <div className="flex items-center justify-between">
+      {/* Mobile Layout - Stacked */}
+      <div className="md:hidden space-y-6">
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={customerInsightsData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={100}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {customerInsightsData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgb(var(--surface-secondary))', 
+                  border: '1px solid rgb(var(--border-primary))',
+                  borderRadius: '8px',
+                  color: 'rgb(var(--text-primary))'
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        
+        <div className="space-y-3">
+          {customerInsightsData.map((item, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-surface-primary/30 rounded-lg border border-border-primary/30">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-4 h-4 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-text-secondary font-medium">{item.name}</span>
+              </div>
+              <div className="text-right">
+                <div className="text-text-primary font-semibold">${item.revenue}</div>
+                <div className="text-xs text-text-muted">{item.value}%</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop Layout - Side by Side */}
+      <div className="hidden md:flex items-center justify-between">
         <div className="flex-1">
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -83,7 +133,7 @@ export const CustomerInsightsPie: React.FC<CustomerInsightsPieProps> = ({ data: 
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="ml-6 space-y-3">
+        <div className="ml-6 space-y-3 min-w-[200px]">
           {customerInsightsData.map((item, index) => (
             <div key={index} className="flex items-center justify-between gap-6">
               <div className="flex items-center gap-2">

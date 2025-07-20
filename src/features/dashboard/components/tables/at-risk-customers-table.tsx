@@ -2,17 +2,25 @@
 import React from 'react';
 import { AtRiskCustomer } from '@/types/api';
 
-const ChurnScoreBar: React.FC<{ score: number }> = ({ score }) => (
-  <div className="flex items-center gap-3">
-    <div className="flex-1 bg-surface-primary/50 rounded-full h-2 overflow-hidden">
-      <div 
-        className="h-full bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full transition-all duration-500"
-        style={{ width: `${score}%` }}
-      />
+const ChurnScoreBadge: React.FC<{ score: number }> = ({ score }) => {
+  const getRiskLevel = (score: number) => {
+    if (score >= 80) return { label: 'Critical', color: 'error', bg: 'error-bg' };
+    if (score >= 60) return { label: 'High', color: 'warning', bg: 'warning-bg' };
+    if (score >= 40) return { label: 'Medium', color: 'info', bg: 'info-bg' };
+    return { label: 'Low', color: 'success', bg: 'success-bg' };
+  };
+  
+  const risk = getRiskLevel(score);
+  
+  return (
+    <div className="flex items-center gap-2">
+      <div className={`px-2 py-1 rounded-full text-xs font-medium bg-${risk.bg}/20 text-${risk.color}-muted border border-${risk.color}/30`}>
+        {risk.label}
+      </div>
+      <span className="text-sm font-semibold text-text-secondary">{score}%</span>
     </div>
-    <span className="text-sm font-semibold text-text-secondary min-w-[2rem]">{score}</span>
-  </div>
-);
+  );
+};
 
 interface AtRiskCustomersTableProps {
   data?: AtRiskCustomer[];
@@ -70,23 +78,49 @@ export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ data
         </div>
       </div>
       
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-4 text-xs font-medium text-text-muted uppercase tracking-wider mb-4 px-3">
+      <div className="space-y-3 md:space-y-4">
+        {/* Desktop Table Headers - Hidden on mobile */}
+        <div className="hidden md:grid grid-cols-3 gap-4 text-xs font-medium text-text-muted uppercase tracking-wider mb-4 px-3">
           <span>Customer</span>
           <span>Days Inactive</span>
           <span>Risk Score</span>
         </div>
+        
         {customers.map((customer, index) => (
-          <div key={index} className="group grid grid-cols-3 gap-4 items-center p-3 bg-surface-primary/30 rounded-lg hover:bg-surface-primary/50 transition-all duration-200 border border-border-primary/30 hover:border-border-primary/50">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-medium text-xs">
-                {customer.name.split(' ').map(n => n[0]).join('')}
+          <div key={index} className="group bg-surface-primary/30 rounded-lg hover:bg-surface-primary/50 transition-all duration-200 border border-border-primary/30 hover:border-border-primary/50">
+            {/* Mobile Card Layout */}
+            <div className="md:hidden p-4 space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
+                  {customer.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-text-primary group-hover:text-accent-primary transition-colors truncate">
+                    {customer.name}
+                  </h4>
+                  <p className="text-sm text-text-secondary">
+                    {customer.daysSince} days inactive
+                  </p>
+                </div>
               </div>
-              <span className="font-medium text-text-primary group-hover:text-accent-primary transition-colors">{customer.name}</span>
+              <div className="flex items-center justify-between pt-2 border-t border-border-primary/30">
+                <span className="text-xs text-text-muted uppercase tracking-wider">Risk Score</span>
+                <ChurnScoreBadge score={customer.score} />
+              </div>
             </div>
-            <div className="text-text-secondary text-center font-medium">{customer.daysSince}</div>
-            <div className="flex items-center">
-              <ChurnScoreBar score={customer.score} />
+            
+            {/* Desktop Grid Layout */}
+            <div className="hidden md:grid grid-cols-3 gap-4 items-center p-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-medium text-sm">
+                  {customer.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <span className="font-medium text-text-primary group-hover:text-accent-primary transition-colors">{customer.name}</span>
+              </div>
+              <div className="text-text-secondary text-center font-medium">{customer.daysSince}</div>
+              <div className="flex items-center justify-end">
+                <ChurnScoreBadge score={customer.score} />
+              </div>
             </div>
           </div>
         ))}
