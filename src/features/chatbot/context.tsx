@@ -78,7 +78,7 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
   }
 
   // Other app routes
-  if (pathname.includes('/dashboard')) {
+  if (pathname.includes('/dashboard') || pathname === '/app' || pathname === '/app/') {
     return {
       context: {
         type: ChatContextType.Dashboard,
@@ -88,6 +88,37 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
         { id: 'explain_metrics', label: 'Explain Metrics', action: 'explain_dashboard_metrics' },
         { id: 'run_analysis', label: 'Run Analysis', action: 'run_new_analysis' },
         { id: 'export_report', label: 'Export Report', action: 'export_dashboard_report' },
+        { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
+      ],
+    };
+  }
+
+  if (pathname.includes('/customers') && !params.customerId) {
+    return {
+      context: {
+        type: ChatContextType.Customers,
+        routePath: pathname,
+      },
+      quickActions: [
+        { id: 'import_customers', label: 'Import Customers', action: 'help_import_customers' },
+        { id: 'segment_customers', label: 'Create Segments', action: 'help_create_customer_segments' },
+        { id: 'export_customers', label: 'Export Customer Data', action: 'export_customer_list' },
+        { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
+      ],
+    };
+  }
+
+  if (pathname.includes('/campaigns')) {
+    return {
+      context: {
+        type: ChatContextType.Campaigns,
+        routePath: pathname,
+      },
+      quickActions: [
+        { id: 'create_campaign', label: 'Create Campaign', action: 'help_create_campaign' },
+        { id: 'campaign_analytics', label: 'Campaign Analytics', action: 'analyze_campaign_performance' },
+        { id: 'target_audience', label: 'Target Audience', action: 'help_target_audience' },
+        { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
       ],
     };
   }
@@ -155,7 +186,9 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) =>
     updatePageContext, 
     setPageQuickActions, 
     setSupportSession,
-    supportSession
+    supportSession,
+    setIsAppRoute,
+    closeChat
   } = useChatbotStore();
 
   // Load active support session on mount
@@ -165,7 +198,16 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) =>
     const { context, quickActions } = getContextFromRoute(location.pathname, params);
     updatePageContext(context);
     setPageQuickActions(quickActions);
-  }, [location.pathname, params, updatePageContext, setPageQuickActions]);
+    
+    // Set whether this is an app route or not
+    const isApp = location.pathname.startsWith('/app');
+    setIsAppRoute(isApp);
+    
+    // Auto-close chat when visiting conversations page
+    if (location.pathname === '/app/conversations') {
+      closeChat();
+    }
+  }, [location.pathname, params, updatePageContext, setPageQuickActions, setIsAppRoute, closeChat]);
 
   // Update page context when route changes
   useEffect(() => {

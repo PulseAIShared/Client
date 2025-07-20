@@ -4,6 +4,7 @@ import { ContextSwitcher } from './context-switcher';
 import { ConversationSwitcher } from './conversation-switcher';
 import { SupportSessionInterface } from './support-session-interface';
 import { PageHelpInterface } from './page-help-interface';
+import { LandingHelpInterface } from './landing-help-interface';
 
 export const ChatbotModal: React.FC = () => {
   const {
@@ -11,6 +12,7 @@ export const ChatbotModal: React.FC = () => {
     isMinimized,
     activeMode,
     supportSession,
+    isAppRoute,
     closeChat,
     toggleMinimized,
   } = useChatbotStore();
@@ -69,20 +71,22 @@ export const ChatbotModal: React.FC = () => {
           </div>
         </div>
         
-        {/* Conversation Switcher */}
-        {!isMinimized && activeMode === 'page_help' && <ConversationSwitcher />}
+        {/* Conversation Switcher - Only show for app routes */}
+        {!isMinimized && activeMode === 'page_help' && isAppRoute && <ConversationSwitcher />}
       </div>
 
-      {/* Context Switcher */}
-      {!isMinimized && <ContextSwitcher />}
+      {/* Context Switcher - Only show for app routes */}
+      {!isMinimized && isAppRoute && <ContextSwitcher />}
 
       {/* Content */}
       {!isMinimized && (
         <div className="flex-1 overflow-hidden">
           {activeMode === 'support_session' && supportSession ? (
             <SupportSessionInterface session={supportSession} />
-          ) : (
+          ) : isAppRoute ? (
             <PageHelpInterface />
+          ) : (
+            <LandingHelpInterface />
           )}
         </div>
       )}

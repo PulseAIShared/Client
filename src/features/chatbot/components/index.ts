@@ -6,6 +6,7 @@ export { QuickActions } from './quick-actions';
 export { ContextSwitcher } from './context-switcher';
 export { SupportSessionInterface } from './support-session-interface';
 export { PageHelpInterface } from './page-help-interface';
+export { LandingHelpInterface } from './landing-help-interface';
 
 // Admin Support Components
 export { AdminSupportDashboard } from './admin-support-dashboard';

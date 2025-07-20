@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useChatbotStore } from '../store';
 import { useSupportStore } from '../support-store';
 import { ChatMessages } from './chat-messages';
@@ -12,6 +13,7 @@ interface SupportSessionInterfaceProps {
 
 export const SupportSessionInterface: React.FC<SupportSessionInterfaceProps> = ({ session }) => {
   console.log('SupportSessionInterface loaded with session:', session);
+  const queryClient = useQueryClient();
   const { supportMessages, addSupportMessage, clearSupportSession, isLoading, setLoading } = useChatbotStore();
   const { 
     connect, 
@@ -22,7 +24,8 @@ export const SupportSessionInterface: React.FC<SupportSessionInterfaceProps> = (
     messages, 
     typingUsers,
     setMessages,
-    addMessage
+    addMessage,
+    setQueryClient
   } = useSupportStore();
   
   const sendSupportMessage = useSendSupportMessage();
@@ -44,6 +47,9 @@ export const SupportSessionInterface: React.FC<SupportSessionInterfaceProps> = (
 
   // Initialize support connection on mount
   useEffect(() => {
+    // Set query client in support store for cache invalidation
+    setQueryClient(queryClient);
+    
     const initializeSupport = async () => {
       try {
         await connect();
@@ -56,7 +62,7 @@ export const SupportSessionInterface: React.FC<SupportSessionInterfaceProps> = (
     };
 
     initializeSupport();
-  }, [connect, joinSession, session.id, isConnected]);
+  }, [connect, joinSession, session.id, isConnected, setQueryClient, queryClient]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -64,11 +70,21 @@ export const SupportSessionInterface: React.FC<SupportSessionInterfaceProps> = (
     setLoading(true);
     
     try {
+      let messageSuccess = false;
+      
+      // First try SignalR if connected
       if (isConnected) {
-        // Use real-time SignalR connection
-        await sendMessage(session.id, content);
-      } else {
-        // Fallback to API call
+        try {
+          await sendMessage(session.id, content);
+          messageSuccess = true;
+          console.log('Message sent via SignalR');
+        } catch (signalRError) {
+          console.warn('SignalR send failed, falling back to API:', signalRError);
+        }
+      }
+      
+      // If SignalR failed or not connected, use API fallback
+      if (!messageSuccess) {
         const message = await sendSupportMessage.mutateAsync({
           sessionId: session.id,
           request: { content }
@@ -77,9 +93,27 @@ export const SupportSessionInterface: React.FC<SupportSessionInterfaceProps> = (
         // Add to both stores for consistency
         addSupportMessage(message);
         addMessage(session.id, message);
+        console.log('Message sent via API fallback');
       }
+      
     } catch (error) {
-      console.error('Failed to send support message:', error);
+      console.error('Failed to send support message via all methods:', error);
+      
+      // Show user feedback about the error
+      addMessage(session.id, {
+        id: `error-${Date.now()}`,
+        sessionId: session.id,
+        content: '❌ Failed to send message. Please try again.',
+        type: 'SystemMessage',
+        sentAt: new Date().toISOString(),
+        senderName: 'System',
+        isFromUser: false,
+        isFromAi: false,
+        isFromAdmin: false,
+        wasEscalated: false,
+        isRead: true,
+        metadata: {}
+      });
     } finally {
       setLoading(false);
     }
@@ -113,7 +147,19 @@ export const SupportSessionInterface: React.FC<SupportSessionInterfaceProps> = (
         reason: 'User closed session'
       });
       
+      // Clear support session from store
       clearSupportSession();
+      
+      // Switch back to page help mode
+      const { setActiveMode } = useChatbotStore.getState();
+      setActiveMode('page_help');
+      
+      // Invalidate support session queries to update admin UI
+      const queryClient = useQueryClient();
+      queryClient.invalidateQueries({ queryKey: ['support', 'admin', 'sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['support', 'admin', 'active'] });
+      queryClient.invalidateQueries({ queryKey: ['support', 'active-session'] });
+      
     } catch (error) {
       console.error('Failed to close support session:', error);
     }

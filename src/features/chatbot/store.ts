@@ -56,6 +56,12 @@ interface ChatbotState {
   allConversations: ChatConversation[]; // For history page
   currentConversation?: ChatConversation;
   conversationId?: string;
+  
+  // Storage Strategy
+  isAppRoute: boolean; // Determines storage strategy
+  
+  // Local Storage for non-app routes
+  localConversations: ChatMessage[]; // Simple array for non-app route conversations
 }
 
 interface ChatbotActions {
@@ -100,6 +106,12 @@ interface ChatbotActions {
   setConversations: (conversations: ChatConversation[]) => void;
   setCurrentConversation: (conversation: ChatConversation | undefined) => void;
   convertAPIMessagesToChatMessages: (apiMessages: APIChatMessage[]) => ChatMessage[];
+  
+  // Storage Strategy Actions
+  setIsAppRoute: (isApp: boolean) => void;
+  addLocalMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
+  clearLocalMessages: () => void;
+  getMessagesForCurrentRoute: () => ChatMessage[];
 }
 
 export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
@@ -133,6 +145,12 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
       allConversations: [],
       currentConversation: undefined,
       conversationId: undefined,
+      
+      // Storage Strategy
+      isAppRoute: false,
+      
+      // Local Storage for non-app routes
+      localConversations: [],
 
       // UI Actions
       openChat: () => set({ isOpen: true, isMinimized: false }),
@@ -313,6 +331,12 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
             return 'dashboard';
           case ChatContextType.Integrations:
             return 'integrations';
+          case ChatContextType.Customers:
+            return 'customers';
+          case ChatContextType.Campaigns:
+            return 'campaigns';
+          case ChatContextType.Support:
+            return 'support';
           case ChatContextType.General:
           default:
             return 'general';
@@ -360,6 +384,12 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
               return 'Dashboard';
             case ChatContextType.Integrations:
               return 'Integrations';
+            case ChatContextType.Customers:
+              return 'Customers';
+            case ChatContextType.Campaigns:
+              return 'Campaigns';
+            case ChatContextType.Support:
+              return 'Support';
             case ChatContextType.General:
             default:
               return 'General';
@@ -450,6 +480,21 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
                 type: ChatContextType.Integrations,
                 routePath: '/app/settings'
               };
+            } else if (contextKey === 'customers') {
+              return {
+                type: ChatContextType.Customers,
+                routePath: '/app/customers'
+              };
+            } else if (contextKey === 'campaigns') {
+              return {
+                type: ChatContextType.Campaigns,
+                routePath: '/app/campaigns'
+              };
+            } else if (contextKey === 'support') {
+              return {
+                type: ChatContextType.Support,
+                routePath: '/app/support'
+              };
             } else {
               return {
                 type: ChatContextType.General,
@@ -513,15 +558,53 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
           conversation.lastMessage.toLowerCase().includes(lowercaseQuery)
         );
       },
+      
+      // Storage Strategy Actions
+      setIsAppRoute: (isApp: boolean) => {
+        set({ isAppRoute: isApp });
+        
+        // Clear appropriate storage when switching route types
+        if (isApp) {
+          // Switching to app route - clear local messages, rely on server
+          set({ localConversations: [] });
+        } else {
+          // Switching to non-app route - clear server-based data
+          set({ 
+            pageMessages: [],
+            conversationsByContext: {},
+            messagesByContext: {},
+            allConversations: [],
+            currentConversation: undefined,
+            conversationId: undefined
+          });
+        }
+      },
+      
+      addLocalMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
+        const newMessage: ChatMessage = {
+          ...message,
+          id: crypto.randomUUID(),
+          timestamp: new Date(),
+        };
+        
+        set((state) => ({
+          localConversations: [...state.localConversations, newMessage],
+        }));
+      },
+      
+      clearLocalMessages: () => set({ localConversations: [] }),
+      
+      getMessagesForCurrentRoute: () => {
+        const state = get();
+        return state.isAppRoute ? state.pageMessages : state.localConversations;
+      },
     }),
     {
       name: 'chatbot-store',
       partialize: (state) => ({
-        currentContextKey: state.currentContextKey,
-        conversationsByContext: state.conversationsByContext,
-        messagesByContext: state.messagesByContext,
-        allConversations: state.allConversations,
-        currentConversation: state.currentConversation,
+        // Only persist local conversations and support session
+        // App route conversations are managed by the server
+        localConversations: state.localConversations,
         supportSession: state.supportSession,
         supportMessages: state.supportMessages,
       }),

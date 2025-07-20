@@ -22,7 +22,9 @@
       "Bash(npx eslint:*)",
       "Bash(pkill:*)",
       "Bash(kill:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(export:*)",
+      "Bash(mkcert:*)"
     ],
     "deny": []
   }

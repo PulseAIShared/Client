@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { signalRConnection } from '@/lib/signalr';
+import type { QueryClient } from '@tanstack/react-query';
 import type { SupportSession, SupportMessage } from './api/chatbot';
 
 interface TypingUser {
@@ -37,12 +38,16 @@ interface SupportState {
   // UI state
   isLoading: boolean;
   error: string | null;
+  
+  // Query client for cache invalidation
+  queryClient: QueryClient | null;
 }
 
 interface SupportActions {
   // Connection management
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
+  setQueryClient: (queryClient: QueryClient) => void;
   
   // Session management
   setCurrentSession: (session: SupportSession | null) => void;
@@ -106,6 +111,7 @@ export const useSupportStore = create<SupportState & SupportActions>()(
       typingUsers: {},
       isLoading: false,
       error: null,
+      queryClient: null,
 
       // Connection management
       connect: async () => {
@@ -115,11 +121,44 @@ export const useSupportStore = create<SupportState & SupportActions>()(
           // Don't connect here - let useRealTimeNotifications handle the connection
           // Just register the event handlers
           const state = get();
+          // Register all support-related SignalR events
           signalRConnection.on('admin_online', (data: unknown) => 
             state.handleAdminOnline(data as { AdminId: string; ConnectedAt: string })
           );
           signalRConnection.on('admin_offline', (data: unknown) => 
             state.handleAdminOffline(data as { AdminId: string; DisconnectedAt: string })
+          );
+          signalRConnection.on('new_support_session', (data: unknown) =>
+            state.handleNewSupportSession(data as { SessionId: string; Topic: string; CustomerRiskLevel: string; CreatedAt: string })
+          );
+          signalRConnection.on('session_assigned', (data: unknown) =>
+            state.handleSessionAssigned(data as { SessionId: string; AdminId: string })
+          );
+          signalRConnection.on('message_received', (data: unknown) =>
+            state.handleMessageReceived(data as any)
+          );
+          signalRConnection.on('session_closed', (data: unknown) => {
+            const sessionData = data as { SessionId: string; Reason: string };
+            state.removeSession(sessionData.SessionId);
+            
+            // Invalidate queries to update UI
+            const { queryClient } = state;
+            if (queryClient) {
+              queryClient.invalidateQueries({ queryKey: ['support', 'admin', 'sessions'] });
+              queryClient.invalidateQueries({ queryKey: ['support', 'admin', 'active'] });
+            }
+          });
+          signalRConnection.on('admin_picked_up_session', (data: unknown) =>
+            state.handleAdminPickedUpSession(data as { AdminId: string; SessionId: string; PickedUpAt: string })
+          );
+          signalRConnection.on('user_joined_session', (data: unknown) =>
+            state.handleUserJoinedSession(data as { UserId: string; SessionId: string; JoinedAt: string })
+          );
+          signalRConnection.on('user_typing', (data: unknown) =>
+            state.handleUserTyping(data as { UserId: string; SessionId: string; IsTyping: boolean })
+          );
+          signalRConnection.on('active_sessions', (data: unknown) =>
+            state.handleActiveSessions(data as any[])
           );
           
           set({ isConnected: true, isLoading: false });
@@ -136,6 +175,10 @@ export const useSupportStore = create<SupportState & SupportActions>()(
       disconnect: async () => {
         // Don't disconnect the shared connection - just clean up event handlers
         set({ isConnected: false, connectionError: null });
+      },
+      
+      setQueryClient: (queryClient: QueryClient) => {
+        set({ queryClient });
       },
 
       // Session management
@@ -292,6 +335,13 @@ export const useSupportStore = create<SupportState & SupportActions>()(
           originalContext: { type: 0, routePath: '/support' },
         };
         get().addAdminSession(session);
+        
+        // Invalidate queries to update admin UI immediately
+        const { queryClient } = get();
+        if (queryClient) {
+          queryClient.invalidateQueries({ queryKey: ['support', 'admin', 'sessions'] });
+          queryClient.invalidateQueries({ queryKey: ['support', 'admin', 'active'] });
+        }
       },
       
       handleSessionAssigned: (data) => {
@@ -299,6 +349,13 @@ export const useSupportStore = create<SupportState & SupportActions>()(
           assignedAdminId: data.AdminId,
           status: 'AdminActive',
         });
+        
+        // Invalidate queries to update UI
+        const { queryClient } = get();
+        if (queryClient) {
+          queryClient.invalidateQueries({ queryKey: ['support', 'admin', 'sessions'] });
+          queryClient.invalidateQueries({ queryKey: ['support', 'admin', 'active'] });
+        }
       },
       
       handleSessionNeedsAttention: (data) => {

@@ -47,6 +47,15 @@ export interface ChatConversation {
   lastMessageAt: string;
   messageCount: number;
   createdAt: string;
+  contextType?: ChatContextType;
+  contextPath?: string; // Backend returns this instead of routePath in contextData
+  contextData?: {
+    customerId?: string;
+    analysisId?: string;
+    importJobId?: string;
+    segmentId?: string;
+    routePath?: string;
+  } | null; // Backend can return null
 }
 
 export interface ConversationHistoryResponse {
@@ -70,6 +79,16 @@ export interface ContactResponse {
   success: boolean;
   ticketId?: string;
   message: string;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }
 
 // Support Session Types
@@ -123,7 +142,10 @@ export enum ChatContextType {
   Analytics = 3,
   Segments = 4,
   Integrations = 5,
-  Import = 6
+  Import = 6,
+  Customers = 7,
+  Campaigns = 8,
+  Support = 9
 }
 
 export enum MessageSender {
@@ -137,6 +159,21 @@ export enum MessageType {
   QuickAction = 1,
   ContactRequest = 2,
   SystemMessage = 3
+}
+
+export enum SupportSessionStatus {
+  WaitingForAdmin = 0,
+  WithAi = 1,
+  WithAdmin = 2,
+  EscalatedToEmail = 3,
+  Closed = 4
+}
+
+export enum SupportPriority {
+  Low = 0,
+  Medium = 1,
+  High = 2,
+  Critical = 3
 }
 
 export interface SupportMessage {
@@ -194,7 +231,11 @@ export const getChatHistory = (conversationId: string, page: number = 1, pageSiz
 };
 
 export const getUserConversations = (): Promise<ChatConversation[]> => {
-  return api.get('/chatbot/conversations');
+  return api.get('/chatbot/conversations').then((response) => {
+    // Handle paginated response - extract items array if present
+    const data = response as unknown as PaginatedResponse<ChatConversation> | ChatConversation[];
+    return 'items' in data ? data.items : data;
+  });
 };
 
 export const deleteConversation = (conversationId: string): Promise<void> => {
@@ -237,7 +278,22 @@ export const assignSupportSession = (sessionId: string, adminId: string): Promis
 // Admin Support API Functions
 export const getAdminSupportSessions = (status?: string): Promise<SupportSession[]> => {
   const params = status ? `?status=${status}` : '';
-  return api.get(`/support/admin/sessions${params}`);
+  return api.get(`/support/admin/sessions${params}`).then((response) => {
+    // Handle paginated response - extract items array
+    const data = response as unknown as PaginatedResponse<SupportSession> | SupportSession[];
+    const sessions = 'items' in data ? data.items : data;
+    
+    // If no specific status filter is provided and this is meant to be "active" sessions,
+    // filter out closed sessions as a safety measure (status 4 = Closed)
+    if (!status) {
+      return sessions.filter(session => 
+        (session.status as any) !== SupportSessionStatus.Closed && 
+        session.status !== 'Closed'
+      );
+    }
+    
+    return sessions;
+  });
 };
 
 export const claimSupportSession = (sessionId: string): Promise<SupportSession> => {
@@ -245,7 +301,17 @@ export const claimSupportSession = (sessionId: string): Promise<SupportSession> 
 };
 
 export const getActiveSupportSessions = (): Promise<SupportSession[]> => {
-  return api.get('/support/admin/active');
+  return api.get('/support/admin/active').then((response) => {
+    // Handle paginated response - extract items array
+    const data = response as unknown as PaginatedResponse<SupportSession> | SupportSession[];
+    const sessions = 'items' in data ? data.items : data;
+    
+    // Filter out closed sessions as a safety measure (status 4 = Closed)
+    return sessions.filter(session => 
+      (session.status as any) !== SupportSessionStatus.Closed && 
+      session.status !== 'Closed'
+    );
+  });
 };
 
 // Query Options

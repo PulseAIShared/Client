@@ -15,8 +15,8 @@ const serverConfig = isProduction
   : {
       port: 3000,
       https: {
-        key: fs.readFileSync('localhost+1-key.pem'),
-        cert: fs.readFileSync('localhost+1.pem'),
+        key: fs.readFileSync('localhost-key.pem'),
+        cert: fs.readFileSync('localhost.pem'),
       },
     };
 

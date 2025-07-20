@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatbotStore } from '@/features/chatbot/store';
-import { ChatContextType, useDeleteConversation, useClearConversationMessages } from '@/features/chatbot/api/chatbot';
+import { ChatContextType, useDeleteConversation, useClearConversationMessages, useGetUserConversations } from '@/features/chatbot/api/chatbot';
 import { useQueryClient } from '@tanstack/react-query';
 
 export const ConversationsRoute: React.FC = () => {
@@ -13,19 +13,116 @@ export const ConversationsRoute: React.FC = () => {
   const [filterContext, setFilterContext] = useState<ChatContextType | 'all'>('all');
 
   const {
-    allConversations,
     searchConversations,
     conversationsByContext,
     switchToConversation,
     openChat,
   } = useChatbotStore();
 
+  // Fetch conversations from server
+  const { data: conversations = [], isLoading, error } = useGetUserConversations();
   const deleteConversationMutation = useDeleteConversation();
   const clearMessagesMutation = useClearConversationMessages();
 
+  const getQuickActionsForContext = (contextType: ChatContextType, contextData: any) => {
+    switch (contextType) {
+      case ChatContextType.Dashboard:
+        return [
+          { id: 'explain_metrics', label: 'Explain Metrics', action: 'explain_dashboard_metrics' },
+          { id: 'run_analysis', label: 'Run Analysis', action: 'run_new_analysis' },
+          { id: 'export_report', label: 'Export Report', action: 'export_dashboard_report' },
+          { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
+        ];
+      case ChatContextType.CustomerDetail:
+        return [
+          { id: 'customer_analytics', label: 'Customer Analytics', action: 'show_customer_analytics' },
+          { id: 'churn_risk', label: 'Churn Risk Analysis', action: 'analyze_churn_risk' },
+          { id: 'export_data', label: 'Export Customer Data', action: 'export_customer_data' },
+          { id: 'contact_history', label: 'Contact History', action: 'show_contact_history' },
+        ];
+      case ChatContextType.Customers:
+        return [
+          { id: 'import_customers', label: 'Import Customers', action: 'help_import_customers' },
+          { id: 'segment_customers', label: 'Create Segments', action: 'help_create_customer_segments' },
+          { id: 'export_customers', label: 'Export Customer Data', action: 'export_customer_list' },
+          { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
+        ];
+      case ChatContextType.Campaigns:
+        return [
+          { id: 'create_campaign', label: 'Create Campaign', action: 'help_create_campaign' },
+          { id: 'campaign_analytics', label: 'Campaign Analytics', action: 'analyze_campaign_performance' },
+          { id: 'target_audience', label: 'Target Audience', action: 'help_target_audience' },
+          { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
+        ];
+      case ChatContextType.Analytics:
+        return [
+          { id: 'ltv_analysis', label: 'LTV Analysis', action: 'explain_ltv_analysis' },
+          { id: 'churn_prediction', label: 'Churn Prediction', action: 'explain_churn_prediction' },
+          { id: 'demographic_insights', label: 'Demographic Insights', action: 'show_demographic_insights' },
+        ];
+      case ChatContextType.Segments:
+        return [
+          { id: 'create_segment', label: 'Create Segment', action: 'help_create_segment' },
+          { id: 'segment_performance', label: 'Segment Performance', action: 'analyze_segment_performance' },
+          { id: 'export_segments', label: 'Export Segments', action: 'export_segment_data' },
+        ];
+      case ChatContextType.Integrations:
+        return [
+          { id: 'integration_help', label: 'Integration Help', action: 'help_with_integrations' },
+          { id: 'account_settings', label: 'Account Settings', action: 'explain_account_settings' },
+          { id: 'billing_help', label: 'Billing Help', action: 'billing_assistance' },
+        ];
+      case ChatContextType.Import:
+        return [
+          { id: 'import_status', label: 'Import Status', action: 'check_import_status' },
+          { id: 'fix_errors', label: 'Fix Import Errors', action: 'help_fix_import_errors' },
+          { id: 'data_mapping', label: 'Data Mapping Help', action: 'data_mapping_help' },
+        ];
+      default:
+        return [
+          { id: 'getting_started', label: 'Getting Started', action: 'getting_started_guide' },
+          { id: 'feature_help', label: 'Feature Help', action: 'feature_assistance' },
+          { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
+        ];
+    }
+  };
+
   const handleConversationClick = (conversation: any) => {
-    // Switch to conversation and open chat directly, no navigation required
-    switchToConversation(conversation);
+    // Debug: Log the conversation data to see what we're getting
+    console.log('🔍 Conversation data:', conversation);
+    console.log('🔍 Context Type:', conversation.contextType);
+    console.log('🔍 Context Data:', conversation.contextData);
+
+    // Create context from conversation data
+    const conversationContext = {
+      type: conversation.contextType || ChatContextType.General,
+      routePath: conversation.contextPath || conversation.contextData?.routePath || '/app',
+      customerId: conversation.contextData?.customerId,
+      analysisId: conversation.contextData?.analysisId,
+      importJobId: conversation.contextData?.importJobId,
+      segmentId: conversation.contextData?.segmentId,
+    };
+
+    console.log('🔍 Generated context:', conversationContext);
+
+    // Get the appropriate quick actions for this context
+    const quickActions = getQuickActionsForContext(
+      conversationContext.type, 
+      conversation.contextData
+    );
+
+    console.log('🔍 Generated quick actions:', quickActions);
+
+    // Set the current conversation, context, and quick actions in the store
+    useChatbotStore.setState({ 
+      currentConversation: conversation,
+      conversationId: conversation.id,
+      pageMessages: [], // Will be loaded from server when chat opens
+      pageContext: conversationContext, // Set the proper context from the conversation
+      pageQuickActions: quickActions, // Set the proper quick actions for the context
+    });
+    
+    console.log('🔍 Store updated, opening chat...');
     openChat();
   };
 
@@ -52,21 +149,13 @@ export const ConversationsRoute: React.FC = () => {
       try {
         await deleteConversationMutation.mutateAsync(conversationId);
         
-        // Update local store by removing the conversation
+        // Clear current conversation if it's the one being deleted
         useChatbotStore.setState((state) => ({
-          allConversations: state.allConversations.filter(c => c.id !== conversationId),
-          conversationsByContext: Object.fromEntries(
-            Object.entries(state.conversationsByContext).filter(([key, conv]) => conv.id !== conversationId)
-          ),
-          messagesByContext: Object.fromEntries(
-            Object.entries(state.messagesByContext).filter(([key, conv]) => 
-              state.conversationsByContext[key]?.id !== conversationId
-            )
-          ),
           currentConversation: state.currentConversation?.id === conversationId ? undefined : state.currentConversation,
+          pageMessages: state.currentConversation?.id === conversationId ? [] : state.pageMessages,
         }));
         
-        // Invalidate queries
+        // Invalidate queries to refetch conversations from server
         queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversations'] });
         queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversation', conversationId] });
         
@@ -84,22 +173,12 @@ export const ConversationsRoute: React.FC = () => {
       try {
         await clearMessagesMutation.mutateAsync(conversationId);
         
-        // Update local store by clearing messages for this conversation
-        const contextKey = Object.keys(conversationsByContext).find(
-          key => conversationsByContext[key].id === conversationId
-        );
+        // Clear messages if it's the current conversation
+        useChatbotStore.setState((state) => ({
+          pageMessages: state.currentConversation?.id === conversationId ? [] : state.pageMessages,
+        }));
         
-        if (contextKey) {
-          useChatbotStore.setState((state) => ({
-            messagesByContext: {
-              ...state.messagesByContext,
-              [contextKey]: [],
-            },
-            pageMessages: state.currentConversation?.id === conversationId ? [] : state.pageMessages,
-          }));
-        }
-        
-        // Invalidate queries
+        // Invalidate queries to refetch from server
         queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversation', conversationId] });
         queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversations'] });
       } catch (error) {
@@ -121,21 +200,13 @@ export const ConversationsRoute: React.FC = () => {
           )
         );
         
-        // Update local store by removing all selected conversations
+        // Clear current conversation if it's one of the deleted ones
         useChatbotStore.setState((state) => ({
-          allConversations: state.allConversations.filter(c => !selectedConversations.includes(c.id)),
-          conversationsByContext: Object.fromEntries(
-            Object.entries(state.conversationsByContext).filter(([key, conv]) => !selectedConversations.includes(conv.id))
-          ),
-          messagesByContext: Object.fromEntries(
-            Object.entries(state.messagesByContext).filter(([key, conv]) => 
-              !selectedConversations.includes(state.conversationsByContext[key]?.id || '')
-            )
-          ),
           currentConversation: selectedConversations.includes(state.currentConversation?.id || '') ? undefined : state.currentConversation,
+          pageMessages: selectedConversations.includes(state.currentConversation?.id || '') ? [] : state.pageMessages,
         }));
         
-        // Invalidate queries
+        // Invalidate queries to refetch from server
         queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversations'] });
         selectedConversations.forEach(conversationId => {
           queryClient.invalidateQueries({ queryKey: ['chatbot', 'conversation', conversationId] });
@@ -160,35 +231,44 @@ export const ConversationsRoute: React.FC = () => {
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  const getContextIcon = (contextKey: string) => {
-    if (contextKey.startsWith('customer-')) return '👤';
-    if (contextKey.startsWith('analytics-')) return '📊';
-    if (contextKey.startsWith('segments-')) return '🎯';
-    if (contextKey === 'dashboard') return '🏠';
-    if (contextKey === 'integrations') return '🔗';
-    return '💬';
+  const getContextIcon = (contextType: ChatContextType) => {
+    switch (contextType) {
+      case ChatContextType.Dashboard:
+        return '🏠';
+      case ChatContextType.CustomerDetail:
+        return '👤';
+      case ChatContextType.Customers:
+        return '👥';
+      case ChatContextType.Campaigns:
+        return '📢';
+      case ChatContextType.Analytics:
+        return '📊';
+      case ChatContextType.Segments:
+        return '🎯';
+      case ChatContextType.Integrations:
+        return '🔗';
+      case ChatContextType.Import:
+        return '📥';
+      case ChatContextType.Support:
+        return '🆘';
+      default:
+        return '💬';
+    }
   };
 
-  const getContextType = (contextKey: string): ChatContextType => {
-    if (contextKey.startsWith('customer-')) return ChatContextType.CustomerDetail;
-    if (contextKey.startsWith('analytics-')) return ChatContextType.Analytics;
-    if (contextKey.startsWith('segments-')) return ChatContextType.Segments;
-    if (contextKey === 'dashboard') return ChatContextType.Dashboard;
-    if (contextKey === 'integrations') return ChatContextType.Integrations;
-    return ChatContextType.General;
-  };
-
+  // Use server data instead of local store
   const filteredConversations = searchQuery
-    ? searchConversations(searchQuery)
-    : allConversations;
+    ? conversations.filter(conversation =>
+        conversation.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        conversation.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : conversations;
 
   const sortedConversations = [...filteredConversations]
     .filter(conversation => {
       if (filterContext === 'all') return true;
-      const contextKey = Object.keys(conversationsByContext).find(
-        key => conversationsByContext[key].id === conversation.id
-      );
-      return contextKey && getContextType(contextKey) === filterContext;
+      // Use context type from server data
+      return conversation.contextType === filterContext;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -213,15 +293,7 @@ export const ConversationsRoute: React.FC = () => {
               Manage and revisit your AI conversations across different contexts
             </p>
           </div>
-          <button
-            onClick={() => navigate('/app/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 bg-surface-secondary hover:bg-surface-primary border border-border-primary rounded-lg transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Dashboard
-          </button>
+
         </div>
 
         {/* Search and Filters */}
@@ -285,7 +357,19 @@ export const ConversationsRoute: React.FC = () => {
 
       {/* Conversations List */}
       <div className="space-y-4">
-        {sortedConversations.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12 bg-surface-secondary rounded-lg border border-border-primary">
+            <div className="text-4xl mb-4">⏳</div>
+            <h3 className="text-lg font-medium text-text-primary mb-2">Loading conversations...</h3>
+            <p className="text-text-muted">Please wait while we fetch your chat history</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 bg-surface-secondary rounded-lg border border-border-primary">
+            <div className="text-4xl mb-4">❌</div>
+            <h3 className="text-lg font-medium text-text-primary mb-2">Failed to load conversations</h3>
+            <p className="text-text-muted">There was an error loading your chat history. Please try refreshing the page.</p>
+          </div>
+        ) : sortedConversations.length === 0 ? (
           <div className="text-center py-12 bg-surface-secondary rounded-lg border border-border-primary">
             <div className="text-4xl mb-4">💬</div>
             <h3 className="text-lg font-medium text-text-primary mb-2">No conversations found</h3>
@@ -295,10 +379,8 @@ export const ConversationsRoute: React.FC = () => {
           </div>
         ) : (
           sortedConversations.map((conversation) => {
-            const contextKey = Object.keys(conversationsByContext).find(
-              key => conversationsByContext[key].id === conversation.id
-            );
-            const contextIcon = contextKey ? getContextIcon(contextKey) : '💬';
+            // Use context type from server data for proper icon
+            const contextIcon = getContextIcon(conversation.contextType || ChatContextType.General);
             const isSelected = selectedConversations.includes(conversation.id);
 
             return (

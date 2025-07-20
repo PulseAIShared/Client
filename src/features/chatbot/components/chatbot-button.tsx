@@ -1,8 +1,15 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useChatbotStore } from '../store';
 
 export const ChatbotButton: React.FC = () => {
+  const location = useLocation();
   const { isOpen, openChat, closeChat, supportSession } = useChatbotStore();
+
+  // Hide on conversations page
+  if (location.pathname === '/app/conversations') {
+    return null;
+  }
 
   const handleToggle = () => {
     if (isOpen) {

@@ -100,13 +100,10 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
   );
 
   const sidebarContent = (
-    <div className="h-full bg-surface-primary/95 backdrop-blur-lg border-r border-border-primary/50">
-      {/* Header */}
-
-
-      {/* Navigation */}
-      <ScrollArea className="flex-1 px-3 py-6">
-        <div className="space-y-2">
+    <div className="h-full bg-surface-primary/95 backdrop-blur-lg border-r border-border-primary/50 flex flex-col">
+      {/* Navigation - Scrollable area */}
+      <ScrollArea className="flex-1" style={{ height: 'calc(100vh - 180px)' }}>
+        <div className="space-y-2 px-3 py-6">
           {navigation.map((item) => (
             <LinksGroup
               key={item.name}
@@ -121,7 +118,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-6 border-t border-border-primary/50">
+      <div className="flex-shrink-0 p-6 border-t border-border-primary/50">
         <div className="bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 rounded-lg p-4 border border-accent-primary/30">
           <h3 className="text-sm font-medium text-text-primary mb-1">Need Help?</h3>
           <p className="text-xs text-text-secondary mb-3">Get support from our team</p>
