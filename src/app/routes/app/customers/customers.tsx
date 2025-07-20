@@ -38,24 +38,27 @@ const sortFieldMap: Record<SortField, string> = {
   plan: 'plan'
 };
 
-const ChurnRiskBar: React.FC<{ risk: number }> = ({ risk }) => (
-  <div className="flex items-center gap-3">
-    <div className="flex-1 bg-surface-secondary rounded-full h-2 overflow-hidden max-w-[80px]">
-      <div 
-        className={`h-full rounded-full transition-all duration-500 ${
-          risk >= 80 ? 'bg-gradient-to-r from-error to-error-muted' :
-          risk >= 60 ? 'bg-gradient-to-r from-warning to-warning-muted' :
-          risk >= 40 ? 'bg-gradient-to-r from-warning to-warning-muted' :
-          'bg-gradient-to-r from-success to-success-muted'
-        }`}
-        style={{ width: `${risk}%` }}
-      />
+const ChurnRiskBadge: React.FC<{ score: number }> = ({ score }) => {
+  const getRiskLevel = (score: number) => {
+    if (score >= 80) return { label: 'Critical', bgColor: 'bg-error/20', textColor: 'text-error', borderColor: 'border-error/30' };
+    if (score >= 60) return { label: 'High', bgColor: 'bg-warning/20', textColor: 'text-warning', borderColor: 'border-warning/30' };
+    if (score >= 40) return { label: 'Medium', bgColor: 'bg-warning/10', textColor: 'text-warning', borderColor: 'border-warning/20' };
+    return { label: 'Low', bgColor: 'bg-success/20', textColor: 'text-success', borderColor: 'border-success/30' };
+  };
+
+  const risk = getRiskLevel(score);
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className={`px-2 py-1 rounded-full text-xs font-medium ${risk.bgColor} ${risk.textColor} border ${risk.borderColor}`}>
+        {risk.label}
+      </div>
+      <span className="text-sm font-medium text-text-secondary min-w-[40px] text-right">
+        {score}%
+      </span>
     </div>
-    <span className={`text-sm font-semibold min-w-[3rem] px-2 py-1 rounded-full border text-center ${getRiskColor(risk)}`}>
-      {risk}%
-    </span>
-  </div>
-);
+  );
+};
 
 export const CustomersRoute = () => {
   const navigate = useNavigate();
@@ -701,7 +704,7 @@ export const CustomersRoute = () => {
                           <div className="text-text-primary font-semibold">${customer.lifetimeValue.toLocaleString()}</div>
                         </td>
                         <td className="py-4 px-6">
-                          <ChurnRiskBar risk={Math.round(customer.churnRiskScore)} />
+                          <ChurnRiskBadge score={Math.round(customer.churnRiskScore)} />
                         </td>
                         <td className="py-4 px-6">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActivityColor(customer.activityStatus)}`}>

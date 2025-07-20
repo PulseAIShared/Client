@@ -178,21 +178,21 @@ const downloadTemplate = (mode: ImportMode) => {
                 <button
                   key={key}
                   onClick={() => setImportMode(key as ImportMode)}
-                  className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 text-left hover:shadow-md ${
                     importMode === key
-                      ? 'border-accent-primary bg-accent-primary/20'
-                      : 'border-border-primary hover:border-border-primary/70 bg-surface-secondary/30'
+                      ? 'border-accent-primary bg-accent-primary/20 shadow-lg shadow-accent-primary/25'
+                      : 'border-border-primary hover:border-accent-primary/30 bg-surface-secondary/30'
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-3 h-3 rounded-full mt-1 ${
-                      importMode === key ? 'bg-accent-primary' : 'bg-surface-secondary'
+                    <div className={`w-4 h-4 rounded-full mt-0.5 flex-shrink-0 ${
+                      importMode === key ? 'bg-accent-primary' : 'bg-surface-secondary border-2 border-border-primary'
                     }`} />
-                    <div>
-                      <h4 className="text-text-primary font-medium mb-1">{template.name}</h4>
-                      <p className="text-text-muted text-sm">{template.description}</p>
-                      <div className="mt-2 text-xs text-text-muted">
-                        Required: {template.requiredFields.join(', ')}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-text-primary font-semibold mb-1 text-sm sm:text-base">{template.name}</h4>
+                      <p className="text-text-muted text-xs sm:text-sm leading-relaxed">{template.description}</p>
+                      <div className="mt-2 text-xs text-text-muted bg-surface-primary/50 rounded px-2 py-1">
+                        <span className="font-medium">Required:</span> {template.requiredFields.slice(0, 2).join(', ')}{template.requiredFields.length > 2 && '...'}
                       </div>
                     </div>
                   </div>
@@ -238,7 +238,7 @@ const downloadTemplate = (mode: ImportMode) => {
             </div>
 
             {/* File Upload */}
-            <div className="border-2 border-dashed border-slate-600/50 rounded-lg p-8 text-center hover:border-blue-500/50 transition-colors">
+            <div className="border-2 border-dashed border-border-primary rounded-lg p-8 text-center hover:border-accent-primary/50 transition-colors">
               <input
                 type="file"
                 accept=".csv"
@@ -247,15 +247,15 @@ const downloadTemplate = (mode: ImportMode) => {
                 id="csv-upload"
               />
               <label htmlFor="csv-upload" className="cursor-pointer">
-                <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-16 h-16 bg-accent-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                 </div>
-                <div className="text-white font-medium mb-2">
+                <div className="text-text-primary font-medium mb-2">
                   Click to upload your {CRM_TEMPLATES[importMode].name} CSV file
                 </div>
-                <div className="text-slate-400 text-sm">
+                <div className="text-text-muted text-sm">
                   Or drag and drop your file here
                 </div>
               </label>
@@ -275,24 +275,24 @@ const downloadTemplate = (mode: ImportMode) => {
               </p>
             </div>
 
-            <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg">
-              <h4 className="text-white font-medium mb-4">Import Settings</h4>
+            <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg">
+              <h4 className="text-text-primary font-medium mb-4">Import Settings</h4>
               
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-surface-primary/30 rounded-lg">
                   <div>
-                    <div className="text-white font-medium">Skip Duplicates</div>
-                    <div className="text-sm text-slate-400">Skip customers that already exist based on email (if this is off, then this will update the existing users) </div>
+                    <div className="text-text-primary font-medium">Skip Duplicates</div>
+                    <div className="text-sm text-text-muted">Skip customers that already exist based on email (if this is off, then this will update the existing users) </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-surface-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
                   </label>
                 </div>
 
-                <div className="p-4 bg-blue-600/20 rounded-lg border border-blue-500/30">
-                  <h5 className="text-blue-400 font-medium mb-2">What happens next?</h5>
-                  <div className="text-blue-300 text-sm space-y-1">
+                <div className="p-4 bg-info-bg rounded-lg border border-info/30">
+                  <h5 className="text-info font-medium mb-2">What happens next?</h5>
+                  <div className="text-info-muted text-sm space-y-1">
                     <p>• File will be validated for format and data quality</p>
                     <p>• Real-time progress updates via notifications</p>
                     <p>• Customer data refreshes automatically when complete</p>
@@ -316,57 +316,57 @@ const downloadTemplate = (mode: ImportMode) => {
               </p>
             </div>
 
-            <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 backdrop-blur-lg p-8 rounded-xl border border-green-500/30 shadow-lg text-center">
-              <div className="w-16 h-16 bg-green-600/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-gradient-to-r from-success-bg to-info-bg backdrop-blur-lg p-8 rounded-xl border border-success/30 shadow-lg text-center">
+              <div className="w-16 h-16 bg-success/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               
-              <h4 className="text-xl font-bold text-white mb-2">Import Job Created</h4>
-              <p className="text-slate-300 mb-4">
+              <h4 className="text-xl font-bold text-text-primary mb-2">Import Job Created</h4>
+              <p className="text-text-muted mb-4">
                 Your file has been uploaded and processing is starting automatically.
               </p>
               
               {importJobId && (
-                <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50 mb-4">
+                <div className="bg-surface-secondary/30 p-4 rounded-lg border border-border-primary mb-4">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-300">Import Job ID:</span>
-                    <code className="text-blue-400 bg-slate-800/50 px-2 py-1 rounded font-mono">
+                    <span className="text-text-muted">Import Job ID:</span>
+                    <code className="text-accent-primary bg-surface-primary/50 px-2 py-1 rounded font-mono">
                       {importJobId}
                     </code>
                   </div>
                 </div>
               )}
 
-              <div className="space-y-3 text-sm text-slate-300">
+              <div className="space-y-3 text-sm text-text-muted">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
                   <span>File uploaded and validation started</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-info rounded-full"></div>
                   <span>Real-time updates enabled - you'll see progress instantly</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-accent-secondary rounded-full"></div>
                   <span>Customer data will refresh automatically when complete</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-warning rounded-full"></div>
                   <span>Notifications will show progress and completion status</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-blue-600/20 p-4 rounded-lg border border-blue-500/30">
-              <h5 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
+            <div className="bg-info-bg p-4 rounded-lg border border-info/30">
+              <h5 className="text-info font-medium mb-2 flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 Real-Time Updates
               </h5>
-              <div className="text-blue-300 text-sm space-y-1">
+              <div className="text-info-muted text-sm space-y-1">
                 <p>• Progress updates appear instantly via SignalR</p>
                 <p>• Customer data refreshes automatically on completion</p>
                 <p>• No need to manually refresh or check status</p>
@@ -374,9 +374,9 @@ const downloadTemplate = (mode: ImportMode) => {
               </div>
             </div>
 
-            <div className="bg-purple-600/20 p-4 rounded-lg border border-purple-500/30">
-              <h5 className="text-purple-400 font-medium mb-2">What's happening now?</h5>
-              <div className="text-purple-300 text-sm space-y-1">
+            <div className="bg-accent-secondary/20 p-4 rounded-lg border border-accent-secondary/30">
+              <h5 className="text-accent-secondary font-medium mb-2">What's happening now?</h5>
+              <div className="text-accent-secondary/80 text-sm space-y-1">
                 <p>• File is being validated for data quality and format</p>
                 <p>• Duplicate detection is running based on your settings</p>
                 <p>• Processing will begin automatically after validation</p>
@@ -400,7 +400,7 @@ const downloadTemplate = (mode: ImportMode) => {
 
   return (
     <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
-      <div className="bg-surface-primary/95 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-border-primary shadow-2xl w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-[95vh] min-h-[500px] max-h-[800px] flex flex-col overflow-hidden">
+      <div className="bg-surface-primary/95 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-border-primary shadow-2xl w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-[95vh] sm:h-auto sm:min-h-[500px] sm:max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-3 sm:p-4 lg:p-6 border-b border-border-primary">
           <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
@@ -483,13 +483,13 @@ const downloadTemplate = (mode: ImportMode) => {
 
         {/* Content - Scrollable Area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-3 sm:p-4 lg:p-6">
+          <div className="p-4 sm:p-6">
             {renderStepContent()}
           </div>
         </div>
 
         {/* Footer - Always Visible */}
-        <div className="flex-shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 lg:p-6 border-t border-border-primary bg-surface-primary/95">
+        <div className="flex-shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-6 border-t border-border-primary bg-surface-primary/95">
           <Button
             variant="outline"
             onClick={() => {
@@ -501,16 +501,16 @@ const downloadTemplate = (mode: ImportMode) => {
                 onClose();
               }
             }}
-            className="border-border-primary hover:border-border-primary/70"
+            className="border-border-primary hover:border-border-primary/70 order-2 sm:order-1"
           >
             {currentStep === 4 ? 'Close' : currentStep > 1 ? 'Previous' : 'Cancel'}
           </Button>
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto order-1 sm:order-2">
             {currentStep === 1 && (
               <Button
                 onClick={() => setCurrentStep(2)}
-                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80 w-full sm:w-auto"
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80 w-full sm:w-auto h-10 sm:h-auto"
               >
                 Continue
               </Button>
@@ -520,7 +520,7 @@ const downloadTemplate = (mode: ImportMode) => {
                 onClick={() => handleUpload(false)}
                 disabled={uploadImport.isPending || !csvFile || !canImportCustomers}
                 isLoading={uploadImport.isPending}
-                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80 w-full sm:w-auto"
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80 w-full sm:w-auto h-10 sm:h-auto"
               >
                 {uploadImport.isPending ? 'Starting Import...' : 'Start Import'}
               </Button>
@@ -528,7 +528,7 @@ const downloadTemplate = (mode: ImportMode) => {
             {currentStep === 4 && (
               <Button
                 onClick={onClose}
-                className="bg-gradient-to-r from-success to-success-muted hover:from-success/80 hover:to-success-muted/80 w-full sm:w-auto"
+                className="bg-gradient-to-r from-success to-success-muted hover:from-success/80 hover:to-success-muted/80 w-full sm:w-auto h-10 sm:h-auto"
               >
                 Continue Working
               </Button>
