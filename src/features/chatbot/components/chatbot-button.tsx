@@ -23,19 +23,26 @@ export const ChatbotButton: React.FC = () => {
     <button
       onClick={handleToggle}
       className={`
-        fixed bottom-6 right-6 z-40
-        w-14 h-14 rounded-full
+        fixed z-40 rounded-full
         bg-accent-primary hover:bg-accent-secondary
         text-white shadow-lg hover:shadow-xl
         transition-all duration-300 ease-in-out
-        flex items-center justify-center
-        group
+        flex items-center justify-center group
         ${isOpen ? 'scale-95' : 'scale-100 hover:scale-105'}
+        
+        /* Mobile: Smaller, positioned for thumb access */
+        bottom-4 right-4 w-12 h-12
+        
+        /* Desktop: Larger, more spacing */
+        md:bottom-6 md:right-6 md:w-14 md:h-14
+        
+        /* Ensure above mobile keyboards */
+        ${isOpen ? 'bottom-4 md:bottom-6' : ''}
       `}
       aria-label={isOpen ? 'Close chat' : 'Open chat'}
     >
       <svg
-        className={`w-6 h-6 transition-transform duration-300 ${
+        className={`w-5 h-5 md:w-6 md:h-6 transition-transform duration-300 ${
           isOpen ? 'rotate-45' : 'rotate-0'
         }`}
         fill="none"

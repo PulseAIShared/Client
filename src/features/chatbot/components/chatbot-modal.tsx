@@ -22,11 +22,20 @@ export const ChatbotModal: React.FC = () => {
   return (
     <div
       className={`
-        fixed bottom-6 right-6 z-50
-        w-96 bg-surface-primary border border-border-primary rounded-lg shadow-2xl
-        transition-all duration-300 ease-in-out
-        ${isMinimized ? 'h-14' : 'h-[600px]'}
-        flex flex-col
+        fixed z-50 bg-surface-primary border border-border-primary rounded-lg shadow-2xl
+        transition-all duration-300 ease-in-out flex flex-col
+        ${isMinimized ? 'h-14' : 'h-[600px] md:h-[600px]'}
+        
+        /* Mobile: Full screen except for safe areas */
+        bottom-0 left-0 right-0 mx-4 mb-4
+        ${isMinimized ? '' : 'top-16'}
+        
+        /* Desktop: Fixed size in bottom right */
+        md:bottom-6 md:right-6 md:left-auto md:top-auto
+        md:w-96 md:max-w-[calc(100vw-3rem)]
+        
+        /* Ensure it doesn't exceed viewport */
+        max-h-[calc(100vh-5rem)] md:max-h-[calc(100vh-6rem)]
       `}
     >
       {/* Header */}

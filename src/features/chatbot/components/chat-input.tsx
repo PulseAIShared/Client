@@ -40,7 +40,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="p-4 border-t border-border-primary bg-surface-primary">
+    <div className="p-3 md:p-4 border-t border-border-primary bg-surface-primary">
       <div className="flex gap-2 items-end">
         <div className="flex-1">
           <textarea
@@ -51,7 +51,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             disabled={disabled}
             rows={1}
             className="
-              w-full p-3 
+              w-full p-2 md:p-3 text-sm md:text-base
               bg-surface-secondary border border-border-primary rounded-lg
               text-text-primary placeholder-text-muted
               focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent
@@ -60,13 +60,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               transition-all duration-200
             "
             style={{
-              minHeight: '44px',
-              maxHeight: '120px',
+              minHeight: '40px',
+              maxHeight: '100px',
             }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
               target.style.height = 'auto';
-              target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
+              target.style.height = `${Math.min(target.scrollHeight, 100)}px`;
             }}
           />
         </div>
@@ -74,18 +74,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onClick={handleSend}
           disabled={!message.trim() || disabled}
           className="
-            p-3 rounded-lg
+            p-2 md:p-3 rounded-lg
             bg-accent-primary hover:bg-accent-secondary
             text-white
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-all duration-200
             flex items-center justify-center
-            min-w-[44px] h-[44px]
+            min-w-[40px] h-[40px] md:min-w-[44px] md:h-[44px]
           "
           aria-label="Send message"
         >
           <svg
-            className="w-5 h-5"
+            className="w-4 h-4 md:w-5 md:h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
