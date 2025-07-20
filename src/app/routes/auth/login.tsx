@@ -21,7 +21,8 @@ export const LoginRoute = () => {
     
     const baseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
     const frontendOrigin = window.location.origin;
-    const popupUrl = `${baseUrl}auth/${provider}?popup=true&redirectOrigin=${encodeURIComponent(frontendOrigin)}`;
+    // Use the new login endpoint
+    const popupUrl = `${baseUrl}auth/${provider}/login?popup=true&redirectOrigin=${encodeURIComponent(frontendOrigin)}`;
     
     const popup = window.open(
       popupUrl,
@@ -63,9 +64,15 @@ export const LoginRoute = () => {
           navigate('/app');
         }, 100);
       } else if (event.data.type === 'OAUTH_ERROR') {
-        setError(event.data.error);
         popup.close();
         setSsoLoading(null);
+        
+        // Handle specific error for no account found
+        if (event.data.error?.includes('SsoAccountNotFound') || event.data.error?.includes('no account') || event.data.error?.includes('not found')) {
+          setError('No account found for this provider. Please register first or use a different sign-in method.');
+        } else {
+          setError(event.data.error || 'Authentication failed. Please try again.');
+        }
       }
     };
 
@@ -131,7 +138,7 @@ export const LoginRoute = () => {
                 Sign in to PulseLTV
               </h1>
               <p className="text-gray-600">
-                Access your AI-powered dashboard
+                Access your dashboard
               </p>
             </div>
 

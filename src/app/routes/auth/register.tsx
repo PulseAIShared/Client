@@ -76,7 +76,8 @@ export const RegisterRoute = () => {
     
     const baseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
     const frontendOrigin = window.location.origin;
-    const popupUrl = `${baseUrl}auth/${provider}?popup=true&redirectOrigin=${encodeURIComponent(frontendOrigin)}`;
+    // Use the new register endpoint
+    const popupUrl = `${baseUrl}auth/${provider}/register?popup=true&redirectOrigin=${encodeURIComponent(frontendOrigin)}`;
     
     const popup = window.open(
       popupUrl,
@@ -118,9 +119,15 @@ export const RegisterRoute = () => {
           navigate('/app');
         }, 100);
       } else if (event.data.type === 'OAUTH_ERROR') {
-        setError(event.data.error);
         popup.close();
         setSsoLoading(null);
+        
+        // Handle specific error for account already exists
+        if (event.data.error?.includes('SsoAccountAlreadyExists') || event.data.error?.includes('already exists')) {
+          setError('An account with this provider already exists. Please sign in instead.');
+        } else {
+          setError(event.data.error || 'Registration failed. Please try again.');
+        }
       }
     };
 
