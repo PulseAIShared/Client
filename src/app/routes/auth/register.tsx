@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, useLocation } from 'react-router-dom';
 import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 import { IoMdMail } from "react-icons/io";
 import { AuthLayout } from '@/components/layouts';
@@ -7,17 +7,20 @@ import { Button } from '@/components/ui/button';
 import { useSendVerificationCode, useVerifyCode, useUser } from '@/lib/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { setToken } from '@/lib/api-client';
+import { WaitlistSignupModal } from '@/features/waitlist/components/waitlist-signup-modal';
 
 type AuthStep = 'email' | 'code';
 
 export const RegisterRoute = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState<AuthStep>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [ssoLoading, setSsoLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const user = useUser();
   const queryClient = useQueryClient();
   // Auth hooks
@@ -49,6 +52,8 @@ export const RegisterRoute = () => {
     hasInvitation: boolean;
   }>({ hasInvitation: false });
 
+  // Check if this is an invitation-based registration
+  const isInvitedRegistration = searchParams.get('invitation') || searchParams.get('token') || location.pathname === '/register-invited';
 
   useEffect(() => {
     const invitationToken = searchParams.get('invitation') || searchParams.get('token');
@@ -166,8 +171,8 @@ export const RegisterRoute = () => {
     }
 
     return {
-      title: "Create your PulseLTV account",
-      subtitle: "Start predicting and recovering revenue with AI"
+      title: "Registrations Coming Soon",
+      subtitle: "PulseLTV is launching soon. Join our waitlist to be notified when registration opens!"
     };
   };
 
@@ -252,111 +257,147 @@ export const RegisterRoute = () => {
               </div>
             )}
 
-            {/* SSO Buttons */}
-            <div className="space-y-3 mb-6">
-              <button 
-                onClick={() => handleSSOLogin('google')}
-                disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FaGoogle className="text-red-500" />
-                <span>Continue with Google</span>
-              </button>
+            {/* Show registration form only for invited users */}
+            {isInvitedRegistration ? (
+              <>
+                {/* SSO Buttons */}
+                <div className="space-y-3 mb-6">
+                  <button 
+                    onClick={() => handleSSOLogin('google')}
+                    disabled={!!ssoLoading}
+                    className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaGoogle className="text-red-500" />
+                    <span>Continue with Google</span>
+                  </button>
 
-              <button 
-                onClick={() => handleSSOLogin('facebook')}
-                disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FaFacebook className="text-blue-600" />
-                <span>Continue with Facebook</span>
-              </button>
+                  <button 
+                    onClick={() => handleSSOLogin('facebook')}
+                    disabled={!!ssoLoading}
+                    className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaFacebook className="text-blue-600" />
+                    <span>Continue with Facebook</span>
+                  </button>
 
-              <button 
-                onClick={() => handleSSOLogin('apple')}
-                disabled={!!ssoLoading}
-                className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FaApple className="text-gray-800" />
-                <span>Continue with Apple</span>
-              </button>
-            </div>
-
-            {/* Divider */}
-            <div className="flex items-center mb-6">
-              <hr className="flex-grow border-gray-300" />
-              <span className="mx-4 text-sm text-gray-500 font-medium">OR</span>
-              <hr className="flex-grow border-gray-300" />
-            </div>
-
-            {/* Email Authentication */}
-            {step === 'email' ? (
-              <form onSubmit={handleSendCode} className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                    required
-                  />
+                  <button 
+                    onClick={() => handleSSOLogin('apple')}
+                    disabled={!!ssoLoading}
+                    className="w-full flex items-center justify-center gap-3 h-12 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaApple className="text-gray-800" />
+                    <span>Continue with Apple</span>
+                  </button>
                 </div>
+
+                {/* Divider */}
+                <div className="flex items-center mb-6">
+                  <hr className="flex-grow border-gray-300" />
+                  <span className="mx-4 text-sm text-gray-500 font-medium">OR</span>
+                  <hr className="flex-grow border-gray-300" />
+                </div>
+
+                {/* Email Authentication */}
+                {step === 'email' ? (
+                  <form onSubmit={handleSendCode} className="space-y-4">
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      isLoading={sendCodeMutation.isPending}
+                      icon={<IoMdMail className="mr-2" />}
+                      className="w-full bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-semibold transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    >
+                      Send Verification Code
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="text-center mb-4">
+                      <p className="text-gray-600">
+                        Enter the verification code sent to
+                      </p>
+                      <p className="font-semibold text-gray-900">{email}</p>
+                    </div>
+                    
+                    <form onSubmit={handleVerifyCode} className="space-y-4">
+                      <div>
+                        <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
+                          Verification Code
+                        </label>
+                        <input
+                          id="code"
+                          type="text"
+                          value={code}
+                          onChange={(e) => setCode(e.target.value)}
+                          placeholder="Enter 6-digit code"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-center text-lg tracking-widest"
+                          maxLength={6}
+                          required
+                        />
+                      </div>
+                      
+                      <Button
+                        type="submit"
+                        isLoading={verifyCodeMutation.isPending}
+                        className="w-full bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-semibold transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                      >
+                        Verify & Create Account
+                      </Button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setStep('email')}
+                        className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        ← Back to email
+                      </button>
+                    </form>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* Waitlist content for non-invited users */
+              <div className="text-center space-y-6">
+                <div className="bg-sky-50 rounded-lg p-6 border border-sky-200">
+                  <div className="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-sky-900 mb-2">
+                    We're Almost Ready!
+                  </h3>
+                  <p className="text-sky-700 text-sm">
+                    PulseLTV is putting the finishing touches on our AI-powered churn prediction platform. 
+                    Be among the first to experience the future of customer retention.
+                  </p>
+                </div>
+
                 <Button
-                  type="submit"
-                  isLoading={sendCodeMutation.isPending}
-                  icon={<IoMdMail className="mr-2" />}
+                  onClick={() => setShowWaitlistModal(true)}
                   className="w-full bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-semibold transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
                 >
-                  Send Verification Code
+                  Join the Waitlist
                 </Button>
-              </form>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <p className="text-gray-600">
-                    Enter the verification code sent to
-                  </p>
-                  <p className="font-semibold text-gray-900">{email}</p>
+
+                <div className="text-sm text-gray-600">
+                  <p>✨ Get early access when we launch</p>
+                  <p>📊 Exclusive insights and updates</p>
+                  <p>🎯 Priority customer onboarding</p>
                 </div>
-                
-                <form onSubmit={handleVerifyCode} className="space-y-4">
-                  <div>
-                    <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
-                      Verification Code
-                    </label>
-                    <input
-                      id="code"
-                      type="text"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      placeholder="Enter 6-digit code"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-center text-lg tracking-widest"
-                      maxLength={6}
-                      required
-                    />
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    isLoading={verifyCodeMutation.isPending}
-                    className="w-full bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-semibold transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
-                  >
-                    Verify & Create Account
-                  </Button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => setStep('email')}
-                    className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    ← Back to email
-                  </button>
-                </form>
               </div>
             )}
 
@@ -371,6 +412,11 @@ export const RegisterRoute = () => {
                   Sign in
                 </Link>
               </p>
+              {!isInvitedRegistration && (
+                <p className="text-xs text-gray-500">
+                  Have an invitation? Check your email for the special registration link.
+                </p>
+              )}
             </div>
 
             {/* Trust indicator */}
@@ -382,6 +428,13 @@ export const RegisterRoute = () => {
           </div>
         </div>
       </div>
+
+      {/* Waitlist Modal */}
+      <WaitlistSignupModal
+        isOpen={showWaitlistModal}
+        onClose={() => setShowWaitlistModal(false)}
+        source="registration-page"
+      />
     </AuthLayout>
   );
 };

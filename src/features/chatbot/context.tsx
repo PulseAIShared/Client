@@ -77,7 +77,6 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
     };
   }
 
-  // Other app routes
   if (pathname.includes('/dashboard') || pathname === '/app' || pathname === '/app/') {
     return {
       context: {

@@ -30,6 +30,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'register-invited',
+          lazy: async () => {
+            const { RegisterRoute } = await import('./routes/auth/register');
+            return { Component: RegisterRoute };
+          },
+        },
+        {
           path: 'login',
           lazy: async () => {
             const { LoginRoute } = await import('./routes/auth/login');
