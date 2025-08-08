@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
-import { useChatbotStore } from '@/features/chatbot/store';
-import { ChatContextType, useDeleteConversation, useClearConversationMessages, useGetUserConversations } from '@/features/chatbot/api/chatbot';
-import { useQueryClient } from '@tanstack/react-query';
 import { Spinner } from '@/components/ui/spinner';
+import { useChatbotStore } from '@/features/chatbot/store';
+import { useGetUserConversations, useDeleteConversation, useClearConversationMessages, ChatContextType, type ChatConversation } from '@/features/chatbot/api/chatbot';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const ConversationsRoute: React.FC = () => {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConversations, setSelectedConversations] = useState<string[]>([]);
@@ -23,7 +21,7 @@ export const ConversationsRoute: React.FC = () => {
   const deleteConversationMutation = useDeleteConversation();
   const clearMessagesMutation = useClearConversationMessages();
 
-  const getQuickActionsForContext = (contextType: ChatContextType, contextData: unknown) => {
+  const getQuickActionsForContext = (contextType: ChatContextType) => {
     switch (contextType) {
       case ChatContextType.Dashboard:
         return [
@@ -105,16 +103,13 @@ export const ConversationsRoute: React.FC = () => {
     console.log('🔍 Generated context:', conversationContext);
 
     // Get the appropriate quick actions for this context
-    const quickActions = getQuickActionsForContext(
-      conversationContext.type, 
-      (conversation as { contextData?: unknown }).contextData
-    );
+    const quickActions = getQuickActionsForContext(conversationContext.type);
 
     console.log('🔍 Generated quick actions:', quickActions);
 
     // Set the current conversation, context, and quick actions in the store
     useChatbotStore.setState({ 
-      currentConversation: conversation as any,
+      currentConversation: conversation as unknown as ChatConversation,
       conversationId: (conversation as { id?: string }).id || '',
       pageMessages: [], // Will be loaded from server when chat opens
       pageContext: conversationContext, // Set the proper context from the conversation
@@ -123,24 +118,6 @@ export const ConversationsRoute: React.FC = () => {
     
     console.log('🔍 Store updated, opening chat...');
     openChat();
-  };
-
-  const navigateToContext = (contextKey: string) => {
-    if (contextKey.startsWith('customer-')) {
-      const customerId = contextKey.split('-')[1];
-      navigate(`/app/customers/${customerId}`);
-    } else if (contextKey.startsWith('analytics-')) {
-      const analysisId = contextKey.split('-')[1];
-      navigate(`/app/analytics/churn-analysis/${analysisId}`);
-    } else if (contextKey === 'dashboard') {
-      navigate('/app/dashboard');
-    } else if (contextKey === 'integrations') {
-      navigate('/app/settings');
-    } else if (contextKey.startsWith('segments-')) {
-      navigate('/app/segments');
-    } else {
-      navigate('/app/dashboard');
-    }
   };
 
   const handleDeleteConversation = async (conversationId: string) => {

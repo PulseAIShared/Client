@@ -79,15 +79,15 @@ export const TopNav = () => {
       </div>
 
       {/* Right side - User menu and actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Enhanced Search */}
         <div className="hidden md:block relative group">
           <input 
             type="text" 
             placeholder="Search..."
-            className="bg-surface-secondary/50 border border-border-primary/30 rounded-xl px-4 py-2 pl-10 w-64 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200 group-hover:border-border-secondary"
+            className="bg-surface-primary/80 backdrop-blur-lg border border-border-primary/30 rounded-xl px-4 py-2 sm:py-3 pl-10 w-64 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-300 group-hover:border-accent-primary/50 group-hover:bg-surface-primary/90"
           />
-          <svg className="absolute left-3 top-2.5 w-4 h-4 text-text-muted group-hover:text-text-secondary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-2.5 sm:top-3 w-4 h-4 sm:w-5 sm:h-5 text-text-muted group-hover:text-accent-primary transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -96,18 +96,18 @@ export const TopNav = () => {
         {!isMobile && (
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl bg-surface-secondary/50 border border-border-primary/30 hover:bg-surface-tertiary/50 hover:border-border-secondary transition-all duration-200 hover:scale-105"
+            className="relative p-2 sm:p-3 rounded-xl bg-surface-primary/80 backdrop-blur-lg border border-border-primary/30 hover:bg-surface-primary/90 hover:border-accent-primary/50 transition-all duration-300 group shadow-lg hover:shadow-xl"
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
-            {theme === 'dark' ? (
-              <svg className="w-5 h-5 text-text-secondary group-hover:text-text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-text-secondary group-hover:text-accent-primary transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {theme === 'dark' ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 text-text-secondary group-hover:text-text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              ) : (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
+              )}
+            </svg>
+            {/* Hover effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/0 to-accent-secondary/0 group-hover:from-accent-primary/10 group-hover:to-accent-secondary/10 rounded-xl transition-all duration-300"></div>
           </button>
         )}
 
@@ -118,9 +118,9 @@ export const TopNav = () => {
         <div className="relative" ref={userDropdownRef}>
           <button 
             onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-            className="flex items-center gap-2 p-2 rounded-xl bg-surface-secondary/50 border border-border-primary/30 hover:bg-surface-tertiary/50 hover:border-border-secondary transition-all duration-200 hover:scale-105"
+            className="flex items-center gap-2 p-2 sm:p-3 rounded-xl bg-surface-primary/80 backdrop-blur-lg border border-border-primary/30 hover:bg-surface-primary/90 hover:border-accent-primary/50 transition-all duration-300 group shadow-lg hover:shadow-xl"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-medium text-sm shadow-sm">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-medium text-sm shadow-sm">
               {getUserInitials()}
             </div>
             {!isMobile && (
@@ -128,14 +128,16 @@ export const TopNav = () => {
                 <div className="text-text-primary font-medium">{getUserDisplayName()}</div>
               </div>
             )}
-            <svg className={`w-4 h-4 text-text-muted transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-text-muted group-hover:text-accent-primary transition-all duration-300 ${isUserDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
+            {/* Hover effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/0 to-accent-secondary/0 group-hover:from-accent-primary/10 group-hover:to-accent-secondary/10 rounded-xl transition-all duration-300"></div>
           </button>
 
           {/* Enhanced Dropdown Menu */}
           {isUserDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-surface-primary/95 backdrop-blur-xl border border-border-primary/30 rounded-2xl shadow-2xl py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+            <div className="absolute right-0 mt-3 w-64 bg-surface-primary/95 backdrop-blur-xl border border-border-primary/30 rounded-2xl shadow-2xl py-2 z-50 animate-in slide-in-from-top-2 duration-200">
               {/* Enhanced User Info Section */}
               <div className="px-4 py-3 border-b border-border-primary/30">
                 <div className="flex items-center gap-3">

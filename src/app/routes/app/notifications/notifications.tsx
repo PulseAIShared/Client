@@ -11,6 +11,7 @@ import { useNotifications } from '@/components/ui/notifications/notifications-st
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 
 export const NotificationsRoute = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -227,44 +228,43 @@ export const NotificationsRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
+      <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+        {/* Enhanced Header */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 via-accent-secondary/10 to-accent-primary/10 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
           
-          <div className="relative bg-surface-primary/50 backdrop-blur-lg p-4 sm:p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-4">
-                  <div className="w-2 h-2 bg-success-muted rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-accent-secondary">Activity Center</span>
+          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center gap-3 mb-2">
+    
+                  {unreadCount > 0 && (
+                    <span className="px-3 py-1 bg-error/20 text-error-muted rounded-full text-sm font-medium border border-error/30">
+                      {unreadCount} unread
+                    </span>
+                  )}
                 </div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary">
                   Notifications
                 </h1>
-                <p className="text-text-secondary">
+                <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-2xl">
                   Stay updated with real-time notifications and system alerts
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                {unreadCount > 0 && (
-                  <span className="px-3 py-1 bg-error/20 text-error-muted rounded-full text-sm font-medium border border-error/30">
-                    {unreadCount} unread
-                  </span>
-                )}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <Button
                   onClick={() => markAllAsRead.mutate(undefined)}
                   disabled={unreadCount === 0 || markAllAsRead.isPending}
                   variant="outline"
-                  className="border-border-primary/50 hover:border-accent-primary/50"
+                  className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary bg-surface-primary/50 backdrop-blur-sm"
                 >
                   {markAllAsRead.isPending ? 'Marking...' : 'Mark All Read'}
                 </Button>
                 <Button
                   onClick={clearAllNotifications}
                   variant="outline"
-                  className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
+                  className="border-border-primary/50 hover:border-error/50 hover:text-error-muted bg-surface-primary/50 backdrop-blur-sm"
                 >
                   Clear All
                 </Button>
@@ -273,10 +273,10 @@ export const NotificationsRoute = () => {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-surface-primary/50 backdrop-blur-lg p-4 sm:p-6 rounded-2xl border border-border-primary/50 shadow-lg">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
-            <div className="flex flex-wrap gap-2">
+        {/* Enhanced Filters */}
+        <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center justify-between">
+            <div className="flex flex-wrap gap-3">
               {[
                 { key: 'all', label: 'All Notifications', count: totalCount },
                 { key: 'unread', label: 'Unread', count: unreadCount },
@@ -285,10 +285,10 @@ export const NotificationsRoute = () => {
                 <button
                   key={filter.key}
                   onClick={() => handleFilterChange(filter.key as 'all' | 'unread' | 'read')}
-                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
+                  className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all duration-300 ${
                     filterType === filter.key
-                      ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
-                      : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70 border border-border-primary/50'
+                      ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30 shadow-lg'
+                      : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70 border border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary'
                   }`}
                 >
                   {filter.label} ({filter.count})
@@ -296,89 +296,107 @@ export const NotificationsRoute = () => {
               ))}
             </div>
             
-            <div className="text-xs sm:text-sm text-text-muted">
+            <div className="text-sm sm:text-base text-text-muted">
               Page {currentPage} of {totalPages} • {totalCount} total
             </div>
           </div>
         </div>
 
-        {/* Notifications List */}
-        <div className="bg-surface-primary/50 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-lg overflow-hidden">
+        {/* Enhanced Notifications List */}
+        <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
           {isLoading ? (
-            <div className="p-12 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary mx-auto mb-4"></div>
-              <p className="text-text-muted">Loading notifications...</p>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-4">
+                <div className="relative">
+                  <Spinner size="xl" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 rounded-full blur-xl animate-pulse"></div>
+                </div>
+                <p className="text-text-secondary font-medium">Loading notifications...</p>
+                <p className="text-text-muted text-sm">Preparing your activity feed</p>
+              </div>
             </div>
           ) : error ? (
-            <div className="p-12 text-center">
-              <div className="text-error-muted mb-2">Failed to load notifications</div>
-              <button 
-                onClick={() => refetch()}
-                className="text-accent-primary hover:text-accent-primary"
-              >
-                Try again
-              </button>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center bg-surface-primary/80 backdrop-blur-xl p-8 rounded-3xl border border-border-primary/50 shadow-2xl max-w-md">
+                <div className="w-16 h-16 bg-gradient-to-br from-error/20 to-error-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-error-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-text-primary mb-2">Failed to Load Notifications</h2>
+                <p className="text-text-muted mb-4">
+                  {error instanceof Error ? error.message : 'Unable to load notifications'}
+                </p>
+                <button 
+                  onClick={() => refetch()} 
+                  className="px-4 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-secondary transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="w-16 h-16 bg-surface-secondary/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5v3a6 6 0 10-12 0v3l-5 5h5m7 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-surface-secondary/50 to-surface-secondary rounded-full flex items-center justify-center mx-auto">
+                  <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5v3a6 6 0 10-12 0v3l-5 5h5m7 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-text-primary">No notifications</h3>
+                <p className="text-text-muted">
+                  {filterType === 'unread' 
+                    ? "You don't have any unread notifications" 
+                    : filterType === 'read'
+                    ? "No read notifications found"
+                    : "You're all caught up!"}
+                </p>
               </div>
-              <h3 className="text-text-primary font-medium mb-2">No notifications</h3>
-              <p className="text-text-muted">
-                {filterType === 'unread' 
-                  ? "You don't have any unread notifications" 
-                  : filterType === 'read'
-                  ? "No read notifications found"
-                  : "You're all caught up!"}
-              </p>
             </div>
           ) : (
             <div className="divide-y divide-border-primary/50">
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`group hover:bg-surface-secondary/30 transition-all duration-200 ${
+                  className={`group hover:bg-surface-secondary/30 transition-all duration-300 ${
                     !notification.isRead ? 'bg-accent-primary/5' : ''
                   }`}
                 >
-                  <div className="p-4 sm:p-6">
-                    <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="p-6 sm:p-8">
+                    <div className="flex items-start gap-4 sm:gap-6">
                       {getNotificationIcon(notification.type, notification.category)}
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 mb-2">
-                          <h3 className={`font-medium text-lg ${
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-3">
+                          <h3 className={`font-semibold text-lg sm:text-xl ${
                             !notification.isRead ? 'text-text-primary' : 'text-text-secondary'
                           }`}>
                             {notification.title}
                           </h3>
                           
-                          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                          <div className="flex items-center gap-3 flex-shrink-0">
                             <span className="text-sm text-text-muted" title={formatDateTime(notification.createdAt)}>
                               {formatTimeAgo(notification.createdAt)}
                             </span>
                             {!notification.isRead && (
-                              <div className="w-3 h-3 bg-accent-primary rounded-full flex-shrink-0"></div>
+                              <div className="w-3 h-3 bg-accent-primary rounded-full flex-shrink-0 animate-pulse"></div>
                             )}
                           </div>
                         </div>
                         
-                        <p className="text-text-muted leading-relaxed mb-3">
+                        <p className="text-text-muted leading-relaxed mb-4 text-base">
                           {notification.message}
                         </p>
                         
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex flex-wrap items-center gap-3">
                             {notification.category && (
-                              <span className="text-xs text-text-muted bg-surface-secondary/50 px-2 py-1 rounded border border-border-primary/50">
+                              <span className="text-sm text-text-muted bg-surface-secondary/50 px-3 py-1 rounded-lg border border-border-primary/50">
                                 {notification.category}
                               </span>
                             )}
                             
-                            <span className={`text-xs px-2 py-1 rounded border ${
+                            <span className={`text-sm px-3 py-1 rounded-lg border ${
                               notification.type === 'Success' 
                                 ? 'text-success-muted bg-success/20 border-success/30'
                                 : notification.type === 'Error' || notification.type === 'Failed'
@@ -391,12 +409,12 @@ export const NotificationsRoute = () => {
                             </span>
                           </div>
                           
-                          <div className="flex flex-wrap items-center gap-2 opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity">
+                          <div className="flex flex-wrap items-center gap-3 opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity">
                             {!notification.isRead && (
                               <button
                                 onClick={() => markAsRead.mutate(notification.id)}
                                 disabled={markAsRead.isPending}
-                                className="px-3 py-1 text-xs bg-accent-primary/20 text-accent-primary rounded hover:bg-accent-primary/30 transition-colors border border-accent-primary/30 disabled:opacity-50"
+                                className="px-4 py-2 text-sm bg-accent-primary/20 text-accent-primary rounded-lg hover:bg-accent-primary/30 transition-colors border border-accent-primary/30 disabled:opacity-50"
                               >
                                 Mark as read
                               </button>
@@ -405,7 +423,7 @@ export const NotificationsRoute = () => {
                             {notification.actionUrl && notification.actionText && (
                               <button
                                 onClick={() => handleNotificationClick(notification)}
-                                className="px-3 py-1 text-xs bg-accent-secondary/20 text-accent-secondary rounded hover:bg-accent-secondary/30 transition-colors border border-accent-secondary/30"
+                                className="px-4 py-2 text-sm bg-accent-secondary/20 text-accent-secondary rounded-lg hover:bg-accent-secondary/30 transition-colors border border-accent-secondary/30"
                               >
                                 {notification.actionText}
                               </button>
@@ -420,22 +438,22 @@ export const NotificationsRoute = () => {
             </div>
           )}
 
-          {/* Pagination */}
+          {/* Enhanced Pagination */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 border-t border-border-primary/50">
-              <div className="text-xs sm:text-sm text-text-muted">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 border-t border-border-primary/50">
+              <div className="text-sm sm:text-base text-text-muted">
                 Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} notifications
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
-                  className="px-2 sm:px-3 py-1 bg-surface-secondary/50 text-text-primary rounded hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
+                  className="px-4 py-2 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   Previous
                 </button>
                 
-                <div className="flex flex-wrap items-center gap-1">
+                <div className="flex flex-wrap items-center gap-2">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNum = Math.max(1, currentPage - 2) + i;
                     if (pageNum > totalPages) return null;
@@ -444,9 +462,9 @@ export const NotificationsRoute = () => {
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`px-2 sm:px-3 py-1 rounded transition-colors text-xs sm:text-sm ${
+                        className={`px-3 py-2 rounded-lg transition-colors text-sm ${
                           pageNum === currentPage
-                            ? 'bg-accent-primary text-text-primary'
+                            ? 'bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary shadow-lg'
                             : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70'
                         }`}
                       >
@@ -459,7 +477,7 @@ export const NotificationsRoute = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
-                  className="px-2 sm:px-3 py-1 bg-surface-secondary/50 text-text-primary rounded hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
+                  className="px-4 py-2 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   Next
                 </button>

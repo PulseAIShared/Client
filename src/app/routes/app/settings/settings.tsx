@@ -112,10 +112,7 @@ export const SettingsRoute = () => {
           <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
               <div className="flex-1 space-y-3">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-primary/30 mb-4">
-                  <div className="w-2 h-2 bg-success-muted rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-accent-primary">Configuration</span>
-                </div>
+ 
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary mb-2">
                   Settings
                 </h1>

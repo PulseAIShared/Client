@@ -45,24 +45,26 @@ export const NotificationsBell: React.FC = () => {
       <button
         ref={buttonRef}
         onClick={toggleDropdown}
-        className="relative p-2 rounded-lg bg-surface-secondary/50 border border-border-primary/50 hover:bg-surface-secondary/70 transition-all group"
+        className="relative p-2 sm:p-3 rounded-xl bg-surface-primary/80 backdrop-blur-lg border border-border-primary/30 hover:bg-surface-primary/90 hover:border-accent-primary/50 transition-all duration-300 group shadow-lg hover:shadow-xl"
         aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}
         title={isConnected ? 'Real-time notifications active' : 'Real-time notifications connecting...'}
       >
-        <svg className="w-5 h-5 text-text-secondary group-hover:text-text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-text-secondary group-hover:text-accent-primary transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5V9a6 6 0 10-12 0v3L8 17h7zM13 21a2 2 0 01-4 0" />
         </svg>
         
         {/* SignalR connection status indicator */}
         {isAuthenticated && (
-          <div className={`absolute -top-0.5 -left-0.5 w-2 h-2 rounded-full transition-colors ${
-            isConnected ? 'bg-success-muted' : 'bg-warning-muted animate-pulse'
+          <div className={`absolute -top-1 -left-1 w-3 h-3 rounded-full transition-all duration-300 ${
+            isConnected 
+              ? 'bg-success-muted shadow-lg shadow-success/50' 
+              : 'bg-warning-muted animate-pulse shadow-lg shadow-warning/50'
           }`} />
         )}
         
         {/* Unread count badge */}
         {unreadCount > 0 && (
-          <div className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-error rounded-full flex items-center justify-center animate-pulse">
+          <div className="absolute -top-2 -right-2 min-w-[24px] h-6 bg-gradient-to-r from-error to-error-muted rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-error/50">
             <span className="text-text-primary text-xs font-bold px-1">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
@@ -71,8 +73,11 @@ export const NotificationsBell: React.FC = () => {
         
         {/* Pulse animation for new notifications */}
         {unreadCount > 0 && (
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-error rounded-full animate-ping opacity-75"></div>
+          <div className="absolute -top-2 -right-2 w-6 h-6 bg-error rounded-full animate-ping opacity-75"></div>
         )}
+
+        {/* Hover effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/0 to-accent-secondary/0 group-hover:from-accent-primary/10 group-hover:to-accent-secondary/10 rounded-xl transition-all duration-300"></div>
       </button>
 
       <NotificationsDropdown
