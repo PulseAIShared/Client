@@ -58,37 +58,36 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-gradient-from to-gradient-to rounded-2xl blur-3xl"></div>
+    <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+      {/* Enhanced Header */}
+      <div className="relative group">
+        <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 via-accent-secondary/10 to-accent-primary/10 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
         
-        <div className="relative bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
+            <div className="flex items-center gap-4 sm:gap-6">
               <button
                 onClick={() => navigate('/app/customers')}
-                className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-colors"
+                className="p-2 sm:p-3 text-text-muted hover:text-text-primary hover:bg-surface-secondary/50 rounded-xl transition-all duration-300 group"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
               
-              <div className="w-16 h-16 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-text-primary font-bold text-xl">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg">
                 {customerName.split(' ').map(n => n[0]).join('')}
               </div>
               
-              <div>
-
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
+              <div className="flex-1">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary mb-2">
                   {customerName}
                 </h1>
-                <div className="flex items-center gap-4 mt-1">
-                  <p className="text-text-secondary">{customer.email}</p>
-                  <div className="flex items-center gap-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
+                  <p className="text-text-secondary text-base sm:text-lg">{customer.email}</p>
+                  <div className="flex items-center gap-2">
                     <span className="text-sm text-text-muted">Data Quality:</span>
-                    <span className="text-sm font-medium text-accent-primary">
+                    <span className="text-sm font-semibold text-accent-primary bg-accent-primary/20 px-2 py-1 rounded-full">
                       {customer.quickMetrics?.dataCompletenessScore ? Math.round(customer.quickMetrics.dataCompletenessScore) : 'N/A'}%
                     </span>
                   </div>
@@ -96,19 +95,19 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 sm:gap-4">
               <CompanyAuthorization
                 policyCheck={canEditCustomers}
                 forbiddenFallback={null}
               >
                 <Button 
                   variant="outline"
-                  className="border-border-primary hover:border-accent-primary/50 hover:text-accent-primary"
+                  className="border-border-primary/30 hover:border-accent-primary/50 hover:text-accent-primary bg-surface-secondary/30 hover:bg-surface-secondary/50 transition-all duration-300"
                 >
                   Send Message
                 </Button>
                 <Button 
-                  className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
+                  className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
                 >
                   Launch Campaign
                 </Button>
@@ -118,14 +117,14 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-surface-primary backdrop-blur-lg rounded-2xl border border-border-primary shadow-lg overflow-hidden">
-        <div className="flex flex-wrap border-b border-border-primary">
+      {/* Enhanced Navigation Tabs */}
+      <div className="bg-surface-primary/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+        <div className="flex flex-wrap border-b border-border-primary/30">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
+              className={`flex items-center gap-3 px-6 py-4 font-semibold text-sm transition-all duration-300 border-b-2 ${
                 activeTab === tab.id
                   ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
                   : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-secondary/30'
@@ -137,8 +136,8 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
           ))}
         </div>
         
-        {/* Content Area - We'll add components for each tab */}
-        <div className="p-6">
+        {/* Enhanced Content Area */}
+        <div className="p-6 sm:p-8">
           {activeTab === 'overview' && <CustomerOverviewTab customer={customer} canEditCustomers={canEditCustomers} />}
           {activeTab === 'data-sources' && <CustomerDataSourcesTab customer={customer} canEditCustomers={canEditCustomers} />}
           {activeTab === 'analytics' && <CustomerAnalyticsTab customer={customer} canEditCustomers={canEditCustomers} />}
