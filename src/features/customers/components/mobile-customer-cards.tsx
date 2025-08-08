@@ -32,8 +32,8 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
 
   if (customers.length === 0) {
     return (
-      <div className="bg-surface-primary rounded-lg border border-border-primary p-8 text-center">
-        <div className="w-16 h-16 bg-surface-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 p-8 text-center shadow-lg">
+        <div className="w-16 h-16 bg-gradient-to-br from-surface-secondary/50 to-surface-secondary rounded-full flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
           </svg>
@@ -49,18 +49,18 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
       {customers.map((customer) => (
         <div
           key={customer.id}
-          className="bg-surface-primary border border-border-primary rounded-xl p-4 hover:border-accent-primary/50 hover:shadow-lg transition-all duration-200"
+          className="group bg-surface-primary/80 backdrop-blur-lg border border-border-primary/30 rounded-2xl p-4 hover:border-accent-primary/50 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
         >
-          {/* Customer Header */}
+          {/* Enhanced Customer Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="w-12 h-12 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-text-primary font-semibold text-sm flex-shrink-0">
+              <div className="w-12 h-12 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300">
                 {customer.fullName.split(' ').map(n => n[0]).join('')}
               </div>
               <div className="flex-1 min-w-0">
                 <Link
                   to={`/app/customers/${customer.id}`}
-                  className="text-text-primary font-semibold hover:text-accent-primary transition-colors block truncate text-base"
+                  className="text-text-primary font-semibold hover:text-accent-primary transition-colors block truncate text-base group-hover:scale-105 transition-transform duration-300"
                 >
                   {customer.fullName}
                 </Link>
@@ -81,7 +81,7 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
             </div>
           </div>
 
-          {/* Customer Details Grid */}
+          {/* Enhanced Customer Details Grid */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="space-y-1">
               <span className="text-text-muted text-xs">Plan</span>
@@ -103,32 +103,33 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 mt-4 pt-3 border-t border-border-primary">
-            <Link
-              to={`/app/customers/${customer.id}`}
-              className="flex-1 bg-accent-primary/10 hover:bg-accent-primary/20 text-accent-primary text-center py-2.5 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 min-h-[36px]"
+          {/* Enhanced Action Buttons */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border-primary/30">
+            <CompanyAuthorization
+              policyCheck={canEditCustomers}
+              forbiddenFallback={null}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              View Details
-            </Link>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedCustomers.has(customer.id)}
+                  onChange={(e) => onToggleSelection(customer.id, e)}
+                  className="rounded border-border-primary bg-surface-secondary focus:ring-accent-primary"
+                />
+                <span className="text-xs text-text-muted">Select</span>
+              </div>
+            </CompanyAuthorization>
+            
             <CompanyAuthorization
               policyCheck={canEditCustomers}
               forbiddenFallback={null}
             >
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onSingleDelete(customer, e as any);
-                }}
-                className="bg-error/10 hover:bg-error/20 text-error text-center py-2.5 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 min-h-[36px]"
+                onClick={(e) => onSingleDelete(customer, e)}
+                className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors group/btn"
                 title="Delete customer"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>

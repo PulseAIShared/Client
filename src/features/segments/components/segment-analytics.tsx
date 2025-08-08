@@ -36,302 +36,218 @@ const campaignPerformanceData = [
 export const SegmentAnalytics = () => {
   return (
     <div className="space-y-8">
-      {/* Churn Trends by Segment */}
-      <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">
+      {/* Enhanced Churn Trends by Segment */}
+      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-text-primary mb-1">Churn Trends by Segment</h2>
-            <p className="text-sm text-text-muted">6-month churn rate evolution across customer segments</p>
+            <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Churn Trends by Segment</h2>
+            <p className="text-sm sm:text-base text-text-muted">6-month churn rate evolution across customer segments</p>
           </div>
           <div className="flex gap-2">
-            <button className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-lg text-sm border border-accent-primary/30">6M</button>
-            <button className="px-3 py-1 bg-surface-secondary/50 text-text-secondary rounded-lg text-sm border border-border-primary/50">1Y</button>
+            <button className="px-4 py-2 bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary rounded-xl text-sm font-medium border border-accent-primary/30 shadow-lg">
+              6M
+            </button>
+            <button className="px-4 py-2 bg-surface-secondary/50 text-text-secondary rounded-xl text-sm font-medium border border-border-primary/30 hover:bg-surface-secondary/80 transition-colors">
+              1Y
+            </button>
           </div>
         </div>
 
-        <div className="h-80 mb-4">
+        <div className="h-80 mb-6">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={churnTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" opacity={0.3} />
               <XAxis 
                 dataKey="month" 
                 stroke="rgb(var(--text-muted))"
                 fontSize={12}
+                tickLine={false}
+                axisLine={false}
               />
               <YAxis 
                 stroke="rgb(var(--text-muted))"
                 fontSize={12}
                 tickFormatter={(value) => `${value}%`}
+                tickLine={false}
+                axisLine={false}
               />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'var(--surface-primary)', 
                   border: '1px solid var(--border-primary)',
-                  borderRadius: '8px',
-                  color: 'var(--text-primary)'
+                  borderRadius: '12px',
+                  color: 'var(--text-primary)',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
                 }}
               />
-              <Line type="monotone" dataKey="enterprise" stroke="#8b5cf6" strokeWidth={3} name="Enterprise" />
-              <Line type="monotone" dataKey="trial" stroke="#06b6d4" strokeWidth={3} name="Trial Users" />
-              <Line type="monotone" dataKey="basic" stroke="#f59e0b" strokeWidth={3} name="Basic" />
-              <Line type="monotone" dataKey="overall" stroke="#10b981" strokeWidth={3} name="Overall" strokeDasharray="5 5" />
+              <Line type="monotone" dataKey="enterprise" stroke="#8b5cf6" strokeWidth={3} name="Enterprise" dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }} />
+              <Line type="monotone" dataKey="trial" stroke="#06b6d4" strokeWidth={3} name="Trial Users" dot={{ fill: '#06b6d4', strokeWidth: 2, r: 4 }} />
+              <Line type="monotone" dataKey="basic" stroke="#f59e0b" strokeWidth={3} name="Basic" dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }} />
+              <Line type="monotone" dataKey="overall" stroke="#10b981" strokeWidth={3} name="Overall" strokeDasharray="5 5" dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="flex items-center justify-center gap-8 text-sm">
+        <div className="flex items-center justify-center gap-6 sm:gap-8 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-accent-secondary rounded-full"></div>
-            <span className="text-text-secondary">Enterprise</span>
+            <div className="w-3 h-3 bg-accent-secondary rounded-full shadow-sm"></div>
+            <span className="text-text-secondary font-medium">Enterprise</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-info rounded-full"></div>
-            <span className="text-text-secondary">Trial Users</span>
+            <div className="w-3 h-3 bg-info rounded-full shadow-sm"></div>
+            <span className="text-text-secondary font-medium">Trial Users</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-warning rounded-full"></div>
-            <span className="text-text-secondary">Basic</span>
+            <div className="w-3 h-3 bg-warning rounded-full shadow-sm"></div>
+            <span className="text-text-secondary font-medium">Basic</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-success rounded-full border border-success"></div>
-            <span className="text-text-secondary">Overall Trend</span>
+            <div className="w-3 h-3 bg-success rounded-full border border-success shadow-sm"></div>
+            <span className="text-text-secondary font-medium">Overall Trend</span>
           </div>
         </div>
       </div>
 
-      {/* Revenue by Segment and Distribution */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Revenue by Segment */}
-        <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">
+      {/* Enhanced Revenue by Segment */}
+      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Revenue by Segment</h2>
+            <p className="text-sm sm:text-base text-text-muted">Monthly revenue breakdown across customer segments</p>
+          </div>
+        </div>
+
+        <div className="h-80 mb-6">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={revenueBySegmentData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" opacity={0.3} />
+              <XAxis 
+                dataKey="segment" 
+                stroke="rgb(var(--text-muted))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis 
+                stroke="rgb(var(--text-muted))"
+                fontSize={12}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'var(--surface-primary)', 
+                  border: '1px solid var(--border-primary)',
+                  borderRadius: '12px',
+                  color: 'var(--text-primary)',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+                }}
+                formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
+              />
+              <Bar dataKey="revenue" fill="url(#revenueGradient)" radius={[4, 4, 0, 0]} />
+              <defs>
+                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                </linearGradient>
+              </defs>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {revenueBySegmentData.map((item) => (
+            <div key={item.segment} className="text-center p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30">
+              <div className="text-lg sm:text-xl font-bold text-accent-primary">${(item.revenue / 1000).toFixed(0)}k</div>
+              <div className="text-sm text-text-muted">{item.segment}</div>
+              <div className="text-xs text-text-muted">{item.customers.toLocaleString()} customers</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Enhanced Segment Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-text-primary mb-1">Revenue by Segment</h2>
-              <p className="text-sm text-text-muted">Monthly recurring revenue breakdown</p>
+              <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Segment Distribution</h2>
+              <p className="text-sm sm:text-base text-text-muted">Customer distribution across segments</p>
             </div>
           </div>
 
-          <div className="h-64 mb-4">
+          <div className="h-80 mb-6">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={revenueBySegmentData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" />
-                <XAxis 
-                  dataKey="segment" 
-                  stroke="rgb(var(--text-muted))"
-                  fontSize={12}
-                />
-                <YAxis 
-                  stroke="rgb(var(--text-muted))"
-                  fontSize={12}
-                  tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
-                />
+              <PieChart>
+                <Pie
+                  data={segmentDistributionData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={120}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {segmentDistributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'var(--surface-primary)', 
                     border: '1px solid var(--border-primary)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)'
+                    borderRadius: '12px',
+                    color: 'var(--text-primary)',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
                   }}
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
                 />
-                <Bar dataKey="revenue" fill="#22c55e" radius={[4, 4, 0, 0]} />
-              </BarChart>
+              </PieChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="space-y-2">
-            {revenueBySegmentData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <span className="text-text-secondary">{item.segment}</span>
-                <div className="flex items-center gap-4">
-                  <span className="text-text-muted">{item.customers} customers</span>
-                  <span className="text-success font-semibold">${item.avgRevenue}/mo avg</span>
+          <div className="grid grid-cols-2 gap-4">
+            {segmentDistributionData.map((item) => (
+              <div key={item.name} className="flex items-center gap-3 p-3 bg-surface-secondary/30 rounded-xl border border-border-primary/30">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
+                <div>
+                  <div className="font-medium text-text-primary">{item.name}</div>
+                  <div className="text-sm text-text-muted">{item.customers.toLocaleString()} customers</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Customer Distribution */}
-        <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">
+        {/* Enhanced Campaign Performance */}
+        <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-text-primary mb-1">Customer Distribution</h2>
-              <p className="text-sm text-text-muted">Percentage breakdown by segment</p>
+              <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Campaign Performance</h2>
+              <p className="text-sm sm:text-base text-text-muted">Recovery campaign success rates by segment</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="h-48 flex-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={segmentDistributionData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {segmentDistributionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'var(--surface-primary)', 
-                      border: '1px solid var(--border-primary)',
-                      borderRadius: '8px',
-                      color: 'var(--text-primary)'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="ml-6 space-y-3">
-              {segmentDistributionData.map((item, index) => (
-                <div key={index} className="flex items-center justify-between gap-6">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-text-secondary font-medium">{item.name}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-text-primary font-semibold">{item.value}%</div>
-                    <div className="text-xs text-text-muted">{item.customers.toLocaleString()}</div>
-                  </div>
+          <div className="space-y-4">
+            {campaignPerformanceData.map((item) => (
+              <div key={item.segment} className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 hover:border-accent-primary/30 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-text-primary">{item.segment}</h3>
+                  <span className="text-sm text-accent-primary font-medium">{item.success_rate}% success</span>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Campaign Performance by Segment */}
-      <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-text-primary mb-1">Campaign Performance by Segment</h2>
-            <p className="text-sm text-text-muted">Recovery campaign effectiveness across segments</p>
-          </div>
-          <div className="bg-success/20 text-success px-3 py-1 rounded-full text-sm font-medium border border-success/30">
-            Overall: 63% Success Rate
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {campaignPerformanceData.map((segment, index) => (
-            <div key={index} className="group p-4 bg-surface-secondary/30 rounded-lg hover:bg-surface-secondary/50 transition-all duration-200 border border-border-primary/30 hover:border-border-primary/50">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="text-text-primary font-semibold group-hover:text-accent-primary transition-colors">{segment.segment}</h3>
-                  <div className="text-sm text-text-muted">{segment.campaigns} campaigns launched</div>
+                <div className="flex items-center justify-between text-sm text-text-muted">
+                  <span>{item.campaigns} campaigns</span>
+                  <span className="font-medium text-success">${item.revenue_recovered.toLocaleString()} recovered</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-success font-bold text-lg">${segment.revenue_recovered.toLocaleString()}</div>
-                  <div className="text-xs text-text-muted">revenue recovered</div>
+                <div className="mt-2 w-full bg-surface-primary/50 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-accent-primary to-accent-secondary h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${item.success_rate}%` }}
+                  ></div>
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex-1 mr-4">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-text-muted">Success Rate</span>
-                    <span className="text-text-primary font-semibold">{segment.success_rate}%</span>
-                  </div>
-                  <div className="w-full bg-surface-secondary/50 rounded-full h-2">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        segment.success_rate >= 70 ? 'bg-success' :
-                        segment.success_rate >= 50 ? 'bg-warning' : 'bg-warning-muted'
-                      }`}
-                      style={{ width: `${segment.success_rate}%` }}
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <button className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-lg hover:bg-accent-primary/30 transition-colors text-sm border border-accent-primary/30">
-                    View Details
-                  </button>
-                  <button className="px-3 py-1 bg-success/20 text-success rounded-lg hover:bg-success/30 transition-colors text-sm border border-success/30">
-                    New Campaign
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-border-primary/50">
-          <button className="w-full px-4 py-2 bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 text-accent-primary rounded-lg hover:from-accent-primary/30 hover:to-accent-secondary/30 transition-all duration-200 font-medium text-sm border border-accent-primary/30">
-            Generate Comprehensive Analytics Report
-          </button>
-        </div>
-      </div>
-
-      {/* Insights and Recommendations */}
-      <div className="bg-gradient-to-r from-accent-secondary/20 to-accent-primary/20 backdrop-blur-lg p-8 rounded-2xl border border-accent-secondary/30 shadow-xl">
-        <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold text-text-primary mb-4">
-            AI-Powered Segment Insights
-          </h3>
-          <p className="text-accent-secondary max-w-3xl mx-auto">
-            Based on your segmentation performance, here are key insights and recommendations to optimize your retention strategy.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-surface-primary/50 p-6 rounded-xl border border-border-primary/50">
-            <div className="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <h4 className="text-lg font-semibold text-text-primary mb-2">Enterprise Success</h4>
-            <p className="text-text-secondary text-sm mb-3">Enterprise segment shows 87% lower churn than average. Consider premium features for other segments.</p>
-            <button className="px-4 py-2 bg-success/20 text-success rounded-lg hover:bg-success/30 transition-colors text-sm border border-success/30 w-full">
-              Expand Enterprise Features
-            </button>
+            ))}
           </div>
-
-          <div className="bg-surface-primary/50 p-6 rounded-xl border border-border-primary/50">
-            <div className="w-12 h-12 bg-warning/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h4 className="text-lg font-semibold text-text-primary mb-2">Trial Optimization</h4>
-            <p className="text-text-secondary text-sm mb-3">Trial users have high engagement but moderate conversion. Focus on value demonstration.</p>
-            <button className="px-4 py-2 bg-warning/20 text-warning rounded-lg hover:bg-warning/30 transition-colors text-sm border border-warning/30 w-full">
-              Optimize Trial Experience
-            </button>
-          </div>
-
-          <div className="bg-surface-primary/50 p-6 rounded-xl border border-border-primary/50">
-            <div className="w-12 h-12 bg-accent-primary/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h4 className="text-lg font-semibold text-text-primary mb-2">Basic Segment Risk</h4>
-            <p className="text-text-secondary text-sm mb-3">Basic tier shows highest churn potential. Implement proactive engagement campaigns.</p>
-            <button className="px-4 py-2 bg-accent-primary/20 text-accent-primary rounded-lg hover:bg-accent-primary/30 transition-colors text-sm border border-accent-primary/30 w-full">
-              Create Retention Campaign
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-          <button className="px-6 py-3 bg-gradient-to-r from-accent-secondary to-accent-primary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold">
-            Generate AI Segment Recommendations
-          </button>
-          <button className="px-6 py-3 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/60 transition-colors font-medium border border-border-primary/50">
-            Schedule Analytics Review
-          </button>
         </div>
       </div>
     </div>

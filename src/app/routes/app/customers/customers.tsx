@@ -108,7 +108,7 @@ export const CustomersRoute = () => {
   const { data, isLoading, error } = useGetCustomers(queryParams);
   const customers = useMemo(() => data?.customers || [], [data]);
   const pagination = data?.pagination;
- console.log(customers);
+
   const handleImportStarted = () => {
     addNotification({
       type: 'info',
@@ -126,7 +126,6 @@ export const CustomersRoute = () => {
       sortDescending: isCurrentField ? !queryParams.sortDescending : true,
       page: 1,
     };
-    console.log('Sorting by:', apiField, 'descending:', newParams.sortDescending);
     setQueryParams(newParams);
   };
 
@@ -143,16 +142,16 @@ export const CustomersRoute = () => {
 
     switch (filter) {
       case 'active':
-        newParams.subscriptionStatus = SubscriptionStatus.Active; // This should be 1 based on your JSON
+        newParams.subscriptionStatus = SubscriptionStatus.Active;
         break;
       case 'high-risk':
-        newParams.churnRiskLevel = ChurnRiskLevel.High; // This should be 2 based on your JSON
+        newParams.churnRiskLevel = ChurnRiskLevel.High;
         break;
       case 'payment-issues':
-        newParams.paymentStatus = PaymentStatus.Failed; // This should be 1 based on your JSON
+        newParams.paymentStatus = PaymentStatus.Failed;
         break;
       case 'cancelled':
-        newParams.subscriptionStatus = SubscriptionStatus.Cancelled; // Need to check what number this is
+        newParams.subscriptionStatus = SubscriptionStatus.Cancelled;
         break;
     }
 
@@ -344,25 +343,26 @@ export const CustomersRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
+      <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+        {/* Enhanced Header */}
+        <div className="relative group">
+          {/* Enhanced background gradient effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/5 via-accent-secondary/5 to-accent-primary/5 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
           
-          <div className="relative bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-xl">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
+          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-8">
+              <div className="space-y-3">
+    
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary mb-2">
                   Customers Overview
                 </h1>
-                <p className="text-text-secondary">
-                  Monitor customer behavior, churn risk, and lifetime value
+                <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-2xl">
+                  Monitor customer behavior, churn risk, and lifetime value with AI-powered insights
                 </p>
               </div>
               
-              {/* Mobile-First Button Layout */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+              {/* Enhanced Mobile-First Button Layout */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
                 {/* Primary Action - Staff+ only */}
                 <CompanyAuthorization
                   policyCheck={canEditCustomers}
@@ -370,27 +370,28 @@ export const CustomersRoute = () => {
                 >
                   <button 
                     onClick={() => setShowImportModal(true)}
-                    className="order-1 w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm sm:text-sm flex items-center justify-center gap-2 whitespace-nowrap"
+                    className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-xl hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold text-sm sm:text-base flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent-secondary to-accent-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                    <svg className="relative w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    <span className="hidden sm:inline">Import Customers</span>
-                    <span className="sm:hidden">Import</span>
+                    <span className="relative hidden sm:inline">Import Customers</span>
+                    <span className="relative sm:hidden">Import</span>
                   </button>
                 </CompanyAuthorization>
                 
                 {/* Secondary Actions */}
-                <div className="order-2 flex flex-row gap-2 w-full sm:w-auto">
+                <div className="flex flex-row gap-3 w-full sm:w-auto">
                   <CompanyAuthorization
                     policyCheck={canEditCustomers}
                     forbiddenFallback={null}
                   >
                     <button 
                       onClick={() => setShowImportHistory(true)}
-                      className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center justify-center gap-2 whitespace-nowrap"
+                      className="group flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-4 bg-surface-secondary/50 text-text-primary rounded-xl hover:bg-surface-primary/50 transition-all duration-200 font-medium text-sm sm:text-base border border-border-primary/30 hover:border-border-secondary hover:shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span className="hidden sm:inline">Import History</span>
@@ -403,9 +404,9 @@ export const CustomersRoute = () => {
                   >
                     <button 
                       onClick={handleExportAll}
-                      className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 bg-surface-secondary text-text-primary rounded-lg hover:bg-surface-secondary/80 transition-colors font-medium text-sm border border-border-primary flex items-center justify-center gap-2 whitespace-nowrap"
+                      className="group flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-4 bg-surface-secondary/50 text-text-primary rounded-xl hover:bg-surface-primary/50 transition-all duration-200 font-medium text-sm sm:text-base border border-border-primary/30 hover:border-border-secondary hover:shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <span className="hidden sm:inline">Export Data</span>
@@ -418,42 +419,51 @@ export const CustomersRoute = () => {
           </div>
         </div>
 
-   
-
-        {/* Customers Table */}
+        {/* Enhanced Customers Table */}
         {isLoading ? (
           <div className="space-y-6">
-            <div className="bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg animate-pulse">
+            <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg animate-pulse">
               <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1 h-12 bg-surface-secondary rounded"></div>
-                <div className="flex gap-2">
+                <div className="flex-1 h-12 bg-surface-secondary rounded-xl"></div>
+                <div className="flex gap-3">
                   {Array.from({ length: 5 }).map((_, index) => (
-                    <div key={index} className="h-10 w-24 bg-surface-secondary rounded"></div>
+                    <div key={index} className="h-10 w-24 bg-surface-secondary rounded-xl"></div>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="bg-surface-primary backdrop-blur-lg rounded-2xl border border-border-primary shadow-lg animate-pulse">
-              <div className="p-6 border-b border-border-primary">
-                <div className="h-6 bg-surface-secondary rounded w-48"></div>
+            <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 shadow-lg animate-pulse">
+              <div className="p-6 border-b border-border-primary/30">
+                <div className="h-6 bg-surface-secondary rounded-xl w-48"></div>
               </div>
               <div className="p-6">
                 {Array.from({ length: 10 }).map((_, index) => (
-                  <div key={index} className="h-16 bg-surface-secondary rounded mb-2"></div>
+                  <div key={index} className="h-16 bg-surface-secondary rounded-xl mb-3"></div>
                 ))}
               </div>
             </div>
           </div>
         ) : error ? (
-          <div className="bg-surface-primary backdrop-blur-lg rounded-2xl border border-border-primary shadow-lg">
+          <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 shadow-lg">
             <div className="p-12 text-center">
-              <div className="text-error mb-2">Failed to load customers</div>
-              <div className="text-sm text-text-muted">Please try refreshing the page</div>
+              <div className="w-16 h-16 bg-gradient-to-br from-error/20 to-error-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-error-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="text-error-muted font-medium mb-2">Failed to load customers</div>
+              <div className="text-sm text-text-muted mb-4">Please try refreshing the page</div>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error-muted transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           </div>
         ) : isMobile ? (
           <div className="space-y-6">
-            <div className="bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg">
+            <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1 relative">
                   <input 
@@ -461,7 +471,7 @@ export const CustomersRoute = () => {
                     placeholder="Search customers by name or email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-surface-secondary border border-border-primary rounded-lg px-4 py-3 pl-10 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
+                    className="w-full bg-surface-secondary/50 border border-border-primary/30 rounded-xl px-4 py-3 pl-10 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
                   />
                   <svg className="absolute left-3 top-3.5 w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -478,10 +488,10 @@ export const CustomersRoute = () => {
                     <button
                       key={filter.key}
                       onClick={() => handleFilterChange(filter.key)}
-                      className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 whitespace-nowrap ${
+                      className={`px-3 py-1.5 rounded-xl font-medium text-xs transition-all duration-200 whitespace-nowrap ${
                         selectedFilter === filter.key
                           ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
-                          : 'bg-surface-secondary text-text-secondary hover:bg-surface-secondary/80 border border-border-primary'
+                          : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/80 border border-border-primary/30'
                       }`}
                     >
                       {filter.label} ({filter.count})
@@ -501,7 +511,7 @@ export const CustomersRoute = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-lg">
+            <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1 relative">
                   <input 
@@ -509,7 +519,7 @@ export const CustomersRoute = () => {
                     placeholder="Search customers by name or email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-surface-secondary border border-border-primary rounded-lg px-4 py-3 pl-10 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
+                    className="w-full bg-surface-secondary/50 border border-border-primary/30 rounded-xl px-4 py-3 pl-10 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
                   />
                   <svg className="absolute left-3 top-3.5 w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -526,10 +536,10 @@ export const CustomersRoute = () => {
                     <button
                       key={filter.key}
                       onClick={() => handleFilterChange(filter.key)}
-                      className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                      className={`px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                         selectedFilter === filter.key
                           ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
-                          : 'bg-surface-secondary text-text-secondary hover:bg-surface-secondary/80 border border-border-primary'
+                          : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/80 border border-border-primary/30'
                       }`}
                     >
                       {filter.label} ({filter.count})
@@ -539,8 +549,8 @@ export const CustomersRoute = () => {
               </div>
             </div>
 
-            <div className="bg-surface-primary backdrop-blur-lg rounded-2xl border border-border-primary shadow-lg overflow-hidden">
-              <div className="p-6 border-b border-border-primary">
+            <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 shadow-lg overflow-hidden">
+              <div className="p-6 border-b border-border-primary/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <h2 className="text-xl font-semibold text-text-primary">
@@ -665,7 +675,7 @@ export const CustomersRoute = () => {
                     {customers.map((customer) => (
                       <tr 
                         key={customer.id} 
-                        className="border-t border-border-primary hover:bg-surface-secondary/20 cursor-pointer transition-colors"
+                        className="border-t border-border-primary/30 hover:bg-surface-secondary/20 cursor-pointer transition-colors"
                         onClick={() => handleCustomerClick(customer.id)}
                       >
                         <CompanyAuthorization
@@ -683,7 +693,7 @@ export const CustomersRoute = () => {
                         </CompanyAuthorization>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-text-primary font-semibold text-sm">
+                            <div className="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm">
                               {customer.fullName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div>
@@ -733,9 +743,9 @@ export const CustomersRoute = () => {
                 </table>
               </div>
 
-              {/* Pagination */}
+              {/* Enhanced Pagination */}
               {pagination && pagination.totalPages > 1 && (
-                <div className="p-6 border-t border-border-primary flex items-center justify-between">
+                <div className="p-6 border-t border-border-primary/30 flex items-center justify-between">
                   <div className="text-sm text-text-muted">
                     Page {pagination.page} of {pagination.totalPages} ({pagination.totalCount} total customers)
                   </div>
@@ -743,14 +753,14 @@ export const CustomersRoute = () => {
                     <button
                       onClick={() => handlePageChange(pagination.page - 1)}
                       disabled={!pagination.hasPreviousPage}
-                      className="px-3 py-1 bg-surface-secondary text-text-primary rounded hover:bg-surface-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Previous
                     </button>
                     <button
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={!pagination.hasNextPage}
-                      className="px-3 py-1 bg-surface-secondary text-text-primary rounded hover:bg-surface-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Next
                     </button>

@@ -49,7 +49,7 @@ export const SegmentsRoute = () => {
     switch (activeTab) {
       case 'overview':
         return (
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+          <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <SegmentPerformance />
             <SegmentsList 
               onSelectSegment={setSelectedSegment} 
@@ -63,7 +63,7 @@ export const SegmentsRoute = () => {
         return <SegmentCreator />;
       default:
         return (
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+          <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <SegmentPerformance />
             <SegmentsList 
               onSelectSegment={setSelectedSegment} 
@@ -76,31 +76,39 @@ export const SegmentsRoute = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
+      <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+        {/* Enhanced Header */}
         <SegmentsHeader />
 
-        {/* Navigation Tabs */}
-        <div className="bg-surface-primary/50 backdrop-blur-lg rounded-2xl border border-border-primary/50 shadow-lg overflow-hidden">
-          <div className="flex flex-wrap border-b border-border-primary/50">
+        {/* Enhanced Navigation Tabs */}
+        <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl overflow-hidden">
+          <div className="flex flex-wrap border-b border-border-primary/30">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm transition-all duration-200 border-b-2 ${
+                className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-4 sm:py-5 font-medium text-sm sm:text-base transition-all duration-300 border-b-2 relative overflow-hidden ${
                   activeTab === tab.id
                     ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
                     : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-secondary/30'
                 }`}
               >
-                {tab.icon}
-                {tab.label}
+                {/* Enhanced background effect for active tab */}
+                {activeTab === tab.id && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/5 to-accent-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                )}
+                <div className="relative z-10 flex items-center gap-2 sm:gap-3">
+                  <div className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : 'group-hover:scale-105'}`}>
+                    {tab.icon}
+                  </div>
+                  <span className="whitespace-nowrap">{tab.label}</span>
+                </div>
               </button>
             ))}
           </div>
           
-          {/* Content Area */}
-          <div className="p-4 sm:p-6">
+          {/* Enhanced Content Area */}
+          <div className="p-6 sm:p-8 lg:p-10">
             {renderContent()}
           </div>
         </div>

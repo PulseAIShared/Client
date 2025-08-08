@@ -15,10 +15,7 @@ export const GettingStarted = () => {
         </div>
 
         <div className="relative text-center">
-          <div className="inline-flex items-center gap-2 bg-accent-primary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-primary/30 mb-6">
-            <div className="w-2 h-2 bg-success-muted rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium text-accent-primary">Welcome to PulseLTV</span>
-          </div>
+
 
           <h1 className="text-4xl font-bold text-text-primary mb-4">
             Ready to predict and prevent churn?

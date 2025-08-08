@@ -69,19 +69,19 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
+        <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-surface-secondary rounded w-1/4"></div>
-            <div className="h-10 bg-surface-secondary rounded"></div>
+            <div className="h-4 bg-surface-secondary/50 rounded-xl w-1/4"></div>
+            <div className="h-10 bg-surface-secondary/50 rounded-xl"></div>
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="bg-surface-secondary/30 backdrop-blur-lg p-6 rounded-xl border border-border-primary/50 animate-pulse">
+            <div key={index} className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 animate-pulse shadow-lg">
               <div className="space-y-3">
-                <div className="h-4 bg-border-primary rounded w-3/4"></div>
-                <div className="h-3 bg-border-primary rounded w-1/2"></div>
-                <div className="h-20 bg-border-primary rounded"></div>
+                <div className="h-4 bg-surface-secondary/50 rounded-xl w-3/4"></div>
+                <div className="h-3 bg-surface-secondary/50 rounded-xl w-1/2"></div>
+                <div className="h-20 bg-surface-secondary/50 rounded-xl"></div>
               </div>
             </div>
           ))}
@@ -92,10 +92,21 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
 
   if (error) {
     return (
-      <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
+      <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
         <div className="text-center py-8">
-          <div className="text-error mb-2">Failed to load segments</div>
-          <div className="text-text-muted text-sm">Please try refreshing the page</div>
+          <div className="w-16 h-16 bg-gradient-to-br from-error/20 to-error-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-error-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <div className="text-error-muted font-medium mb-2">Failed to load segments</div>
+          <div className="text-sm text-text-muted mb-4">Please try refreshing the page</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error-muted transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -103,25 +114,22 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
+      {/* Enhanced Search and Filters */}
+      <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
           <div className="flex-1 relative">
             <input 
               type="text" 
               placeholder="Search segments by name or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-4 py-3 pl-10 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
+              className="w-full bg-surface-secondary/50 border border-border-primary/30 rounded-xl px-4 py-3 pl-10 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
             />
             <svg className="absolute left-3 top-3.5 w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-
-          {/* Type Filter */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {[
               { key: 'all', label: 'All Types' },
               { key: 'behavioral', label: 'Behavioral' },
@@ -130,247 +138,129 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
             ].map((filter) => (
               <button
                 key={filter.key}
-                onClick={() => setFilterType(filter.key as 'all' | 'behavioral' | 'demographic' | 'ai-generated')}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                onClick={() => setFilterType(filter.key as any)}
+                className={`px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 ${
                   filterType === filter.key
                     ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
-                    : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/60 border border-border-primary/50'
+                    : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/80 border border-border-primary/30'
                 }`}
               >
                 {filter.label}
               </button>
             ))}
           </div>
-
-          {/* Sort */}
-          <select
-            value={sortBy}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value as 'name' | 'customers' | 'churn' | 'ltv')}
-            className="bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-4 py-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
-          >
-            <option value="churn">Sort by Churn Rate</option>
-            <option value="customers">Sort by Customer Count</option>
-            <option value="ltv">Sort by LTV</option>
-            <option value="name">Sort by Name</option>
-          </select>
         </div>
       </div>
 
-      {/* Segments Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredSegments.map((segment) => {
-          const churnRisk = getChurnRiskLevel(segment.churnRate);
-          const isSelected = selectedSegment === segment.id;
-          
-          return (
+      {/* Enhanced Segments Grid */}
+      {filteredSegments.length === 0 ? (
+        <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 p-8 text-center shadow-lg">
+          <div className="w-16 h-16 bg-gradient-to-br from-surface-secondary/50 to-surface-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-text-primary mb-2">No segments found</h3>
+          <p className="text-text-muted">Try adjusting your search or filter criteria</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredSegments.map((segment) => (
             <div
               key={segment.id}
-              onClick={() => onSelectSegment(isSelected ? null : segment.id)}
-              className={`group relative bg-surface-secondary/30 backdrop-blur-lg p-6 rounded-xl border transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                isSelected 
-                  ? 'border-accent-primary/50 bg-accent-primary/10 shadow-lg shadow-accent-primary/25' 
-                  : 'border-border-primary/50 hover:border-border-primary/60'
+              className={`group bg-surface-primary/80 backdrop-blur-lg border rounded-2xl p-6 shadow-lg transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 ${
+                selectedSegment === segment.id
+                  ? 'border-accent-primary/50 shadow-accent-primary/25'
+                  : 'border-border-primary/30 hover:border-accent-primary/30'
               }`}
+              onClick={() => onSelectSegment(segment.id)}
             >
-              {/* Selected indicator */}
-              {isSelected && (
-                <div className="absolute top-4 right-4">
-                  <div className="w-3 h-3 bg-accent-primary rounded-full animate-pulse"></div>
-                </div>
-              )}
-
-              {/* Header */}
+              {/* Enhanced Header */}
               <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-4 h-4 rounded-full shadow-lg"
-                    style={{ backgroundColor: segment.color }}
-                  />
-                  <div>
-                    <h3 className={`text-lg font-semibold transition-colors ${
-                      isSelected ? 'text-accent-primary' : 'text-text-primary group-hover:text-accent-primary'
-                    }`}>
-                      {segment.name}
-                    </h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getTypeColor(segment.type)}`}>
-                      {segment.type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-text-primary group-hover:text-accent-primary transition-colors truncate">
+                    {segment.name}
+                  </h3>
+                  <p className="text-sm text-text-muted mt-1 line-clamp-2">
+                    {segment.description}
+                  </p>
+                </div>
+                <div className="ml-3 flex flex-col items-end gap-2">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getTypeColor(segment.type)}`}>
+                    {segment.type}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSegment(segment.id, segment.name);
+                    }}
+                    className="p-1 text-error hover:bg-error/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                    title="Delete segment"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
-              {/* Description */}
-              <p className="text-text-secondary text-sm mb-4 leading-relaxed">
-                {segment.description}
-              </p>
-
-              {/* Metrics */}
+              {/* Enhanced Stats Grid */}
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <div className="text-2xl font-bold text-text-primary">{segment.customerCount.toLocaleString()}</div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-accent-primary">{segment.customerCount.toLocaleString()}</div>
                   <div className="text-xs text-text-muted">Customers</div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-success">${segment.avgLTV}</div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-text-primary">${segment.avgLTV.toLocaleString()}</div>
                   <div className="text-xs text-text-muted">Avg LTV</div>
                 </div>
               </div>
 
-              {/* Churn Risk */}
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-text-muted text-sm">Churn Rate</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-text-primary font-semibold">{segment.churnRate}%</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium border ${churnRisk.color}`}>
-                    {churnRisk.label}
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress bar for churn rate */}
+              {/* Enhanced Churn Risk */}
               <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-text-muted">Churn Risk</span>
+                  <span className="text-sm font-medium text-text-primary">{segment.churnRate}%</span>
+                </div>
                 <div className="w-full bg-surface-secondary/50 rounded-full h-2">
                   <div 
-                    className={`h-full rounded-full transition-all duration-500 ${
+                    className={`h-2 rounded-full transition-all duration-300 ${
                       segment.churnRate >= 40 ? 'bg-error' :
                       segment.churnRate >= 20 ? 'bg-warning' :
                       segment.churnRate >= 10 ? 'bg-warning-muted' : 'bg-success'
                     }`}
                     style={{ width: `${Math.min(segment.churnRate, 100)}%` }}
-                  />
+                  ></div>
                 </div>
               </div>
 
-              {/* Criteria Preview */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-text-secondary">Criteria:</h4>
-                <div className="flex flex-wrap gap-1">
-                  {segment.criteria.slice(0, 2).map((criteria, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-surface-secondary/50 text-text-secondary rounded-md text-xs border border-border-primary/50"
-                    >
-                      {criteria.label}
-                    </span>
-                  ))}
-                  {segment.criteria.length > 2 && (
-                    <span className="px-2 py-1 bg-surface-secondary/50 text-text-muted rounded-md text-xs border border-border-primary/50">
-                      +{segment.criteria.length - 2} more
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 mt-4 pt-4 border-t border-border-primary/50">
+              {/* Enhanced Actions */}
+              <div className="flex gap-2">
                 <Link
-                  to={`/app/campaigns/create?segmentId=${segment.id}`}
-                  className="flex-1 px-3 py-2 bg-accent-primary/20 text-accent-primary rounded-lg hover:bg-accent-primary/30 transition-colors text-sm border border-accent-primary/30 text-center"
+                  to={`/app/segments/${segment.id}`}
+                  className="flex-1 bg-accent-primary/10 hover:bg-accent-primary/20 text-accent-primary text-center py-2 px-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  Launch Campaign
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  View Details
                 </Link>
-                <button className="px-3 py-2 bg-surface-secondary/50 text-text-secondary rounded-lg hover:bg-surface-secondary/70 transition-colors text-sm border border-border-primary/50">
-                  Edit
-                </button>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteSegment(segment.id, segment.name);
-                  }}
-                  className="px-3 py-2 bg-error/20 text-error rounded-lg hover:bg-error/30 transition-colors text-sm border border-error/30"
+                <button
+                  className="bg-surface-secondary/50 hover:bg-surface-secondary/80 text-text-primary py-2 px-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
+                  Edit
                 </button>
               </div>
             </div>
-          );
-        })}
-      </div>
-
-      {filteredSegments.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-text-muted mb-2">No segments found</div>
-          <div className="text-sm text-text-muted">Try adjusting your search or filter criteria</div>
+          ))}
         </div>
       )}
-
-      {/* Selected Segment Details */}
-      {selectedSegment && (
-        <div className="bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 backdrop-blur-lg p-6 rounded-2xl border border-accent-primary/30 shadow-xl">
-          {(() => {
-            const segment = segments.find(s => s.id === selectedSegment);
-            if (!segment) return null;
-            
-            return (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-2xl font-bold text-text-primary mb-2">{segment.name}</h3>
-                    <p className="text-accent-primary">{segment.description}</p>
-                  </div>
-                  <button 
-                    onClick={() => onSelectSegment(null)}
-                    className="p-2 text-text-muted hover:text-text-primary transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                  <div className="bg-surface-primary/50 p-4 rounded-xl border border-border-primary/50">
-                    <div className="text-2xl font-bold text-text-primary">{segment.customerCount.toLocaleString()}</div>
-                    <div className="text-sm text-text-muted">Total Customers</div>
-                  </div>
-                  <div className="bg-surface-primary/50 p-4 rounded-xl border border-border-primary/50">
-                    <div className="text-2xl font-bold text-error">{segment.churnRate}%</div>
-                    <div className="text-sm text-text-muted">Churn Rate</div>
-                  </div>
-                  <div className="bg-surface-primary/50 p-4 rounded-xl border border-border-primary/50">
-                    <div className="text-2xl font-bold text-success">${segment.avgLTV}</div>
-                    <div className="text-sm text-text-muted">Average LTV</div>
-                  </div>
-                  <div className="bg-surface-primary/50 p-4 rounded-xl border border-border-primary/50">
-                    <div className="text-2xl font-bold text-accent-primary">${segment.avgRevenue.toLocaleString()}</div>
-                    <div className="text-sm text-text-muted">Avg Revenue</div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-text-primary">Segment Criteria</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {segment.criteria.map((criteria, index) => (
-                      <div key={index} className="bg-surface-primary/50 p-3 rounded-lg border border-border-primary/50">
-                        <span className="text-accent-primary font-medium">{criteria.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <Link
-                    to={`/app/campaigns/create?segmentId=${segment.id}`}
-                    className="px-6 py-3 bg-gradient-to-r from-accent-primary to-accent-secondary text-text-primary rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold"
-                  >
-                    Create Recovery Campaign
-                  </Link>
-                  <button className="px-6 py-3 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/60 transition-colors font-medium border border-border-primary/50">
-                    Export Segment Data
-                  </button>
-                  <button className="px-6 py-3 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary/60 transition-colors font-medium border border-border-primary/50">
-                    Edit Segment
-                  </button>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
-
     </div>
   );
 };
