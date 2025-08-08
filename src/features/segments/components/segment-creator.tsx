@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
-import { useCreateSegment, usePreviewSegment } from '../api/segments';
+import { createSegment, usePreviewSegment } from '../api/segments';
 import { SegmentType, CriteriaOperator } from '@/types/api';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '@/components/ui/notifications';
 
 type CriteriaField = 'age' | 'ltv' | 'churn_risk' | 'plan_type' | 'login_frequency' | 'feature_usage' | 'payment_status' | 'support_tickets';
 
@@ -90,16 +91,37 @@ export const SegmentCreator = () => {
   
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   
-  const createSegmentMutation = useCreateSegment({
-    mutationConfig: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['segments'] });
-        navigate('/app/segments');
-      },
-      onError: (error) => {
-        console.error('Failed to create segment:', error);
-      }
+  const createSegmentMutation = useMutation({
+    mutationFn: createSegment,
+    onSuccess: async (newSegment) => {
+      console.log('SUCCESS CALLBACK FIRED:', newSegment);
+      
+      // Add success notification
+      addNotification({
+        type: 'success',
+        title: 'Segment Created Successfully!',
+        message: `"${newSegment?.name || 'Your segment'}" has been created${newSegment?.customerCount ? ` with ${newSegment.customerCount} customers` : ''}.`
+      });
+      
+      // Immediately invalidate and refetch segments data
+      await queryClient.invalidateQueries({ queryKey: ['segments'] });
+      await queryClient.refetchQueries({ queryKey: ['segments'] });
+      
+      // Navigate back
+      navigate('/app/segments');
+    },
+    onError: (error: any) => {
+      console.error('ERROR CALLBACK FIRED:', error);
+      console.error('Error response:', error?.response);
+      console.error('Error status:', error?.response?.status);
+      
+      addNotification({
+        type: 'error',
+        title: 'Failed to Create Segment',
+        message: error?.response?.data?.message || 'There was an error creating your segment. Please try again.'
+      });
     }
   });
   

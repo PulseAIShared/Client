@@ -30,11 +30,11 @@ type SidebarProps = {
 
 const Logo = () => {
   return (
-    <Link className="flex items-center gap-2" to="/app">
-      <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
+    <Link className="flex items-center gap-2 group" to="/app">
+      <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary group-hover:from-accent-secondary group-hover:to-accent-primary transition-all duration-300">
         PulseLTV
       </span>
-      <Code fw={700} className="text-xs">BETA</Code>
+      <Code fw={700} className="text-xs bg-accent-secondary/20 text-accent-secondary border border-accent-secondary/30 rounded px-1.5 py-0.5">BETA</Code>
     </Link>
   );
 };
@@ -43,7 +43,8 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
   const [drawerOpened, setDrawerOpened] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-    const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  
   // Close drawer when screen size changes from mobile to desktop
   useEffect(() => {
     if (!isMobile) {
@@ -63,7 +64,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
   const adminSection = (
     <PlatformAuthorization allowedPlatformRoles={[PlatformRole.Admin, PlatformRole.Moderator]}>
-      <div className="mt-6 pt-6 border-t border-border-primary/50">
+      <div className="mt-6 pt-6 border-t border-border-primary/30">
         <div className="px-4 mb-3">
           <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Admin</h3>
         </div>
@@ -100,7 +101,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
   );
 
   const sidebarContent = (
-    <div className="h-full bg-surface-primary/95 backdrop-blur-lg border-r border-border-primary/50 flex flex-col">
+    <div className="h-full bg-surface-primary/95 backdrop-blur-xl border-r border-border-primary/30 flex flex-col shadow-lg">
       {/* Navigation - Scrollable area */}
       <ScrollArea className="flex-1" style={{ height: 'calc(100vh - 180px)' }}>
         <div className="space-y-2 px-3 py-6">
@@ -117,12 +118,12 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
         </div>
       </ScrollArea>
 
-      {/* Footer */}
-      <div className="flex-shrink-0 p-6 border-t border-border-primary/50">
-        <div className="bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 rounded-lg p-4 border border-accent-primary/30">
+      {/* Enhanced Footer */}
+      <div className="flex-shrink-0 p-6 border-t border-border-primary/30">
+        <div className="bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-xl p-4 border border-accent-primary/20 hover:border-accent-primary/30 transition-all duration-300">
           <h3 className="text-sm font-medium text-text-primary mb-1">Need Help?</h3>
           <p className="text-xs text-text-secondary mb-3">Get support from our team</p>
-          <button className="w-full px-3 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white text-xs font-medium rounded-md hover:shadow-lg transition-all duration-200">
+          <button className="w-full px-3 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white text-xs font-medium rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200">
             Contact Support
           </button>
         </div>
@@ -132,26 +133,26 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
   return (
     <>
-      {/* Hamburger Icon for Mobile */}
+      {/* Enhanced Hamburger Icon for Mobile */}
       {isMobile && (
         <Burger
           opened={drawerOpened}
           onClick={toggleDrawer}
           size="sm"
-          color= {theme === 'dark' ? 'white' : 'black'}
-          className="fixed left-4 top-3 z-50"
+          color={theme === 'dark' ? 'white' : 'black'}
+          className="fixed left-4 top-3 z-50 hover:scale-110 transition-transform duration-200"
           aria-label={drawerOpened ? 'Close navigation' : 'Open navigation'}
         />
       )}
 
-      {/* Sidebar for Desktop */}
+      {/* Enhanced Sidebar for Desktop */}
       {!isMobile && (
         <nav className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-[300px] z-10">
           {sidebarContent}
         </nav>
       )}
 
-      {/* Mobile Drawer */}
+      {/* Enhanced Mobile Drawer */}
       <Drawer
         opened={drawerOpened}
         onClose={toggleDrawer}
@@ -164,11 +165,11 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
           content: {
             backgroundColor: 'rgb(var(--color-surface-primary) / 0.95)',
             backdropFilter: 'blur(16px)',
-            border: '1px solid rgb(var(--color-border-primary) / 0.5)',
+            border: '1px solid rgb(var(--color-border-primary) / 0.3)',
           },
           header: {
             backgroundColor: 'transparent',
-            borderBottom: '1px solid rgb(var(--color-border-primary) / 0.5)',
+            borderBottom: '1px solid rgb(var(--color-border-primary) / 0.3)',
           },
           title: {
             color: 'rgb(var(--color-text-primary))',
@@ -176,8 +177,8 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
           },
         }}
         overlayProps={{ 
-          opacity: 0,
-
+          opacity: 0.3,
+          blur: 3,
         }}
       >
         <ScrollArea style={{ height: 'calc(100vh - 120px)' }}>

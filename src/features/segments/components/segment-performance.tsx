@@ -76,24 +76,21 @@ export const SegmentPerformance: React.FC = () => {
     }
   ];
 
-  const topPerformingSegments = [
-    { 
-      name: performanceData.topPerformingSegment.name, 
-      impact: `+${performanceData.topPerformingSegment.churnReduction}%`, 
-      customers: 1240, 
-      color: 'bg-purple-500' 
-    },
-    { name: 'Trial Power Users', impact: '+38%', customers: 890, color: 'bg-accent-primary' },
-    { name: 'Payment Failed', impact: '+42%', customers: 567, color: 'bg-error' },
-    { name: 'Feature Champions', impact: '+31%', customers: 1890, color: 'bg-success' },
-  ];
+  const topPerformingSegments = performanceData.topPerformingSegment.name !== "No segments available" 
+    ? [{ 
+        name: performanceData.topPerformingSegment.name, 
+        impact: `+${performanceData.topPerformingSegment.churnReduction}%`, 
+        customers: 0, // API doesn't provide customer count for top segment
+        color: 'bg-accent-secondary' 
+      }]
+    : [];
 
   return (
     <div className="space-y-6">
       {/* Performance Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {performanceMetrics.map((metric, index) => (
-          <div key={index} className={`group relative bg-gradient-to-br ${metric.bgGradient} backdrop-blur-lg p-6 rounded-2xl border border-slate-700/50 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300`}>
+          <div key={index} className={`group relative bg-gradient-to-br ${metric.bgGradient} backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl hover:border-border-primary/60 transition-all duration-300`}>
             {/* Subtle glow effect on hover */}
             <div className="absolute inset-0 bg-gradient-to-br from-accent-primary/5 to-accent-secondary/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             
@@ -142,23 +139,32 @@ export const SegmentPerformance: React.FC = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {topPerformingSegments.map((segment, index) => (
-            <div key={index} className="group flex items-center justify-between p-4 bg-surface-secondary/30 rounded-lg hover:bg-surface-secondary/50 transition-all duration-200 border border-border-primary/30 hover:border-border-primary/50">
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full ${segment.color} shadow-lg`} />
-                <div>
-                  <span className="text-text-primary font-medium group-hover:text-accent-primary transition-colors">{segment.name}</span>
-                  <div className="text-text-muted text-sm">{segment.customers.toLocaleString()} customers</div>
+        {topPerformingSegments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {topPerformingSegments.map((segment, index) => (
+              <div key={index} className="group flex items-center justify-between p-4 bg-surface-secondary/30 rounded-lg hover:bg-surface-secondary/50 transition-all duration-200 border border-border-primary/30 hover:border-border-primary/50">
+                <div className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded-full ${segment.color} shadow-lg`} />
+                  <div>
+                    <span className="text-text-primary font-medium group-hover:text-accent-primary transition-colors">{segment.name}</span>
+                    {segment.customers > 0 && (
+                      <div className="text-text-muted text-sm">{segment.customers.toLocaleString()} customers</div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-success font-semibold text-lg">{segment.impact}</div>
+                  <div className="text-xs text-text-muted">churn reduction</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-success font-semibold text-lg">{segment.impact}</div>
-                <div className="text-xs text-text-muted">churn reduction</div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <div className="text-text-muted mb-2">No segments available</div>
+            <div className="text-sm text-text-muted">Create segments to see performance data</div>
+          </div>
+        )}
         
         <div className="mt-4 pt-4 border-t border-border-primary/50">
           <button className="w-full px-4 py-2 bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 text-accent-primary rounded-lg hover:from-accent-primary/30 hover:to-accent-secondary/30 transition-all duration-200 font-medium text-sm border border-accent-primary/30">

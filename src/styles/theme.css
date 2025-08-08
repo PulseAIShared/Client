@@ -2,61 +2,79 @@
 
 /* Define theme colors using Tailwind v4 @theme directive */
 :root {
-  /* Light theme variables - Sky Blue, Midnight Blue, Silver palette */
-  --bg-primary: 255 255 255; /* pure white background */
-  --bg-secondary: 248 250 252; /* slate-50 - light gray background */
+  /* Light theme variables - Enhanced Professional Blue Palette */
+  --bg-primary: 248 250 252; /* slate-50 - cleaner background */
+  --bg-secondary: 241 245 249; /* slate-100 - subtle secondary */
   --surface-primary: 255 255 255; /* pure white for cards */
-  --surface-secondary: 248 250 252; /* slate-50 - light gray for secondary surfaces */
-  --text-primary: 30 58 138; /* blue-900 - Midnight Blue for primary text */
+  --surface-secondary: 248 250 252; /* slate-50 for secondary surfaces */
+  --text-primary: 15 23 42; /* slate-900 - better contrast */
   --text-secondary: 51 65 85; /* slate-700 - medium contrast */
-  --text-muted: 148 163 184; /* slate-400 - Silver for muted text */
-  --border-primary: 226 232 240; /* slate-200 - clean borders */
-  --accent-primary: 14 165 233; /* sky-500 - Sky Blue primary accent */
-  --accent-secondary: 30 58 138; /* blue-900 - Midnight Blue secondary accent */
-  --gradient-from: 255 255 255; /* white */
-  --gradient-via: 240 249 255; /* sky-50 - subtle sky blue tint */
-  --gradient-to: 241 245 249; /* slate-100 - subtle silver tint */
-  --success: 34 197 94; /* green-500 - keep existing green */
+  --text-muted: 100 116 139; /* slate-500 - improved readability */
+  --border-primary: 226 232 240; /* slate-200 - softer borders */
+  --accent-primary: 59 130 246; /* blue-500 - vibrant primary */
+  --accent-secondary: 37 99 235; /* blue-600 - deep secondary */
+  --gradient-from: 248 250 252; /* slate-50 */
+  --gradient-via: 241 245 249; /* slate-100 */
+  --gradient-to: 248 250 252; /* slate-50 */
+  
+  /* Enhanced semantic colors */
+  --success: 34 197 94; /* green-500 */
   --success-muted: 74 222 128; /* green-400 */
-  --success-bg: 34 197 94; /* green-500 */
-  --warning: 245 158 11; /* amber-500 - complementary to sky blue */
+  --success-bg: 240 253 244; /* green-50 */
+  --warning: 245 158 11; /* amber-500 */
   --warning-muted: 251 191 36; /* amber-400 */
-  --warning-bg: 245 158 11; /* amber-500 */
-  --error: 220 38 38; /* red-600 - error color */
+  --warning-bg: 255 251 235; /* amber-50 */
+  --error: 239 68 68; /* red-500 */
   --error-muted: 248 113 113; /* red-400 */
-  --error-bg: 220 38 38; /* red-600 */
-  --info: 14 165 233; /* sky-500 - Sky Blue for info */
-  --info-muted: 56 189 248; /* sky-400 */
-  --info-bg: 14 165 233; /* sky-500 */
+  --error-bg: 254 242 242; /* red-50 */
+  --info: 59 130 246; /* blue-500 */
+  --info-muted: 96 165 250; /* blue-400 */
+  --info-bg: 239 246 255; /* blue-50 */
+  
+  /* New UX-focused colors */
+  --surface-tertiary: 241 245 249; /* slate-100 */
+  --border-secondary: 203 213 225; /* slate-300 */
+  --shadow-primary: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-secondary: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-accent: 0 0 0 1px rgb(59 130 246 / 0.5);
 }
 
 .dark {
-  /* Dark theme variables - matching original color scheme */
-  --bg-primary: 15 23 42; /* slate-900 - for gradient background */
-  --bg-secondary: 30 41 59; /* slate-800 */
-  --surface-primary: 15 23 42; /* slate-900 - to match original nav/sidebar */
-  --surface-secondary: 30 41 59; /* slate-800 - slightly lighter surfaces */
-  --text-primary: 255 255 255; /* white - original text color */
-  --text-secondary: 226 232 240; /* slate-200 */
-  --text-muted: 148 163 184; /* slate-400 - original muted text */
-  --border-primary: 71 85 105; /* slate-600 - original border color */
-  --accent-primary: 96 165 250; /* blue-400 - original blue accent */
-  --accent-secondary: 168 85 247; /* purple-400 - original purple accent */
-  --gradient-from: 15 23 42; /* slate-900 - original dark gradient */
-  --gradient-via: 107 33 168; /* purple-800 - original purple center */
-  --gradient-to: 15 23 42; /* slate-900 - original dark gradient */
-  --success: 34 197 94; /* green-500 */
-  --success-muted: 74 222 128; /* green-400 */
+  /* Dark theme variables - Refined Modern Dark */
+  --bg-primary: 2 6 23; /* slate-950 - deeper background */
+  --bg-secondary: 15 23 42; /* slate-900 - secondary background */
+  --surface-primary: 30 41 59; /* slate-800 - card background */
+  --surface-secondary: 51 65 85; /* slate-700 - secondary surfaces */
+  --text-primary: 248 250 252; /* slate-50 - high contrast */
+  --text-secondary: 226 232 240; /* slate-200 - secondary text */
+  --text-muted: 148 163 184; /* slate-400 - muted text */
+  --border-primary: 71 85 105; /* slate-600 - subtle borders */
+  --accent-primary: 96 165 250; /* blue-400 - bright accent */
+  --accent-secondary: 129 140 248; /* indigo-400 - complementary */
+  --gradient-from: 2 6 23; /* slate-950 */
+  --gradient-via: 15 23 42; /* slate-900 */
+  --gradient-to: 2 6 23; /* slate-950 */
+  
+  /* Enhanced semantic colors for dark */
+  --success: 74 222 128; /* green-400 */
+  --success-muted: 34 197 94; /* green-500 */
   --success-bg: 22 163 74; /* green-600 */
-  --warning: 234 179 8; /* yellow-500 */
-  --warning-muted: 250 204 21; /* yellow-400 */
+  --warning: 250 204 21; /* yellow-400 */
+  --warning-muted: 234 179 8; /* yellow-500 */
   --warning-bg: 202 138 4; /* yellow-600 */
-  --error: 239 68 68; /* red-500 */
-  --error-muted: 248 113 113; /* red-400 */
+  --error: 248 113 113; /* red-400 */
+  --error-muted: 239 68 68; /* red-500 */
   --error-bg: 220 38 38; /* red-600 */
-  --info: 6 182 212; /* cyan-500 */
-  --info-muted: 34 211 238; /* cyan-400 */
-  --info-bg: 8 145 178; /* cyan-600 */
+  --info: 96 165 250; /* blue-400 */
+  --info-muted: 59 130 246; /* blue-500 */
+  --info-bg: 37 99 235; /* blue-600 */
+  
+  /* New UX-focused colors for dark */
+  --surface-tertiary: 51 65 85; /* slate-700 */
+  --border-secondary: 100 116 139; /* slate-500 */
+  --shadow-primary: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+  --shadow-secondary: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+  --shadow-accent: 0 0 0 1px rgb(96 165 250 / 0.5);
 }
 
 @theme {
@@ -65,10 +83,12 @@
   --color-bg-secondary: rgb(var(--bg-secondary));
   --color-surface-primary: rgb(var(--surface-primary));
   --color-surface-secondary: rgb(var(--surface-secondary));
+  --color-surface-tertiary: rgb(var(--surface-tertiary));
   --color-text-primary: rgb(var(--text-primary));
   --color-text-secondary: rgb(var(--text-secondary));
   --color-text-muted: rgb(var(--text-muted));
   --color-border-primary: rgb(var(--border-primary));
+  --color-border-secondary: rgb(var(--border-secondary));
   --color-accent-primary: rgb(var(--accent-primary));
   --color-accent-secondary: rgb(var(--accent-secondary));
   --color-gradient-from: rgb(var(--gradient-from));
@@ -86,4 +106,7 @@
   --color-info: rgb(var(--info));
   --color-info-muted: rgb(var(--info-muted));
   --color-info-bg: rgb(var(--info-bg));
+  --shadow-primary: var(--shadow-primary);
+  --shadow-secondary: var(--shadow-secondary);
+  --shadow-accent: var(--shadow-accent);
 }

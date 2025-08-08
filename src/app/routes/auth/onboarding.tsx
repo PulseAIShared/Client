@@ -4,6 +4,7 @@ import { useUser, useProcessOnboardingStep } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Form, Input, Select } from '@/components/ui/form';
 import { z } from 'zod';
+import '@/features/landing/components/css/hero-section.css'; // Import animations
 
 // Step schemas
 const profileStepSchema = z.object({
@@ -135,16 +136,16 @@ export const OnboardingRoute = () => {
   const renderProgressBar = () => (
     <div className="w-full max-w-md mx-auto mb-8">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-white">
+        <span className="text-sm font-medium text-blue-900">
           Step {displayStep} of {displayTotalSteps}
         </span>
-        <span className="text-sm text-slate-300">
+        <span className="text-sm text-slate-600">
           {Math.round((displayStep / displayTotalSteps) * 100)}% complete
         </span>
       </div>
-      <div className="w-full bg-slate-700 rounded-full h-2">
+      <div className="w-full bg-slate-200 rounded-full h-2">
         <div 
-          className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+          className="bg-gradient-to-r from-sky-500 to-blue-900 h-2 rounded-full transition-all duration-300"
           style={{ width: `${(displayStep / displayTotalSteps) * 100}%` }}
         />
       </div>
@@ -154,10 +155,10 @@ export const OnboardingRoute = () => {
   const renderProfileStep = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">
+        <h2 className="text-2xl font-bold text-blue-900 mb-2">
           Complete Your Profile
         </h2>
-        <p className="text-slate-400">
+        <p className="text-slate-600">
           Let's set up your account with a name and secure password
         </p>
       </div>
@@ -175,19 +176,19 @@ export const OnboardingRoute = () => {
         }}
       >
         {({ register, formState }) => (
-          <div className="space-y-4 [&_label]:!text-white [&_label]:!font-medium">
+          <div className="space-y-4 [&_label]:!text-blue-900 [&_label]:!font-medium">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="First Name"
                 registration={register('firstName')}
                 error={formState.errors.firstName as any}
-                className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
+                className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
               />
               <Input
                 label="Last Name"
                 registration={register('lastName')}
                 error={formState.errors.lastName as any}
-                className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
+                className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
               />
             </div>
             <Input
@@ -195,7 +196,7 @@ export const OnboardingRoute = () => {
               label="Create Password"
               registration={register('password')}
               error={formState.errors.password as any}
-              className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
+              className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
             />
             <Button 
               type="submit" 
@@ -213,10 +214,10 @@ export const OnboardingRoute = () => {
   const renderCompanyStep = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">
+        <h2 className="text-2xl font-bold text-blue-900 mb-2">
           Tell Us About Your Company
         </h2>
-        <p className="text-slate-200">
+        <p className="text-slate-600">
           Help us customize your experience
         </p>
       </div>
@@ -226,19 +227,19 @@ export const OnboardingRoute = () => {
         onSubmit={handleCreateCompany}
       >
         {({ register, formState }) => (
-          <div className="space-y-4 [&_label]:!text-white [&_label]:!font-medium">
+          <div className="space-y-4 [&_label]:!text-blue-900 [&_label]:!font-medium">
             <Input
               label="Company Name"
               registration={register('companyName')}
               error={formState.errors.companyName as any}
-              className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
+              className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
             />
             <Input
               label="Company Domain"
               registration={register('companyDomain')}
               error={formState.errors.companyDomain as any}
               placeholder="yourcompany.com"
-              className="bg-slate-800 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
+              className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
@@ -247,7 +248,7 @@ export const OnboardingRoute = () => {
                 registration={register('industry')}
                 error={formState.errors.industry as any}
                 defaultValue=""
-                className="bg-slate-800 border-slate-600 text-white focus:border-blue-500"
+                className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
               />
               <Select
                 label="Company Size"
@@ -255,7 +256,7 @@ export const OnboardingRoute = () => {
                 registration={register('companySize')}
                 error={formState.errors.companySize as any}
                 defaultValue=""
-                className="bg-slate-800 border-slate-600 text-white focus:border-blue-500"
+                className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
               />
             </div>
             <Select
@@ -264,12 +265,12 @@ export const OnboardingRoute = () => {
               registration={register('country')}
               error={formState.errors.country as any}
               defaultValue=""
-              className="bg-slate-800 border-slate-600 text-white focus:border-blue-500"
+              className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
             />
             <Button 
               type="submit" 
               isLoading={processStepMutation.isPending}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-sky-500 hover:bg-sky-600 text-white"
             >
               {processStepMutation.isPending ? 'Creating Company & Completing Setup...' : 'Complete Setup'}
             </Button>
@@ -304,46 +305,94 @@ export const OnboardingRoute = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-        {/* Animated background pattern */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 25% 25%, #7c3aed 0%, transparent 50%), 
-                             radial-gradient(circle at 75% 75%, #3b82f6 0%, transparent 50%)`,
-          }}></div>
+    <div className="min-h-screen bg-white flex items-center justify-center p-4 overflow-hidden">
+        {/* Enhanced animated background with multiple layers */}
+        <div className="absolute inset-0">
+          {/* Moving solid orbs */}
+          <div className="absolute inset-0">
+            <div className="absolute w-96 h-96 bg-sky-500/20 rounded-full blur-3xl animate-pulse" 
+                 style={{ 
+                   top: '10%', 
+                   left: '10%', 
+                   animationDuration: '6s',
+                   transform: 'translate(-50%, -50%)'
+                 }}></div>
+            <div className="absolute w-80 h-80 bg-blue-900/15 rounded-full blur-3xl animate-pulse" 
+                 style={{ 
+                   top: '70%', 
+                   right: '10%', 
+                   animationDuration: '8s',
+                   animationDelay: '2s',
+                   transform: 'translate(50%, -50%)'
+                 }}></div>
+            <div className="absolute w-64 h-64 bg-slate-400/20 rounded-full blur-3xl animate-pulse" 
+                 style={{ 
+                   top: '40%', 
+                   left: '80%', 
+                   animationDuration: '7s',
+                   animationDelay: '4s',
+                   transform: 'translate(-50%, -50%)'
+                 }}></div>
+          </div>
         </div>
         
-        {/* Floating elements */}
+        {/* Advanced floating elements system */}
         <div className="absolute inset-0">
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute animate-pulse"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${4 + Math.random() * 2}s`,
-              }}
-            >
-              <div className="w-2 h-2 bg-blue-400 rounded-full blur-sm"></div>
-            </div>
-          ))}
+          {/* Large floating particles */}
+          {[...Array(12)].map((_, i) => {
+            const size = 3 + Math.random() * 4;
+            const delay = Math.random() * 5;
+            const duration = 4 + Math.random() * 4;
+            return (
+              <div
+                key={`large-${i}`}
+                className="absolute opacity-40"
+                style={{
+                  top: `${10 + Math.random() * 80}%`,
+                  left: `${5 + Math.random() * 90}%`,
+                  animation: `float ${duration}s ${delay}s infinite ease-in-out`,
+                }}
+              >
+                <div 
+                  className={`bg-sky-400 rounded-full shadow-2xl`}
+                  style={{
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    filter: 'blur(0.5px)',
+                  }}
+                ></div>
+              </div>
+            );
+          })}
+          
+          {/* Small twinkling particles */}
+          {[...Array(20)].map((_, i) => {
+            const delay = Math.random() * 3;
+            const duration = 2 + Math.random() * 2;
+            return (
+              <div
+                key={`small-${i}`}
+                className="absolute opacity-60"
+                style={{
+                  top: `${5 + Math.random() * 90}%`,
+                  left: `${5 + Math.random() * 90}%`,
+                  animation: `twinkle ${duration}s ${delay}s infinite ease-in-out`,
+                }}
+              >
+                <div className="w-1 h-1 bg-slate-400 rounded-full shadow-lg"></div>
+              </div>
+            );
+          })}
         </div>
 
         <div className="relative z-10 w-full max-w-2xl">
-          <div className="bg-white/5 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/10">
+          <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-slate-300">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-blue-100/10 px-4 py-2 rounded-full mb-4">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span className="text-sm font-medium text-blue-300">Welcome to PulseLTV</span>
-              </div>
-              
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold text-blue-900 mb-2">
                 Let's Get You Started
               </h1>
-              <p className="text-slate-300">
+              <p className="text-slate-600">
                 Set up your account in just a few steps
               </p>
             </div>
@@ -353,8 +402,8 @@ export const OnboardingRoute = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{error}</p>
               </div>
             )}
 

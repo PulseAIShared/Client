@@ -2,6 +2,8 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useGetSegments } from '@/features/segments/api/segments';
+import { useModal } from '@/app/modal-provider';
+import { DeleteSegmentModal } from './delete-segment-modal';
 
 interface SegmentsListProps {
   onSelectSegment: (segmentId: string | null) => void;
@@ -16,6 +18,17 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'behavioral' | 'demographic' | 'ai-generated'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'customers' | 'churn' | 'ltv'>('churn');
+  const { openModal, closeModal } = useModal();
+
+  const handleDeleteSegment = (segmentId: string, segmentName: string) => {
+    openModal(
+      <DeleteSegmentModal
+        segmentId={segmentId}
+        segmentName={segmentName}
+        onClose={closeModal}
+      />
+    );
+  };
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -260,6 +273,17 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
                 <button className="px-3 py-2 bg-surface-secondary/50 text-text-secondary rounded-lg hover:bg-surface-secondary/70 transition-colors text-sm border border-border-primary/50">
                   Edit
                 </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteSegment(segment.id, segment.name);
+                  }}
+                  className="px-3 py-2 bg-error/20 text-error rounded-lg hover:bg-error/30 transition-colors text-sm border border-error/30"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </div>
             </div>
           );
@@ -346,6 +370,7 @@ export const SegmentsList: React.FC<SegmentsListProps> = ({
           })()}
         </div>
       )}
+
     </div>
   );
 };

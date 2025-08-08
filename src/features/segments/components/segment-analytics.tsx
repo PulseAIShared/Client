@@ -52,14 +52,14 @@ export const SegmentAnalytics = () => {
         <div className="h-80 mb-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={churnTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" />
               <XAxis 
                 dataKey="month" 
-                stroke="var(--text-muted)"
+                stroke="rgb(var(--text-muted))"
                 fontSize={12}
               />
               <YAxis 
-                stroke="var(--text-muted)"
+                stroke="rgb(var(--text-muted))"
                 fontSize={12}
                 tickFormatter={(value) => `${value}%`}
               />
@@ -113,14 +113,14 @@ export const SegmentAnalytics = () => {
           <div className="h-64 mb-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueBySegmentData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" />
                 <XAxis 
                   dataKey="segment" 
-                  stroke="var(--text-muted)"
+                  stroke="rgb(var(--text-muted))"
                   fontSize={12}
                 />
                 <YAxis 
-                  stroke="var(--text-muted)"
+                  stroke="rgb(var(--text-muted))"
                   fontSize={12}
                   tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
                 />
@@ -133,7 +133,7 @@ export const SegmentAnalytics = () => {
                   }}
                   formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
                 />
-                <Bar dataKey="revenue" fill="var(--success)" />
+                <Bar dataKey="revenue" fill="#22c55e" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

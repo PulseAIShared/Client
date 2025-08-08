@@ -1,5 +1,6 @@
 // src/features/dashboard/components/tables/at-risk-customers-table.tsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AtRiskCustomer } from '@/types/api';
 
 const ChurnScoreBadge: React.FC<{ score: number }> = ({ score }) => {
@@ -29,10 +30,11 @@ interface AtRiskCustomersTableProps {
 }
 
 export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ data: customers, isLoading, error }) => {
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
-      <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg animate-pulse">
+      <div className="h-full bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg animate-pulse">
         <div className="flex items-center justify-between mb-6">
           <div className="space-y-2">
             <div className="h-6 bg-surface-primary rounded w-48"></div>
@@ -57,7 +59,7 @@ export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ data
 
   if (error || !customers) {
     return (
-      <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
+      <div className="h-full bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="text-center py-8">
           <div className="text-error-muted mb-2">Failed to load at-risk customers</div>
           <div className="text-text-muted text-sm">Please try refreshing the page</div>
@@ -67,7 +69,7 @@ export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ data
   }
 
   return (
-    <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300">
+    <div className="h-full bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-semibold text-text-primary mb-1">At-Risk Customers</h2>
@@ -78,7 +80,7 @@ export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ data
         </div>
       </div>
       
-      <div className="space-y-3 md:space-y-4">
+      <div className="flex-1 space-y-3 md:space-y-4">
         {/* Desktop Table Headers - Hidden on mobile */}
         <div className="hidden md:grid grid-cols-3 gap-4 text-xs font-medium text-text-muted uppercase tracking-wider mb-4 px-3">
           <span>Customer</span>
@@ -126,8 +128,11 @@ export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ data
         ))}
       </div>
       
-      <div className="mt-4 pt-4 border-t border-border-primary/50">
-        <button className="w-full px-4 py-2 bg-gradient-to-r from-error-bg/20 to-warning-bg/20 text-error-muted rounded-lg hover:from-error-bg/30 hover:to-warning-bg/30 transition-all duration-200 font-medium text-sm border border-error/30">
+      <div className="mt-auto pt-4 border-t border-border-primary/50">
+        <button 
+          onClick={() => navigate('/app/campaigns/create')}
+          className="w-full px-4 py-2 bg-gradient-to-r from-error-bg/20 to-warning-bg/20 text-error-muted rounded-lg hover:from-error-bg/30 hover:to-warning-bg/30 transition-all duration-200 font-medium text-sm border border-error/30"
+        >
           Send Recovery Campaign to All
         </button>
       </div>
