@@ -122,21 +122,26 @@ export const createSegment = async (data: {
     console.log('RAW API RESPONSE:', response);
     
     // Handle empty response from 201 Created - segment was created successfully
-    if (response === "" || response === null || response === undefined) {
+    if (!response || (typeof response === 'string' && response === "") || response === null || response === undefined) {
       console.log('Empty response from server, segment created successfully');
       // Return a mock segment object for the UI
       return {
         id: Date.now().toString(), // Temporary ID
         name: data.name,
         description: data.description,
-        criteria: data.criteria,
+        criteria: data.criteria.map(c => ({
+          field: c.field,
+          operator: c.operator as unknown as 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in' | 'not_in',
+          value: c.value,
+          label: c.label
+        })),
         customerCount: 0,
         churnRate: 0,
         avgLTV: 0,
         avgRevenue: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: 'active' as any,
+        status: 'active' as const,
         type: data.type as any,
         color: data.color
       };
@@ -144,7 +149,7 @@ export const createSegment = async (data: {
     
     // If we get actual data, transform it
     if (response && typeof response === 'object') {
-      return transformSegmentResponse(response as SegmentResponse);
+      return transformSegmentResponse(response as unknown as SegmentResponse);
     }
     
     // Fallback for unexpected response
@@ -153,14 +158,19 @@ export const createSegment = async (data: {
       id: Date.now().toString(),
       name: data.name,
       description: data.description,
-      criteria: data.criteria,
+      criteria: data.criteria.map(c => ({
+        field: c.field,
+        operator: c.operator as unknown as 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in' | 'not_in',
+        value: c.value,
+        label: c.label
+      })),
       customerCount: 0,
       churnRate: 0,
       avgLTV: 0,
       avgRevenue: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      status: 'active' as any,
+      status: 'active' as const,
       type: data.type as any,
       color: data.color
     };
@@ -205,10 +215,15 @@ export const updateSegment = async ({
     type: data.type,
     color: data.color,
     status: data.status,
-    criteria: data.criteria
+    criteria: data.criteria.map(c => ({
+      field: c.field,
+      operator: c.operator,
+      value: c.value,
+      label: c.label
+    }))
   };
   
-  const response = await api.put(`/segments/${segmentId}`, request) as SegmentResponse;
+  const response = await api.put(`/segments/${segmentId}`, request) as unknown as SegmentResponse;
   return transformSegmentResponse(response);
 };
 

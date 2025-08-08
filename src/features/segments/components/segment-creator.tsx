@@ -118,21 +118,23 @@ export const SegmentCreator = () => {
   });
 
   const previewSegmentMutation = usePreviewSegment({
-    onSuccess: (data) => {
-      setPreviewData(data);
-      addNotification({
-        type: 'info',
-        title: 'Preview Generated',
-        message: `Estimated ${data.estimatedCustomerCount.toLocaleString()} customers match your criteria`
-      });
-    },
-    onError: (error) => {
-      console.error('Preview failed:', error);
-      addNotification({
-        type: 'error',
-        title: 'Preview Failed',
-        message: 'Failed to generate preview. Please check your criteria.'
-      });
+    mutationConfig: {
+      onSuccess: (data: any) => {
+        setPreviewData(data);
+        addNotification({
+          type: 'info',
+          title: 'Preview Generated',
+          message: `Estimated ${data.estimatedCustomerCount.toLocaleString()} customers match your criteria`
+        });
+      },
+      onError: (error: any) => {
+        console.error('Preview failed:', error);
+        addNotification({
+          type: 'error',
+          title: 'Preview Failed',
+          message: 'Failed to generate preview. Please check your criteria.'
+        });
+      }
     }
   });
 
@@ -175,7 +177,7 @@ export const SegmentCreator = () => {
     setSegmentType(template.type);
     setCriteria(template.criteria.map(c => ({
       id: Date.now().toString() + Math.random(),
-      field: c.field,
+      field: c.field as CriteriaField,
       operator: c.operator,
       value: c.value,
       label: c.label
@@ -324,21 +326,24 @@ export const SegmentCreator = () => {
                 <Input
                   value={segmentName}
                   onChange={(e) => setSegmentName(e.target.value)}
-                  placeholder="e.g., High-Value Customers"
-                  className="w-full"
+                  placeholder="Enter segment name..."
+                  className="flex-1"
+                  registration={{ name: 'segmentName' }}
                 />
               </div>
-              <div>
-                <label className="block text-text-primary font-medium mb-2">Segment Type</label>
+              
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-text-secondary">Type:</label>
                 <select
                   value={segmentType}
-                  onChange={(e) => setSegmentType(e.target.value as SegmentType)}
-                  className="w-full bg-surface-secondary/50 border border-border-primary/30 rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
+                  onChange={(e) => setSegmentType(e.target.value as unknown as SegmentType)}
+                  className="px-3 py-2 bg-surface-secondary/50 border border-border-primary/30 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50"
                 >
                   <option value={SegmentType.Behavioral}>Behavioral</option>
                   <option value={SegmentType.Demographic}>Demographic</option>
                   <option value={SegmentType.Geographic}>Geographic</option>
-                  <option value={SegmentType.AIGenerated}>AI Generated</option>
+                  <option value={SegmentType.Psychographic}>Psychographic</option>
+                  <option value={SegmentType.AiGenerated}>AI Generated</option>
                 </select>
               </div>
             </div>
@@ -420,23 +425,24 @@ export const SegmentCreator = () => {
                         <label className="block text-text-primary font-medium mb-2">Operator</label>
                         <select
                           value={criterion.operator}
-                          onChange={(e) => updateCriteria(criterion.id, 'operator', e.target.value as CriteriaOperator)}
-                          className="w-full bg-surface-primary/50 border border-border-primary/30 rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all"
+                          onChange={(e) => updateCriteria(criterion.id, 'operator', e.target.value as unknown as CriteriaOperator)}
+                          className="px-3 py-2 bg-surface-secondary/50 border border-border-primary/30 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50"
                         >
-                          {operators.map((op) => (
-                            <option key={op.value} value={op.value}>
-                              {op.label}
+                          {operators.map(operator => (
+                            <option key={operator.value} value={operator.value}>
+                              {operator.label}
                             </option>
                           ))}
                         </select>
                       </div>
-                      <div>
-                        <label className="block text-text-primary font-medium mb-2">Value</label>
+                      
+                      <div className="flex-1">
                         <Input
                           value={criterion.value}
                           onChange={(e) => updateCriteria(criterion.id, 'value', e.target.value)}
                           placeholder="Enter value..."
                           className="w-full"
+                          registration={{ name: `criteria-${criterion.id}-value` }}
                         />
                       </div>
                       <div className="flex items-end">

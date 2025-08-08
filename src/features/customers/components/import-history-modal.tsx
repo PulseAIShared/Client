@@ -37,20 +37,22 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
     return null;
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: ImportJobStatus) => {
     switch (status) {
-      case 'Completed':
-        return 'bg-success/20 text-success border-success/30';
-      case 'Failed':
-        return 'bg-error/20 text-error border-error/30';
-      case 'Processing':
-        return 'bg-info/20 text-info border-info/30';
-      case 'Validating':
+      case ImportJobStatus.Pending:
+        return 'bg-surface-secondary/20 text-text-muted border-text-muted/30';
+      case ImportJobStatus.Validating:
         return 'bg-warning/20 text-warning border-warning/30';
-      case 'Cancelled':
-        return 'bg-surface-secondary/50 text-text-muted border-border-primary/30';
+      case ImportJobStatus.Processing:
+        return 'bg-accent-primary/20 text-accent-primary border-accent-primary/30';
+      case ImportJobStatus.Completed:
+        return 'bg-success/20 text-success border-success/30';
+      case ImportJobStatus.Failed:
+        return 'bg-error/20 text-error border-error/30';
+      case ImportJobStatus.Cancelled:
+        return 'bg-surface-secondary/20 text-text-muted border-text-muted/30';
       default:
-        return 'bg-surface-secondary/50 text-text-muted border-border-primary/30';
+        return 'bg-surface-secondary/20 text-text-secondary border-border-primary/30';
     }
   };
 
@@ -135,7 +137,7 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
                     </div>
                     <div>
                       <span className="text-text-muted">Processed</span>
-                      <p className="font-medium text-text-primary">{job.processedRecords || 0}</p>
+                      <p className="font-medium text-text-primary">{job.successfulRecords || 0}</p>
                     </div>
                     <div>
                       <span className="text-text-muted">Success</span>
@@ -143,17 +145,17 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
                     </div>
                     <div>
                       <span className="text-text-muted">Failed</span>
-                      <p className="font-medium text-error">{job.failedRecords || 0}</p>
+                      <p className="font-medium text-error">{job.errorCount || 0}</p>
                     </div>
                   </div>
                   
-                  {job.errorMessage && (
+                  {job.status === ImportJobStatus.Failed && (
                     <div className="mt-3 p-3 bg-error/10 rounded-xl border border-error/30">
                       <div className="flex items-start gap-2">
                         <svg className="w-4 h-4 text-error mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
-                        <p className="text-sm text-error-muted">{job.errorMessage}</p>
+                        <p className="text-sm text-error-muted">Import failed. Please check your file and try again.</p>
                       </div>
                     </div>
                   )}
@@ -178,7 +180,7 @@ export const ImportHistoryModal: React.FC<ImportHistoryModalProps> = ({ onClose 
         {importHistory && importHistory.totalPages > 1 && (
           <div className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6 border-t border-border-primary/30">
             <div className="text-sm text-text-muted">
-              Page {page} of {importHistory.totalPages} ({importHistory.totalCount} total imports)
+              Page {page} of {importHistory.totalPages} ({importHistory.total} total imports)
             </div>
             <div className="flex gap-2">
               <button
