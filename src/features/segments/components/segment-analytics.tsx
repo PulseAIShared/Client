@@ -91,11 +91,11 @@ export const SegmentAnalytics = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {revenueBySegment.map((item) => (
+          {revenueBySegment.map((item: any) => (
             <div key={item.segment} className="text-center p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30">
-              <div className="text-lg sm:text-xl font-bold text-accent-primary">${(item.revenue / 1000).toFixed(0)}k</div>
+              <div className="text-lg sm:text-xl font-bold text-accent-primary">${(Number(item.revenue || 0) / 1000).toFixed(0)}k</div>
               <div className="text-sm text-text-muted">{item.segment}</div>
-              <div className="text-xs text-text-muted">{item.customers.toLocaleString()} customers</div>
+              <div className="text-xs text-text-muted">{Number(item.customers || 0).toLocaleString()} customers</div>
             </div>
           ))}
         </div>
@@ -115,7 +115,7 @@ export const SegmentAnalytics = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={segmentDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={120} paddingAngle={5} dataKey="value">
-                  {segmentDistribution.map((entry, index) => (
+                  {segmentDistribution.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -125,12 +125,12 @@ export const SegmentAnalytics = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {segmentDistribution.map((item) => (
+            {segmentDistribution.map((item: any) => (
               <div key={item.name} className="flex items-center gap-3 p-3 bg-surface-secondary/30 rounded-xl border border-border-primary/30">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
                 <div>
                   <div className="font-medium text-text-primary">{item.name}</div>
-                  <div className="text-sm text-text-muted">{item.customers.toLocaleString()} customers</div>
+                  <div className="text-sm text-text-muted">{Number(item.customers || 0).toLocaleString()} customers</div>
                 </div>
               </div>
             ))}
@@ -146,21 +146,25 @@ export const SegmentAnalytics = () => {
           </div>
 
           <div className="space-y-4">
-            {campaignPerformanceBySegment.map((item) => (
-              <div key={item.segment} className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 hover:border-accent-primary/30 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-text-primary">{item.segment}</h3>
-                  <span className="text-sm text-accent-primary font-medium">{item.success_rate}% success</span>
+            {campaignPerformanceBySegment.map((item: any) => {
+              const successRate = (item.success_rate ?? item.successRate ?? 0) as number;
+              const revenueRecovered = (item.revenue_recovered ?? item.revenueRecovered ?? 0) as number;
+              return (
+                <div key={item.segment} className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 hover:border-accent-primary/30 transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-text-primary">{item.segment}</h3>
+                    <span className="text-sm text-accent-primary font-medium">{successRate}% success</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-text-muted">
+                    <span>{item.campaigns} campaigns</span>
+                    <span className="font-medium text-success">${Number(revenueRecovered).toLocaleString()} recovered</span>
+                  </div>
+                  <div className="mt-2 w-full bg-surface-primary/50 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-accent-primary to-accent-secondary h-2 rounded-full transition-all duration-500" style={{ width: `${successRate}%` }}></div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm text-text-muted">
-                  <span>{item.campaigns} campaigns</span>
-                  <span className="font-medium text-success">${item.revenue_recovered.toLocaleString()} recovered</span>
-                </div>
-                <div className="mt-2 w-full bg-surface-primary/50 rounded-full h-2">
-                  <div className="bg-gradient-to-r from-accent-primary to-accent-secondary h-2 rounded-full transition-all duration-500" style={{ width: `${item.success_rate}%` }}></div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

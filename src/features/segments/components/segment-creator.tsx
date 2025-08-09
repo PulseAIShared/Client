@@ -105,7 +105,7 @@ export const SegmentCreator = () => {
       });
       
       await queryClient.invalidateQueries({ queryKey: ['segments'] });
-      navigate(`/app/segments/${newSegment.id}`);
+      navigate('/app/segments');
     },
     onError: (error) => {
       console.error('Create segment failed:', error);

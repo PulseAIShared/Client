@@ -1,19 +1,20 @@
 // src/app/routes/app/segments/segment-detail.tsx
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
 import { useGetSegmentById } from '@/features/segments/api/segments';
+import { Spinner } from '@/components/ui/spinner';
 
 export const SegmentDetailRoute: React.FC = () => {
+  const navigate = useNavigate();
   const { segmentId } = useParams();
   const { data: segment, isLoading, error } = useGetSegmentById(segmentId || '');
 
   if (isLoading) {
     return (
       <ContentLayout>
-        <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg animate-pulse">
-          <div className="h-6 bg-surface-secondary/50 rounded-xl mb-4 w-1/3"></div>
-          <div className="h-4 bg-surface-secondary/50 rounded-xl w-2/3"></div>
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="xl" />
         </div>
       </ContentLayout>
     );
@@ -41,14 +42,41 @@ export const SegmentDetailRoute: React.FC = () => {
 
   return (
     <ContentLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-text-primary">{segment.name}</h1>
-          <Link to="/app/segments" className="px-4 py-2 bg-surface-secondary/50 text-text-primary rounded-lg border border-border-primary/30 hover:bg-surface-secondary/80">
-            Back to Segments
-          </Link>
+      <div className="space-y-6 sm:space-y-8">
+        {/* Header */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
+          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate('/app/segments')}
+                  className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary/60 rounded-lg transition-colors"
+                  aria-label="Back to Segments"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div>
+                  <h1 className="text-2xl font-bold text-text-primary">{segment.name}</h1>
+                  <p className="text-text-secondary text-sm">{segment.description}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  to={`/app/segments/${segment.id}/edit`
+                  }
+                  className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-primary/25 transform hover:-translate-y-0.5 transition-all duration-200 text-sm"
+                >
+                  Edit Segment
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
             <div className="text-sm text-text-muted mb-1">Customers</div>
@@ -64,11 +92,7 @@ export const SegmentDetailRoute: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">Description</h2>
-          <p className="text-text-secondary">{segment.description}</p>
-        </div>
-
+        {/* Criteria */}
         <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
           <h2 className="text-lg font-semibold text-text-primary mb-4">Criteria</h2>
           <div className="space-y-2">

@@ -129,6 +129,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'segments/:segmentId/edit',
+          lazy: async () => {
+            const { SegmentEditRoute } = await import('./routes/app/segments/segment-edit');
+            return { Component: SegmentEditRoute };
+          },
+        },
+        {
           path: 'campaigns',
           lazy: async () => {
             const { CampaignsRoute } = await import('./routes/app/campaigns/campaigns');
