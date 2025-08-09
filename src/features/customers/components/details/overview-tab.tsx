@@ -51,7 +51,7 @@ export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ custom
               </svg>
               <span className="text-sm font-semibold text-text-muted uppercase tracking-wider">Plan Type</span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-accent-secondary">{getPlanName(customer.plan)}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-accent-secondary">{customer.display?.planName || (customer as any).planDisplay || getPlanName(customer.plan)}</div>
             <div className="text-sm text-text-muted">subscription</div>
           </div>
         </div>
@@ -85,9 +85,9 @@ export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ custom
           </h3>
           <div className="space-y-4 sm:space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary/30 rounded-xl hover:bg-surface-secondary/50 transition-all duration-300">
-                <span className="text-text-secondary font-medium">Email</span>
-                <span className="text-text-primary font-semibold">{customer.email}</span>
+              <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary/30 rounded-xl hover:bg-surface-secondary/50 transition-all duration-300 min-w-0">
+                <span className="text-text-secondary font-medium flex-shrink-0 mr-3">Email</span>
+                <span className="text-text-primary font-semibold truncate max-w-[60%]" title={customer.email}>{customer.email}</span>
               </div>
               <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary/30 rounded-xl hover:bg-surface-secondary/50 transition-all duration-300">
                 <span className="text-text-secondary font-medium">Phone</span>

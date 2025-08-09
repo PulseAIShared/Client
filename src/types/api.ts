@@ -1136,6 +1136,63 @@ export interface CustomerDetailData {
     hasSupportData: boolean;
     hasEngagementData: boolean;
   };
+  // New optional sections for ideal JSON shape used by UI
+  display?: {
+    fullName: string;
+    tenureDisplay: string;
+    tenureMonths: number;
+    planName: string;
+    subscriptionStatusName: string;
+    paymentStatusName: string;
+    riskLevelName: string;
+    initials: string;
+  };
+  activity?: {
+    timeline: Array<{
+      timestamp: string;
+      type: string;
+      description: string;
+      displayTime?: string;
+    }>;
+  };
+  analytics?: {
+    engagementTrends: Array<{
+      month: string;
+      engagement: number;
+    }>;
+    churnRiskTrend: Array<{
+      month: string;
+      riskScore: number;
+    }>;
+    keyMetrics?: {
+      loginFrequencyPerMonth?: number;
+      featureUsagePercent?: number;
+      supportTicketsLast30Days?: number;
+    };
+  };
+  dataSources?: {
+    overview?: {
+      totalSources: number;
+      totalRecords?: number;
+      lastOverallSync?: string;
+    };
+    sources: Array<{
+      id: string;
+      name: string;
+      type: string; // hubspot|stripe|manual|...
+      category: string; // crm|payment|activity|support|marketing|engagement
+      lastSync?: string;
+      syncStatus?: string; // success|warning|error
+      recordCount?: number;
+      isPrimary?: boolean;
+    }>;
+    categories?: string[];
+    quality?: {
+      completenessScorePercent?: number;
+      accuracyScorePercent?: number;
+      dataFreshnessDisplay?: string;
+    };
+  };
 }
 
 

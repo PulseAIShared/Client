@@ -8,6 +8,7 @@ import { CustomerDetailData } from '@/types/api';
 import { CustomerAnalyticsTab } from './analytics-tab';
 import { CustomerDataSourcesTab } from './data-sources-tab';
 import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
+import { CustomerActivityTab } from './activity-tab';
 
 
 interface CustomerDetailViewProps {
@@ -17,7 +18,7 @@ interface CustomerDetailViewProps {
 
 export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer }) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'data-sources' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'data-sources' | 'analytics'>('overview');
   const { checkCompanyPolicy } = useAuthorization();
   
   // Check if user has write permissions for customers
@@ -43,6 +44,15 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+        </svg>
+      )
+    },
+    { 
+      id: 'activity' as const, 
+      label: 'Activity', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       )
     },
@@ -139,6 +149,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
         {/* Enhanced Content Area */}
         <div className="p-6 sm:p-8">
           {activeTab === 'overview' && <CustomerOverviewTab customer={customer} canEditCustomers={canEditCustomers} />}
+          {activeTab === 'activity' && <CustomerActivityTab customer={customer} canEditCustomers={canEditCustomers} />}
           {activeTab === 'data-sources' && <CustomerDataSourcesTab customer={customer} canEditCustomers={canEditCustomers} />}
           {activeTab === 'analytics' && <CustomerAnalyticsTab customer={customer} canEditCustomers={canEditCustomers} />}
         </div>

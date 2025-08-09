@@ -28,9 +28,9 @@ export const calculateTenure = (startDate: string) => {
 
 export const getPlanName = (plan: number) => {
   switch (plan) {
-    case 1: return 'Basic';
-    case 2: return 'Pro';
-    case 3: return 'Enterprise';
+    case 0: return 'Basic';
+    case 1: return 'Pro';
+    case 2: return 'Enterprise';
     default: return 'Unknown';
   }
 };
