@@ -254,25 +254,7 @@ export const CustomerOverviewTab: React.FC<CustomerOverviewTabProps> = ({ custom
             </>
           )}
           
-          {/* Enhanced Recommended Actions from Data Quality */}
-          {customer.dataQuality?.recommendedActions && customer.dataQuality.recommendedActions.length > 0 && (
-            <div className="p-4 sm:p-6 bg-warning/20 rounded-2xl border border-warning/30 hover:bg-warning/30 transition-all duration-300">
-              <div className="flex items-center gap-3 mb-2">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <span className="text-warning font-semibold text-lg">Data Quality Recommendations</span>
-              </div>
-              <div className="space-y-2">
-                {customer.dataQuality.recommendedActions.map((action, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                    <span className="text-warning-muted text-sm sm:text-base">{action}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
         </div>
         </div>
       </CompanyAuthorization>
