@@ -4,12 +4,10 @@ import { ContentLayout } from '@/components/layouts';
 import { 
   SegmentsHeader,
   SegmentsList,
-  SegmentCreator,
-  SegmentAnalytics,
-  SegmentPerformance
+  SegmentCreator
 } from '@/features/segments/components';
 
-type SegmentTab = 'overview' | 'analytics' | 'create';
+type SegmentTab = 'overview' | 'create';
 
 export const SegmentsRoute = () => {
   const [activeTab, setActiveTab] = useState<SegmentTab>('overview');
@@ -25,15 +23,7 @@ export const SegmentsRoute = () => {
         </svg>
       )
     },
-    { 
-      id: 'analytics' as const, 
-      label: 'Performance Analytics', 
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      )
-    },
+
     { 
       id: 'create' as const, 
       label: 'Create Segment', 
@@ -50,21 +40,17 @@ export const SegmentsRoute = () => {
       case 'overview':
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-            <SegmentPerformance />
             <SegmentsList 
               onSelectSegment={setSelectedSegment} 
               selectedSegment={selectedSegment} 
             />
           </div>
         );
-      case 'analytics':
-        return <SegmentAnalytics />;
       case 'create':
         return <SegmentCreator />;
       default:
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-            <SegmentPerformance />
             <SegmentsList 
               onSelectSegment={setSelectedSegment} 
               selectedSegment={selectedSegment} 

@@ -1403,6 +1403,8 @@ export interface InsightsResponse {
   churnPrediction: ChurnPredictionResponse;
   ltvAnalytics: LTVAnalyticsResponse;
   demographicInsights: DemographicInsightsResponse;
+  segmentAnalytics: SegmentAnalyticsResponse;
+  recoveryAnalytics: RecoveryAnalytics;
   recoveryFlows: RecoveryFlowsResponse;
   aiRecommendations: AIRecommendationsData;
 }
@@ -1430,6 +1432,62 @@ export interface LTVAnalyticsResponse {
 export interface DemographicInsightsResponse {
   demographicData: DemographicData[];
   behaviorInsights: BehaviorInsight[];
+}
+
+export interface SegmentAnalyticsResponse {
+  churnTrendsBySegment: Array<{ month: string } & Record<string, number | string>>;
+  revenueBySegment: Array<{ segment: string; revenue: number; customers: number; avgRevenue: number }>;
+  segmentDistribution: Array<{ name: string; value: number; customers: number; color: string }>;
+  campaignPerformanceBySegment: Array<{ segment: string; campaigns: number; success_rate: number; revenue_recovered: number }>;
+}
+
+export interface RecoveryAnalyticsKpis {
+  missedPaymentsCount: number;
+  missedAmount: number;
+  recoveredAmount: number;
+  recoveryRate: number; // percentage 0-100
+  averageDaysToRecover: number;
+}
+
+export interface RecoveryTimelinePoint {
+  month: string;
+  missedAmount: number;
+  recoveredAmount: number;
+}
+
+export interface RecoveryBySegmentEntry {
+  segmentId: string;
+  segmentName: string;
+  missedAmount: number;
+  recoveredAmount: number;
+  recoveryRate: number;
+}
+
+export interface RecoveryReasonEntry {
+  reason: string; // e.g., 'Card expired'
+  count: number;
+}
+
+export interface MissedPaymentRow {
+  id: string;
+  customer: string;
+  amount: number;
+  dueDate: string; // ISO
+  status: 'Open' | 'Recovered' | 'In Progress' | 'Closed';
+  attempts: number;
+  segmentTags: string[];
+}
+
+export interface RecoveryAnalyticsTables {
+  missedPayments: MissedPaymentRow[];
+}
+
+export interface RecoveryAnalytics {
+  kpis: RecoveryAnalyticsKpis;
+  timeline: RecoveryTimelinePoint[];
+  bySegment: RecoveryBySegmentEntry[];
+  reasons: RecoveryReasonEntry[];
+  tables: RecoveryAnalyticsTables;
 }
 
 export interface RecoveryFlowsResponse {
