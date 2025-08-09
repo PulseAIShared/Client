@@ -6,7 +6,7 @@ import { IoMdSettings } from "react-icons/io";
 import { GiProgression } from "react-icons/gi";
 import { FaUser } from "react-icons/fa";
 import { useMediaQuery } from "@mantine/hooks";
-import { MdSegment, MdCampaign } from "react-icons/md";
+import { MdSegment, MdCampaign, MdPayments } from "react-icons/md";
 import { BsChatDots } from "react-icons/bs";
 import { useTheme } from "@/lib/theme-context";
 
@@ -25,6 +25,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       icon: BiSolidDashboard,
       link: '/app'
     },
+
     {
       name: 'Customers',
       icon: FaUser,
@@ -39,6 +40,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       name: 'Campaigns',
       icon: MdCampaign,
       link: '/app/campaigns'
+    },
+    {
+      name: 'Recovery',
+      icon: MdPayments,
+      link: '/app/recovery'
     },
     {
       name: 'Insights',

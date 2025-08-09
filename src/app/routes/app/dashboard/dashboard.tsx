@@ -1,16 +1,8 @@
 // src/app/routes/app/dashboard/dashboard.tsx
 import React from 'react';
 import { ContentLayout } from '@/components/layouts';
-import {
-  DashboardHeader,
-  StatCard,
-  QuickActionsCard,
-  ChurnRiskChart,
-  CustomerInsightsPie,
-  AtRiskCustomersTable,
-  CustomerInsightsTable,
-  GettingStarted
-} from '@/features/dashboard/components';
+import { DashboardHeader, GettingStarted } from '@/features/dashboard/components';
+import { WorkQueueCard, RecoverySnapshotCard, SegmentWatchlistCard, StatCard, QuickActionsCard } from '@/features/dashboard/components/cards';
 import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
 import { Spinner } from '@/components/ui/spinner';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
@@ -109,57 +101,28 @@ export const DashboardRoute = () => {
           {/* Header */}
           <DashboardHeader />
 
-          {/* Top Stats Grid */}
-          <StatCard 
-            stats={dashboardData?.stats} 
-            isLoading={isLoading} 
-            error={error} 
-          />
+          {/* Top KPIs */}
+          <StatCard stats={dashboardData?.stats} isLoading={isLoading} error={error} />
 
-          {/* Main Content Grid - Enhanced spacing and heights */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 min-h-[600px]">
-            {/* Churn Risk Predictor */}
-            <div className="h-full">
-              <ChurnRiskChart 
-                data={dashboardData?.churnRiskTrend} 
-                isLoading={isLoading} 
-                error={error} 
-              />
-            </div>
-
-            {/* At-Risk Customers */}
-            <div className="h-full">
-              <AtRiskCustomersTable 
-                data={dashboardData?.atRiskCustomers} 
-                isLoading={isLoading} 
-                error={error} 
-              />
-            </div>
-          </div>
-
-          {/* Bottom Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 min-h-[500px]">
-            {/* Customer Insights Chart */}
-            <div className="h-full">
-              <CustomerInsightsPie 
-                data={dashboardData?.customerInsights} 
-                isLoading={isLoading} 
-                error={error} 
-              />
-            </div>
-
-            {/* Customer Insights Table */}
-            <div className="h-full">
-              <CustomerInsightsTable 
-                data={dashboardData?.customerInsights} 
-                isLoading={isLoading} 
-                error={error} 
-              />
-            </div>
-          </div>
-
-          {/* Quick Actions */}
+          {/* AI Recommendations (full width) */}
           <QuickActionsCard />
+
+          {/* Actionable Cards - balanced heights */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
+            <div className="grid gap-6 sm:gap-8 lg:gap-10 content-start" style={{ gridAutoRows: 'minmax(0, 1fr)' }}>
+              <div className="min-h-[360px]">
+                <WorkQueueCard />
+              </div>
+            </div>
+            <div className="grid gap-6 sm:gap-8 lg:gap-10 content-start" style={{ gridAutoRows: 'minmax(0, 1fr)' }}>
+              <div className="min-h-[200px]">
+                <SegmentWatchlistCard />
+              </div>
+              <div className="min-h-[200px]">
+                <RecoverySnapshotCard />
+              </div>
+            </div>
+          </div>
         </div>
       </ContentLayout>
     </CompanyAuthorization>

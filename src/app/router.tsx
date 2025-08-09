@@ -157,6 +157,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'recovery',
+          lazy: async () => {
+            const { RecoveryRoute } = await import('./routes/app/recovery/recovery');
+            return { Component: RecoveryRoute };
+          },
+        },
+        {
           path: 'settings',
           lazy: async () => {
             const { SettingsRoute } = await import('./routes/app/settings/settings');
