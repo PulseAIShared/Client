@@ -4,9 +4,7 @@ import { ContentLayout } from '@/components/layouts';
 import { 
   SegmentsHeader,
   SegmentsList,
-  SegmentCreator,
-  SegmentAnalytics,
-  SegmentPerformance
+  SegmentCreator
 } from '@/features/segments/components';
 
 type SegmentTab = 'overview' | 'create';
@@ -42,7 +40,6 @@ export const SegmentsRoute = () => {
       case 'overview':
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-            <SegmentPerformance />
             <SegmentsList 
               onSelectSegment={setSelectedSegment} 
               selectedSegment={selectedSegment} 
@@ -54,7 +51,6 @@ export const SegmentsRoute = () => {
       default:
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-            <SegmentPerformance />
             <SegmentsList 
               onSelectSegment={setSelectedSegment} 
               selectedSegment={selectedSegment} 

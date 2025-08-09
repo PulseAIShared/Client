@@ -6,6 +6,14 @@ export const RecoveryReasons: React.FC = () => {
   if (isLoading) return <div className="h-32 bg-surface-primary/80 rounded-2xl border border-border-primary/30 animate-pulse" />;
   if (error || !data) return null;
   const reasons = data.recoveryAnalytics.reasons;
+  if (!reasons || reasons.length === 0) {
+    return (
+      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
+        <div className="text-lg font-semibold text-text-primary mb-2">No payment failure reasons</div>
+        <div className="text-sm text-text-muted">Once you collect billing error data, we’ll show common failure reasons here.</div>
+      </div>
+    );
+  }
   const total = reasons.reduce((acc, r) => acc + r.count, 0) || 1;
 
   return (

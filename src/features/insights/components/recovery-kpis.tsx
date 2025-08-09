@@ -20,6 +20,17 @@ export const RecoveryKpis: React.FC = () => {
   }
 
   const k = data.recoveryAnalytics.kpis;
+  const looksEmpty = k.missedPaymentsCount === 0 && k.missedAmount === 0 && k.recoveredAmount === 0;
+  if (looksEmpty) {
+    return (
+      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
+        <div className="text-lg font-semibold text-text-primary mb-2">No recovery data yet</div>
+        <div className="text-sm text-text-muted mb-4">Connect your billing provider to track missed and recovered revenue.</div>
+        <button className="px-4 py-2 rounded-lg border border-border-primary/30 hover:bg-surface-secondary/50">Connect Billing</button>
+      </div>
+    );
+  }
+
   const cards = [
     { label: 'Missed Payments', value: k.missedPaymentsCount.toLocaleString(), sub: formatCurrency(k.missedAmount) },
     { label: 'Recovered Revenue', value: formatCurrency(k.recoveredAmount), sub: `${k.recoveryRate}% rate` },

@@ -19,6 +19,22 @@ export const SegmentAnalytics = () => {
 
   const { churnTrendsBySegment, revenueBySegment, segmentDistribution, campaignPerformanceBySegment } = data.segmentAnalytics;
 
+  const isEmpty =
+    !churnTrendsBySegment?.length &&
+    !revenueBySegment?.length &&
+    !segmentDistribution?.length &&
+    !campaignPerformanceBySegment?.length;
+
+  if (isEmpty) {
+    return (
+      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
+        <div className="text-lg font-semibold text-text-primary mb-2">No segment analytics yet</div>
+        <div className="text-sm text-text-muted mb-4">Create your first segment to unlock segment-level analytics.</div>
+        <a href="/app/segments" className="px-4 py-2 rounded-lg border border-border-primary/30 hover:bg-surface-secondary/50 inline-block">Create Segment</a>
+      </div>
+    );
+  }
+
   const lineKeys = Object.keys(churnTrendsBySegment[0] || {}).filter((k) => k !== 'month');
 
   return (

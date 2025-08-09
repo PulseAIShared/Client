@@ -12,6 +12,14 @@ export const RecoveryTimeline: React.FC = () => {
   if (error || !data) return null;
 
   const points = data.recoveryAnalytics.timeline;
+  if (!points || points.length === 0) {
+    return (
+      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
+        <div className="text-lg font-semibold text-text-primary mb-2">No recovery timeline data</div>
+        <div className="text-sm text-text-muted">Once revenue data is flowing, we’ll visualize recovered vs missed revenue here.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-xl">

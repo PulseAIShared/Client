@@ -18,6 +18,16 @@ export const MissedPaymentsTable: React.FC = () => {
   if (error || !data) return null;
   const rows = data.recoveryAnalytics.tables.missedPayments;
 
+  if (!rows || rows.length === 0) {
+    return (
+      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
+        <div className="text-lg font-semibold text-text-primary mb-2">No missed payments</div>
+        <div className="text-sm text-text-muted mb-4">Connect billing to start tracking missed payments and recovery events.</div>
+        <button className="px-4 py-2 rounded-lg border border-border-primary/30 hover:bg-surface-secondary/50">Connect Billing</button>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-xl">
       <div className="flex items-center justify-between mb-4">

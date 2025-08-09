@@ -8,6 +8,14 @@ export const RecoveryBySegment: React.FC = () => {
   }
   if (error || !data) return null;
   const items = data.recoveryAnalytics.bySegment;
+  if (!items || items.length === 0) {
+    return (
+      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
+        <div className="text-lg font-semibold text-text-primary mb-2">No segment recovery data</div>
+        <div className="text-sm text-text-muted">Create segments to see missed and recovered revenue by segment.</div>
+      </div>
+    );
+  }
   return (
     <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-xl">
       <h3 className="text-lg font-semibold text-text-primary mb-4">Recovery by Segment</h3>

@@ -6,8 +6,7 @@ import {
   ChurnPredictionCard,
   AnalyticsOverview,
   LTVAnalytics,
-  DemographicInsights,
-  RecoveryFlows
+  DemographicInsights
 } from '@/features/insights/components';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
 import { SegmentPerformance, SegmentAnalytics } from '@/features/segments/components';
@@ -20,9 +19,34 @@ import { MissedPaymentsTable } from '@/features/insights/components/missed-payme
 export const InsightsRoute = () => {
   const { checkCompanyPolicy } = useAuthorization();
   const canViewAnalytics = checkCompanyPolicy('analytics:read');
-  const canManageRecoveryFlows = checkCompanyPolicy('company:write');
 
   const [activeTab, setActiveTab] = React.useState<'overview' | 'segments' | 'ltv' | 'demographics' | 'recovery'>('overview');
+
+  const TabNav = (
+    <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl border border-border-primary/30">
+      <div className="flex flex-wrap">
+        {[
+          { id: 'overview', label: 'Overview' },
+          { id: 'segments', label: 'Segments' },
+          { id: 'ltv', label: 'LTV' },
+          { id: 'demographics', label: 'Demographics' },
+          { id: 'recovery', label: 'Revenue Recovery' },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id as any)}
+            className={`px-4 sm:px-6 py-3 border-b-2 text-sm sm:text-base ${
+              activeTab === (t.id as any)
+                ? 'border-accent-primary text-accent-primary'
+                : 'border-transparent text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   const renderTab = () => {
     switch (activeTab) {
@@ -30,6 +54,7 @@ export const InsightsRoute = () => {
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <InsightsHeader />
+            {TabNav}
             <AnalyticsOverview />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
               <ChurnPredictionCard />
@@ -41,6 +66,7 @@ export const InsightsRoute = () => {
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <InsightsHeader />
+            {TabNav}
             <SegmentPerformance />
             <SegmentAnalytics />
           </div>
@@ -49,6 +75,7 @@ export const InsightsRoute = () => {
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <InsightsHeader />
+            {TabNav}
             <LTVAnalytics />
           </div>
         );
@@ -56,6 +83,7 @@ export const InsightsRoute = () => {
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <InsightsHeader />
+            {TabNav}
             <DemographicInsights />
           </div>
         );
@@ -63,6 +91,7 @@ export const InsightsRoute = () => {
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <InsightsHeader />
+            {TabNav}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
               <div className="lg:col-span-2 space-y-6">
                 <RecoveryKpis />
@@ -70,9 +99,6 @@ export const InsightsRoute = () => {
                 <RecoveryBySegment />
                 <RecoveryReasons />
                 <MissedPaymentsTable />
-              </div>
-              <div className="lg:col-span-1">
-                <RecoveryFlows />
               </div>
             </div>
           </div>
@@ -103,29 +129,6 @@ export const InsightsRoute = () => {
     >
       <ContentLayout>
         <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-          <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl border border-border-primary/30">
-            <div className="flex flex-wrap">
-              {[
-                { id: 'overview', label: 'Overview' },
-                { id: 'segments', label: 'Segments' },
-                { id: 'ltv', label: 'LTV' },
-                { id: 'demographics', label: 'Demographics' },
-                { id: 'recovery', label: 'Revenue Recovery' },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id as any)}
-                  className={`px-4 sm:px-6 py-3 border-b-2 text-sm sm:text-base ${
-                    activeTab === (t.id as any)
-                      ? 'border-accent-primary text-accent-primary'
-                      : 'border-transparent text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
           {renderTab()}
         </div>
       </ContentLayout>

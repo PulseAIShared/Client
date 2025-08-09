@@ -51,107 +51,125 @@ export const AnalyticsOverview = () => {
 
   const { revenueData, kpiData } = insights.analyticsOverview;
 
+  const isKpiEmpty = !kpiData || kpiData.length === 0;
+  const isRevenueEmpty = !revenueData || revenueData.length === 0;
+
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Enhanced KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {kpiData.map((kpi, index) => (
-          <div key={index} className="group bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider">{kpi.metric}</h3>
-              <div className={`flex items-center gap-1 text-sm font-medium ${
-                kpi.trend === 'up' ? 'text-success-muted' : 'text-error-muted'
-              }`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                        d={kpi.trend === 'up' ? "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" : "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"} />
-                </svg>
-                <span>{kpi.change}</span>
+      {/* KPI Cards or Empty State */}
+      {isKpiEmpty ? (
+        <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
+          <div className="text-lg font-semibold text-text-primary mb-2">Not enough data yet</div>
+          <div className="text-sm text-text-muted mb-4">Connect billing and analytics sources to see KPIs.</div>
+          <button className="px-4 py-2 rounded-lg border border-border-primary/30 hover:bg-surface-secondary/50">Connect Data Sources</button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {kpiData.map((kpi, index) => (
+            <div key={index} className="group bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider">{kpi.metric}</h3>
+                <div className={`flex items-center gap-1 text-sm font-medium ${
+                  kpi.trend === 'up' ? 'text-success-muted' : 'text-error-muted'
+                }`}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d={kpi.trend === 'up' ? "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" : "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"} />
+                  </svg>
+                  <span>{kpi.change}</span>
+                </div>
               </div>
+              <div className="text-3xl font-bold text-text-primary mb-1">{kpi.value}</div>
+              <div className="text-sm text-text-muted">vs previous period</div>
             </div>
-            <div className="text-3xl font-bold text-text-primary mb-1">{kpi.value}</div>
-            <div className="text-sm text-text-muted">vs previous period</div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Enhanced Revenue Analytics Chart */}
-      <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Revenue Analytics</h2>
-            <p className="text-sm sm:text-base text-text-muted">Monthly revenue, recovery, and churn trends</p>
+      {/* Revenue Chart or Empty State */}
+      {isRevenueEmpty ? (
+        <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
+          <div className="text-lg font-semibold text-text-primary mb-2">No revenue analytics yet</div>
+          <div className="text-sm text-text-muted mb-4">Once revenue and recovery data sync, we’ll show trends here.</div>
+          <button className="px-4 py-2 rounded-lg border border-border-primary/30 hover:bg-surface-secondary/50">Set up Revenue Tracking</button>
+        </div>
+      ) : (
+        <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Revenue Analytics</h2>
+              <p className="text-sm sm:text-base text-text-muted">Monthly revenue, recovery, and churn trends</p>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-4 py-2 bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary rounded-xl text-sm font-medium border border-accent-primary/30 shadow-lg">
+                6M
+              </button>
+              <button className="px-4 py-2 bg-surface-secondary/50 text-text-secondary rounded-xl text-sm font-medium border border-border-primary/30 hover:bg-surface-secondary/80 transition-colors">
+                1Y
+              </button>
+              <button className="px-4 py-2 bg-surface-secondary/50 text-text-secondary rounded-xl text-sm font-medium border border-border-primary/30 hover:bg-surface-secondary/80 transition-colors">
+                All
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary rounded-xl text-sm font-medium border border-accent-primary/30 shadow-lg">
-              6M
-            </button>
-            <button className="px-4 py-2 bg-surface-secondary/50 text-text-secondary rounded-xl text-sm font-medium border border-border-primary/30 hover:bg-surface-secondary/80 transition-colors">
-              1Y
-            </button>
-            <button className="px-4 py-2 bg-surface-secondary/50 text-text-secondary rounded-xl text-sm font-medium border border-border-primary/30 hover:bg-surface-secondary/80 transition-colors">
-              All
-            </button>
+
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" opacity={0.3} />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="rgb(var(--text-muted))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  stroke="rgb(var(--text-muted))"
+                  fontSize={12}
+                  tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--surface-primary)', 
+                    border: '1px solid var(--border-primary)',
+                    borderRadius: '12px',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="rgb(var(--accent-primary))" 
+                  fill="url(#revenueGradient)"
+                  strokeWidth={3}
+                  name="Revenue"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="recovery" 
+                  stroke="rgb(var(--success-muted))" 
+                  fill="url(#recoveryGradient)"
+                  strokeWidth={3}
+                  name="Recovery"
+                />
+                <defs>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="rgb(var(--accent-primary))" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="rgb(var(--accent-primary))" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="recoveryGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="rgb(var(--success-muted))" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="rgb(var(--success-muted))" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
-
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" opacity={0.3} />
-              <XAxis 
-                dataKey="month" 
-                stroke="rgb(var(--text-muted))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                stroke="rgb(var(--text-muted))"
-                fontSize={12}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'var(--surface-primary)', 
-                  border: '1px solid var(--border-primary)',
-                  borderRadius: '12px',
-                  color: 'var(--text-primary)',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="revenue" 
-                stroke="rgb(var(--accent-primary))" 
-                fill="url(#revenueGradient)"
-                strokeWidth={3}
-                name="Revenue"
-              />
-              <Area 
-                type="monotone" 
-                dataKey="recovery" 
-                stroke="rgb(var(--success-muted))" 
-                fill="url(#recoveryGradient)"
-                strokeWidth={3}
-                name="Recovery"
-              />
-              <defs>
-                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="rgb(var(--accent-primary))" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="rgb(var(--accent-primary))" stopOpacity={0.1}/>
-                </linearGradient>
-                <linearGradient id="recoveryGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="rgb(var(--success-muted))" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="rgb(var(--success-muted))" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
