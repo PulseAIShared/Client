@@ -14,7 +14,6 @@ import { RecoveryKpis } from '@/features/insights/components/recovery-kpis';
 import { RecoveryTimeline } from '@/features/insights/components/recovery-timeline';
 import { RecoveryBySegment } from '@/features/insights/components/recovery-by-segment';
 import { RecoveryReasons } from '@/features/insights/components/recovery-reasons';
-import { MissedPaymentsTable } from '@/features/insights/components/missed-payments-table';
 
 export const InsightsRoute = () => {
   const { checkCompanyPolicy } = useAuthorization();
@@ -30,7 +29,7 @@ export const InsightsRoute = () => {
           { id: 'segments', label: 'Segments' },
           { id: 'ltv', label: 'LTV' },
           { id: 'demographics', label: 'Demographics' },
-          { id: 'recovery', label: 'Revenue Recovery' },
+          { id: 'recovery', label: 'Recovery Insights' },
         ].map((t) => (
           <button
             key={t.id}
@@ -92,14 +91,11 @@ export const InsightsRoute = () => {
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <InsightsHeader />
             {TabNav}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-              <div className="lg:col-span-2 space-y-6">
-                <RecoveryKpis />
-                <RecoveryTimeline />
-                <RecoveryBySegment />
-                <RecoveryReasons />
-                <MissedPaymentsTable />
-              </div>
+            <div className="space-y-6">
+              <RecoveryKpis />
+              <RecoveryTimeline />
+              <RecoveryBySegment />
+              <RecoveryReasons />
             </div>
           </div>
         );
