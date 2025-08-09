@@ -4,3 +4,8 @@ export * from './recovery-flows';
 export * from './insights-header';
 export * from './demographic-insights';
 export * from './ltv-analytics';
+export * from './recovery-kpis';
+export * from './recovery-timeline';
+export * from './recovery-by-segment';
+export * from './recovery-reasons';
+export * from './missed-payments-table';

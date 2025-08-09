@@ -13,10 +13,14 @@ import {
   RecoveryFlow, 
   RevenueData, 
   RiskFactor,
-  InsightsResponse
+  InsightsResponse,
+  SegmentAnalyticsResponse,
+  RecoveryAnalytics,
+  MissedPaymentRow,
+  RecoveryBySegmentEntry,
+  RecoveryTimelinePoint,
+  RecoveryReasonEntry
 } from '@/types/api';
-
-
 
 // Mock data (replace with actual API calls when backend is ready)
 const mockChurnPredictionData: ChurnPredictionData[] = [
@@ -128,7 +132,7 @@ const mockRecoveryFlows: RecoveryFlow[] = [
     success_rate: 41,
     recovered_revenue: '$12,680',
     steps: [
-      { step: 1, type: 'email', delay: 'Immediate', subject: 'We miss you! Here\'s what\'s new', open_rate: 34 },
+      { step: 1, type: 'email', delay: 'Immediate', subject: "We miss you! Here's what's new", open_rate: 34 },
       { step: 2, type: 'in-app', delay: '2 days', subject: 'Feature highlight notification', click_rate: 28 },
       { step: 3, type: 'email', delay: '5 days', subject: 'Exclusive discount just for you', open_rate: 45 },
     ]
@@ -143,7 +147,7 @@ const mockRecoveryFlows: RecoveryFlow[] = [
     success_rate: 62,
     recovered_revenue: '$24,750',
     steps: [
-      { step: 1, type: 'email', delay: 'Immediate', subject: 'Let\'s schedule a quick chat', open_rate: 58 },
+      { step: 1, type: 'email', delay: 'Immediate', subject: "Let's schedule a quick chat", open_rate: 58 },
       { step: 2, type: 'phone', delay: '2 days', subject: 'Personal check-in call', conversion: 42 },
       { step: 3, type: 'email', delay: '5 days', subject: 'Custom success plan', open_rate: 61 },
     ]
@@ -157,17 +161,103 @@ const mockFlowTemplates: FlowTemplate[] = [
   { name: 'Upgrade Nudge', trigger: 'Usage limit reached', success_rate: 67 },
 ];
 
+// Segment analytics mock
+const mockSegmentAnalytics: SegmentAnalyticsResponse = {
+  churnTrendsBySegment: [
+    { month: 'Jan', Enterprise: 2.1, Trial: 15.2, Basic: 28.4 },
+    { month: 'Feb', Enterprise: 1.8, Trial: 14.1, Basic: 26.8 },
+    { month: 'Mar', Enterprise: 2.4, Trial: 12.9, Basic: 24.2 },
+    { month: 'Apr', Enterprise: 1.9, Trial: 11.8, Basic: 22.1 },
+    { month: 'May', Enterprise: 1.6, Trial: 10.5, Basic: 20.9 },
+    { month: 'Jun', Enterprise: 1.4, Trial: 9.8, Basic: 19.6 },
+  ] as any,
+  revenueBySegment: [
+    { segment: 'Enterprise', revenue: 450000, customers: 1240, avgRevenue: 363 },
+    { segment: 'Pro Users', revenue: 180000, customers: 2890, avgRevenue: 62 },
+    { segment: 'Trial Users', revenue: 45000, customers: 890, avgRevenue: 51 },
+    { segment: 'Basic', revenue: 78000, customers: 3200, avgRevenue: 24 },
+  ],
+  segmentDistribution: [
+    { name: 'Enterprise', value: 15, customers: 1240, color: '#8b5cf6' },
+    { name: 'Pro Users', value: 35, customers: 2890, color: '#06b6d4' },
+    { name: 'Trial Users', value: 12, customers: 890, color: '#10b981' },
+    { name: 'Basic', value: 38, customers: 3200, color: '#f59e0b' },
+  ],
+  campaignPerformanceBySegment: [
+    { segment: 'High-Value Enterprise', campaigns: 5, success_rate: 78, revenue_recovered: 42000 },
+    { segment: 'Payment Failed Recovery', campaigns: 12, success_rate: 67, revenue_recovered: 18500 },
+    { segment: 'Trial Power Users', campaigns: 8, success_rate: 45, revenue_recovered: 12800 },
+    { segment: 'Young Professionals', campaigns: 6, success_rate: 52, revenue_recovered: 9200 },
+    { segment: 'Feature Champions', campaigns: 4, success_rate: 71, revenue_recovered: 15600 },
+  ],
+};
+
+// Recovery analytics mock
+const mockRecoveryAnalytics: RecoveryAnalytics = {
+  kpis: {
+    missedPaymentsCount: 146,
+    missedAmount: 124500,
+    recoveredAmount: 78250,
+    recoveryRate: 62,
+    averageDaysToRecover: 4.6,
+  },
+  timeline: [
+    { month: 'Jan', missedAmount: 21000, recoveredAmount: 12000 },
+    { month: 'Feb', missedAmount: 19500, recoveredAmount: 11800 },
+    { month: 'Mar', missedAmount: 18200, recoveredAmount: 13200 },
+    { month: 'Apr', missedAmount: 22800, recoveredAmount: 14100 },
+    { month: 'May', missedAmount: 21600, recoveredAmount: 14800 },
+    { month: 'Jun', missedAmount: 22000, recoveredAmount: 16250 },
+  ] as RecoveryTimelinePoint[],
+  bySegment: [
+    { segmentId: 'seg_ent', segmentName: 'Enterprise', missedAmount: 32000, recoveredAmount: 24000, recoveryRate: 75 },
+    { segmentId: 'seg_pro', segmentName: 'Pro Users', missedAmount: 28000, recoveredAmount: 16000, recoveryRate: 57 },
+    { segmentId: 'seg_trial', segmentName: 'Trial Users', missedAmount: 14500, recoveredAmount: 6200, recoveryRate: 43 },
+    { segmentId: 'seg_basic', segmentName: 'Basic', missedAmount: 50000, recoveredAmount: 32050, recoveryRate: 64 },
+  ] as RecoveryBySegmentEntry[],
+  reasons: [
+    { reason: 'Card expired', count: 64 },
+    { reason: 'Insufficient funds', count: 38 },
+    { reason: 'Network error', count: 22 },
+    { reason: 'Bank declined', count: 18 },
+    { reason: 'Unknown', count: 4 },
+  ] as RecoveryReasonEntry[],
+  tables: {
+    missedPayments: [
+      { id: 'mp_1', customer: 'Acme Corp', amount: 4500, dueDate: new Date().toISOString(), status: 'Open', attempts: 1, segmentTags: ['Enterprise'] },
+      { id: 'mp_2', customer: 'Globex', amount: 299, dueDate: new Date().toISOString(), status: 'In Progress', attempts: 2, segmentTags: ['Pro Users'] },
+      { id: 'mp_3', customer: 'Soylent', amount: 25, dueDate: new Date().toISOString(), status: 'Recovered', attempts: 1, segmentTags: ['Trial Users'] },
+      { id: 'mp_4', customer: 'Initech', amount: 59, dueDate: new Date().toISOString(), status: 'Open', attempts: 3, segmentTags: ['Basic'] },
+    ] as MissedPaymentRow[],
+  },
+};
 
 export const getInsightsData = async (): Promise<InsightsResponse> => {
   try {
     return await api.get('/insights');
   } catch (error) {
-    console.warn('Failed to fetch insights from API, falling back to mock data:', error);
-    throw error;
+    console.warn('Failed to fetch insights from API, using mock data:', error);
+    // Return mock payload matching InsightsResponse
+    const response: InsightsResponse = {
+      header: { predictionAccuracy: 87.3, revenueSaved: '$4.2M' },
+      analyticsOverview: { kpiData: mockKPIData, revenueData: mockRevenueData },
+      churnPrediction: { predictionData: mockChurnPredictionData, riskFactors: mockRiskFactors },
+      ltvAnalytics: { ltvData: mockLTVData, cohortData: mockCohortData },
+      demographicInsights: { demographicData: mockDemographicData, behaviorInsights: mockBehaviorInsights },
+      segmentAnalytics: mockSegmentAnalytics,
+      recoveryAnalytics: mockRecoveryAnalytics,
+      recoveryFlows: { flows: mockRecoveryFlows, templates: mockFlowTemplates },
+      aiRecommendations: {
+        recommendations: [
+          { type: 'risk', title: 'High-Risk Alert', description: '23 customers entering critical churn risk zone', actionText: 'Launch Intervention', iconType: 'alert', count: 23 },
+          { type: 'upsell', title: 'Upsell Opportunity', description: '156 customers ready for premium upgrade', actionText: 'Create Campaign', iconType: 'growth', count: 156 },
+          { type: 'adoption', title: 'Feature Adoption', description: 'Push analytics feature to boost engagement', actionText: 'Send Tutorials', iconType: 'feature', count: 1 },
+        ],
+      },
+    };
+    return response;
   }
 };
-
-
 
 export const getInsightsDataQueryOptions = () => ({
   queryKey: ['insights'],

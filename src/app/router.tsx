@@ -122,6 +122,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'segments/:segmentId',
+          lazy: async () => {
+            const { SegmentDetailRoute } = await import('./routes/app/segments/segment-detail');
+            return { Component: SegmentDetailRoute };
+          },
+        },
+        {
           path: 'campaigns',
           lazy: async () => {
             const { CampaignsRoute } = await import('./routes/app/campaigns/campaigns');
