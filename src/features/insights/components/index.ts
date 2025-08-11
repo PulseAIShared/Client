@@ -9,3 +9,4 @@ export * from './recovery-timeline';
 export * from './recovery-by-segment';
 export * from './recovery-reasons';
 export * from './missed-payments-table';
+export * from './recovery-work-queue';
