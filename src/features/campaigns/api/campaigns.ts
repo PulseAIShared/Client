@@ -126,15 +126,19 @@ export const createCampaign = async (data: {
   name: string;
   description?: string;
   type: string;
-  trigger: string;
+  trigger: string | { type: 'Manual' | 'Scheduled' | 'Event'; eventName?: string };
   segmentId?: string;
+  senderProfileId?: string;
   steps: Array<{
     stepOrder: number;
     type: string;
     delay: string;
     subject: string;
     content: string;
+    tracking?: { openTracking?: boolean; clickTracking?: boolean };
   }>;
+  schedule?: { type: 'now' | 'at' | 'manual'; sendAtUtc?: string | null; timeZone?: string; rateLimitPerMinute?: number };
+  testRecipients?: string[];
 }): Promise<Campaign> => {
   return api.post('/campaigns', data);
 };

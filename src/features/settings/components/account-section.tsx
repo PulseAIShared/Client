@@ -10,6 +10,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
 import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
+import { EmailSenderSettings } from './email-sender-settings';
 
 export const AccountSection = () => {
   const { checkCompanyPolicy } = useAuthorization();
@@ -77,6 +78,12 @@ export const AccountSection = () => {
             </div>
           </CompanyAuthorization>
         </div>
+      </div>
+
+      {/* Email Sender Settings */}
+      <div>
+        <div className="mt-8 pt-6 border-t border-border-primary/30" />
+        <EmailSenderSettings />
       </div>
     </div>
   );

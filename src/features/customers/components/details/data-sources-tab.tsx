@@ -374,8 +374,7 @@ export const CustomerDataSourcesTab: React.FC<DataSourcesTabProps> = ({ customer
                 {customer.dataQuality.recommendedActions.map((action, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                    <span className="text-warning-muted text-sm sm:text-base">{action}</span>
-                  </div>
+                    <span className="text-warning-muted text-sm sm:text-base">{action}</span>                  </div>
                 ))}
               </div>
             </div>

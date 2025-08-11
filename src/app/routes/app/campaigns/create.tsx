@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createCampaign } from '@/features/campaigns/api/campaigns';
 import { useGetSegments } from '@/features/segments/api/segments';
 import { ContentLayout } from '@/components/layouts';
 import { CampaignCreateHeader } from '@/features/campaigns/components';
+import { api } from '@/lib/api-client';
 
 export const CampaignCreateRoute = () => {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,14 @@ export const CampaignCreateRoute = () => {
     type: 'Email' as const,
     subject: '',
     content: '',
+    senderProfileId: '',
+    triggerType: 'Manual' as 'Manual' | 'Scheduled' | 'Event',
+    sendAtUtc: '',
+    timeZone: 'UTC',
+    rateLimitPerMinute: 0,
+    openTracking: true,
+    clickTracking: true,
+    testRecipient: '',
   });
 
   const { data: segments = [], isLoading: segmentsLoading } = useGetSegments();
@@ -36,6 +45,24 @@ export const CampaignCreateRoute = () => {
     },
   });
 
+  // Fetch sender profiles (email settings)
+  const { data: senderProfiles = [], isLoading: senderProfilesLoading } = useQuery({
+    queryKey: ['email', 'senders'],
+    queryFn: async () => {
+      try {
+        const result = await api.get('/email/senders');
+        return (Array.isArray(result) ? result : []) as Array<{ id: string; name: string; fromName: string; fromEmail: string; isDefault?: boolean }>;
+      } catch (err) {
+        console.warn('Email sender profiles endpoint not available yet. Proceeding with empty list.');
+        return [] as Array<{ id: string; name: string; fromName: string; fromEmail: string; isDefault?: boolean }>;
+      }
+    },
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const hasSenderProfiles = useMemo(() => (senderProfiles || []).length > 0, [senderProfiles]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -47,14 +74,22 @@ export const CampaignCreateRoute = () => {
       alert('Please select a segment');
       return;
     }
+    if (!hasSenderProfiles || !formData.senderProfileId) {
+      alert('Please set up an email sender in Settings and select a sender profile before creating a campaign.');
+      return;
+    }
     if (!formData.content.trim()) {
       alert('Campaign content is required');
       return;
     }
 
     const campaignData = {
-      ...formData,
-      trigger: 'manual',
+      name: formData.name,
+      description: formData.description,
+      type: formData.type,
+      segmentId: formData.segmentId,
+      senderProfileId: formData.senderProfileId,
+      trigger: { type: formData.triggerType },
       steps: [
         {
           stepOrder: 1,
@@ -62,14 +97,20 @@ export const CampaignCreateRoute = () => {
           delay: '0',
           subject: formData.subject || formData.name,
           content: formData.content,
+          tracking: { openTracking: formData.openTracking, clickTracking: formData.clickTracking },
         },
       ],
+      schedule:
+        formData.triggerType === 'Scheduled'
+          ? { type: 'at' as 'at', sendAtUtc: formData.sendAtUtc || null, timeZone: formData.timeZone, rateLimitPerMinute: Number(formData.rateLimitPerMinute) || undefined }
+          : { type: 'manual' as 'manual' },
+      testRecipients: formData.testRecipient ? [formData.testRecipient] : [],
     };
 
     createCampaignMutation.mutate(campaignData);
   };
 
-  const updateField = (field: string, value: string) => {
+  const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -119,7 +160,7 @@ The PulseLTV Team`,
     updateField('content', template.content);
   };
 
-  if (segmentsLoading) {
+  if (segmentsLoading || senderProfilesLoading) {
     return (
       <ContentLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -128,8 +169,8 @@ The PulseLTV Team`,
               <div className="w-8 h-8 border-2 border-accent-primary/30 border-t-accent-primary rounded-full animate-spin"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 rounded-full blur-xl animate-pulse"></div>
             </div>
-            <p className="text-text-secondary font-medium">Loading segments...</p>
-            <p className="text-text-muted text-sm">Preparing campaign builder</p>
+            <p className="text-text-secondary font-medium">Loading campaign builder...</p>
+            <p className="text-text-muted text-sm">Preparing segments and email settings</p>
           </div>
         </div>
       </ContentLayout>
@@ -216,6 +257,52 @@ The PulseLTV Team`,
             </div>
           </div>
 
+          {/* Sender selection and setup requirement */}
+          <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-border-primary/30 shadow-xl">
+            <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-6">Sender</h2>
+            {hasSenderProfiles ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Sender Profile *</label>
+                  <select
+                    value={formData.senderProfileId}
+                    onChange={(e) => updateField('senderProfileId', e.target.value)}
+                    className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
+                    required
+                  >
+                    <option value="">Select sender</option>
+                    {senderProfiles.map((sp: any) => (
+                      <option key={sp.id} value={sp.id}>
+                        {sp.name} ({sp.fromEmail}){sp.isDefault ? ' • Default' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="text-sm text-text-muted self-end">
+                  Changes to sender profiles can be managed in Settings.
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-warning/10 border border-warning/30 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-warning mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium text-text-primary mb-1">Email sending not configured</div>
+                    <div className="text-text-muted mb-3">You need to create a sender profile before sending campaigns.</div>
+                    <a
+                      href="/app/settings?tab=account"
+                      className="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-accent-primary to-accent-secondary text-white font-semibold hover:shadow-lg hover:shadow-accent-secondary/25 transition-all"
+                    >
+                      Go to Settings → Account
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Enhanced Email Templates */}
           <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-border-primary/30 shadow-xl">
             <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-6">Email Templates</h2>
@@ -268,6 +355,68 @@ The PulseLTV Team`,
                   required
                 />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
+                  <input type="checkbox" checked={formData.openTracking} onChange={(e) => updateField('openTracking', e.target.checked as any)} />
+                  Track opens
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
+                  <input type="checkbox" checked={formData.clickTracking} onChange={(e) => updateField('clickTracking', e.target.checked as any)} />
+                  Track clicks
+                </label>
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Test send to</label>
+                  <input
+                    type="email"
+                    value={formData.testRecipient}
+                    onChange={(e) => updateField('testRecipient', e.target.value)}
+                    placeholder="you@company.com"
+                    className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule */}
+          <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-border-primary/30 shadow-xl">
+            <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-6">Trigger & Schedule</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">Trigger Type</label>
+                <select
+                  value={formData.triggerType}
+                  onChange={(e) => updateField('triggerType', e.target.value)}
+                  className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
+                >
+                  <option value="Manual">Manual</option>
+                  <option value="Scheduled">Scheduled</option>
+                </select>
+              </div>
+              {formData.triggerType === 'Scheduled' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">Send At (UTC)</label>
+                    <input
+                      type="datetime-local"
+                      value={formData.sendAtUtc}
+                      onChange={(e) => updateField('sendAtUtc', e.target.value)}
+                      className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">Rate limit (emails/min)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={formData.rateLimitPerMinute}
+                      onChange={(e) => updateField('rateLimitPerMinute', Number(e.target.value))}
+                      className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -275,7 +424,7 @@ The PulseLTV Team`,
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={createCampaignMutation.isPending}
+              disabled={createCampaignMutation.isPending || !hasSenderProfiles}
               className="px-8 py-3 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-xl hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {createCampaignMutation.isPending ? (

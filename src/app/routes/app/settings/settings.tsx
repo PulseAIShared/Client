@@ -1,5 +1,6 @@
 // src/app/routes/app/settings/settings.tsx
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
 import { 
   IntegrationsSection,
@@ -13,7 +14,9 @@ import { useAuthorization } from '@/lib/authorization';
 type SettingsTab = 'integrations' | 'account' | 'notifications' | 'billing' | 'security';
 
 export const SettingsRoute = () => {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('integrations');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTabParam = (searchParams.get('tab') as SettingsTab | null) || undefined;
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTabParam || 'integrations');
   const { checkCompanyPolicy } = useAuthorization();
 
   const allTabs = [
@@ -78,8 +81,17 @@ export const SettingsRoute = () => {
   const tabs = allTabs.filter(tab => checkCompanyPolicy(tab.requiredPolicy));
 
   // Ensure activeTab is one the user can access
+  // Keep active tab in sync with URL param (only when param changes via navigation)
   React.useEffect(() => {
-    if (tabs.length > 0 && !tabs.find(tab => tab.id === activeTab)) {
+    const param = (searchParams.get('tab') as SettingsTab | null) || undefined;
+    if (param && tabs.some(t => t.id === param) && param !== activeTab) {
+      setActiveTab(param);
+    }
+  }, [searchParams, tabs]);
+
+  // Ensure activeTab is permitted; fallback to first available
+  React.useEffect(() => {
+    if (tabs.length > 0 && !tabs.some(t => t.id === activeTab)) {
       setActiveTab(tabs[0].id);
     }
   }, [tabs, activeTab]);
@@ -148,7 +160,7 @@ export const SettingsRoute = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => { setActiveTab(tab.id); setSearchParams({ tab: tab.id }); }}
                 className={`group relative flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-4 sm:px-6 py-4 sm:py-6 font-medium text-sm sm:text-base transition-all duration-300 border-b-2 min-w-[120px] sm:min-w-[140px] ${
                   activeTab === tab.id
                     ? 'border-accent-primary bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 text-accent-primary'
