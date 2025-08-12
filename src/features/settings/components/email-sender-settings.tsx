@@ -176,8 +176,9 @@ export const EmailSenderSettings: React.FC = () => {
                     password: form.password,
                     useTls: !!form.useTls,
                   };
-                } else {
-                  payload[form.type.toLowerCase()] = {
+                } else if (form.type) {
+                  const key = (form.type as string).toLowerCase();
+                  payload[key] = {
                     apiKey: form.apiKey,
                   };
                 }
