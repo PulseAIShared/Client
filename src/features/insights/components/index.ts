@@ -1,6 +1,5 @@
 export * from './churn-prediction-card';
 export * from './analytics-overview';
-export * from './recovery-flows';
 export * from './insights-header';
 export * from './demographic-insights';
 export * from './ltv-analytics';
@@ -9,4 +8,3 @@ export * from './recovery-timeline';
 export * from './recovery-by-segment';
 export * from './recovery-reasons';
 export * from './missed-payments-table';
-export * from './recovery-work-queue';

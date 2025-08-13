@@ -1441,6 +1441,9 @@ export interface SegmentAnalyticsResponse {
   campaignPerformanceBySegment: Array<{ segment: string; campaigns: number; success_rate: number; revenue_recovered: number }>;
 }
 
+// Re-export recovery types for convenience
+export * from './recovery';
+
 export interface RecoveryAnalyticsKpis {
   missedPaymentsCount: number;
   missedAmount: number;

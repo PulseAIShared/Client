@@ -1,11 +1,11 @@
 import React from 'react';
-import { useGetInsightsData } from '@/features/insights/api/insights';
+import { useGetRecoveryInsights } from '@/features/insights/api/recovery-insights';
 
 export const RecoveryReasons: React.FC = () => {
-  const { data, isLoading, error } = useGetInsightsData();
+  const { data, isLoading, error } = useGetRecoveryInsights();
   if (isLoading) return <div className="h-32 bg-surface-primary/80 rounded-2xl border border-border-primary/30 animate-pulse" />;
   if (error || !data) return null;
-  const reasons = data.recoveryAnalytics.reasons;
+  const reasons = data.reasons;
   if (!reasons || reasons.length === 0) {
     return (
       <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 text-center">
@@ -14,13 +14,13 @@ export const RecoveryReasons: React.FC = () => {
       </div>
     );
   }
-  const total = reasons.reduce((acc, r) => acc + r.count, 0) || 1;
+  const total = reasons.reduce((acc: number, r: any) => acc + r.count, 0) || 1;
 
   return (
     <div className="bg-surface-primary/80 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-xl">
       <h3 className="text-lg font-semibold text-text-primary mb-4">Failure Reasons</h3>
       <div className="space-y-3">
-        {reasons.map((r) => (
+        {reasons.map((r: any) => (
           <div key={r.reason} className="">
             <div className="flex items-center justify-between mb-1">
               <div className="text-sm text-text-primary">{r.reason}</div>
