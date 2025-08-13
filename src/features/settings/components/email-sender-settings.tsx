@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
+import { Tooltip } from '@/components/ui/tooltip';
 
 type SenderProfile = {
   id: string;
@@ -233,16 +234,22 @@ export const EmailSenderSettings: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2 flex items-center gap-2">
                   Host
-                  <span className="text-text-muted text-xs" title="This is your SMTP server address. Examples: smtp.gmail.com, smtp.office365.com, smtp.sendgrid.net.">?
-                  </span>
+                  <Tooltip side="top" widthClassName="min-w-[280px] max-w-md" content={
+                    'Your SMTP server domain. Examples:\n- smtp.gmail.com\n- smtp.office365.com\n- smtp.sendgrid.net'
+                  }>
+                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-surface-secondary/80 text-text-muted text-[10px] cursor-help">?</span>
+                  </Tooltip>
                 </label>
                 <input placeholder="e.g. smtp.yourprovider.com" className="w-full px-3 py-2 rounded-lg bg-surface-primary/60 border border-border-primary/40" value={form.host || ''} onChange={(e) => setForm({ ...form, host: e.target.value })} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2 flex items-center gap-2">
                   Port
-                  <span className="text-text-muted text-xs" title="Common ports: 587 (TLS/STARTTLS), 465 (SSL), 25 (legacy). Your provider docs list the correct port.">?
-                  </span>
+                  <Tooltip side="top" widthClassName="min-w-[260px] max-w-md" content={
+                    'Common ports:\n- 587 (TLS/STARTTLS)\n- 465 (SSL)\n- 25 (legacy)\nCheck your provider docs.'
+                  }>
+                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-surface-secondary/80 text-text-muted text-[10px] cursor-help">?</span>
+                  </Tooltip>
                 </label>
                 <input
                   type="number"
@@ -273,16 +280,22 @@ export const EmailSenderSettings: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2 flex items-center gap-2">
                   Username
-                  <span className="text-text-muted text-xs" title="Often your full email address, or a username supplied by your SMTP provider.">?
-                  </span>
+                  <Tooltip side="top" widthClassName="min-w-[300px] max-w-md" content={
+                    'Often your full email address. Some providers require a specific username from their dashboard.'
+                  }>
+                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-surface-secondary/80 text-text-muted text-[10px] cursor-help">?</span>
+                  </Tooltip>
                 </label>
                 <input placeholder="e.g. you@yourdomain.com" className="w-full px-3 py-2 rounded-lg bg-surface-primary/60 border border-border-primary/40" value={form.username || ''} onChange={(e) => setForm({ ...form, username: e.target.value })} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2 flex items-center gap-2">
                   Password
-                  <span className="text-text-muted text-xs" title="Use an app password if your provider requires it (e.g., Google Workspace, Microsoft 365).">?
-                  </span>
+                  <Tooltip side="top" widthClassName="min-w-[300px] max-w-md" content={
+                    'Use an app password if required (e.g., Google Workspace, Microsoft 365). Do not share this password.'
+                  }>
+                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-surface-secondary/80 text-text-muted text-[10px] cursor-help">?</span>
+                  </Tooltip>
                 </label>
                 <input type="password" placeholder="Your SMTP password or app password" className="w-full px-3 py-2 rounded-lg bg-surface-primary/60 border border-border-primary/40" value={form.password || ''} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               </div>
@@ -312,8 +325,9 @@ export const EmailSenderSettings: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2 flex items-center gap-2">
                   API Key
-                  <span className="text-text-muted text-xs" title="Create or copy a restricted API key from your provider's dashboard.">?
-                  </span>
+                  <Tooltip side="top" widthClassName="min-w-[300px] max-w-md" content={'Create/copy a restricted API key from your provider dashboard.'}>
+                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-surface-secondary/80 text-text-muted text-[10px] cursor-help">?</span>
+                  </Tooltip>
                 </label>
                 <input placeholder="Paste your API key" className="w-full px-3 py-2 rounded-lg bg-surface-primary/60 border border-border-primary/40" value={form.apiKey || ''} onChange={(e) => setForm({ ...form, apiKey: e.target.value })} />
               </div>
