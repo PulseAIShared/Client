@@ -171,6 +171,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'settings/integrations/:integrationId/configure',
+          lazy: async () => {
+            const { IntegrationConfigureRoute } = await import('./routes/app/settings/integration-configure');
+            return { Component: IntegrationConfigureRoute };
+          },
+        },
+        {
           path: 'conversations',
           lazy: async () => {
             const { ConversationsRoute } = await import('./routes/app/conversations/conversations');
@@ -238,6 +245,13 @@ export const createAppRouter = () =>
           lazy: async () => {
             const { HubSpotOAuthCallback } = await import('../features/settings/components/hubspot-oauth-callback');
             return { Component: HubSpotOAuthCallback };
+          },
+        },
+        {
+          path: 'oauth/stripe/callback',
+          lazy: async () => {
+            const { StripeOAuthCallback } = await import('../features/settings/components/stripe-oauth-callback');
+            return { Component: StripeOAuthCallback };
           },
         },
           ],

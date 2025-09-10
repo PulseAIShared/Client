@@ -11,8 +11,7 @@ import {
 } from '../api/integrations';
 import { useNotifications } from '@/components/ui/notifications';
 import { Integration, IntegrationStatusResponse, IntegrationType } from '@/types/api';
-import { IntegrationSetupModal } from './integration-setup-modal';
-import { useModal } from '@/app/modal-provider';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api-client';
 import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
 
@@ -23,29 +22,71 @@ interface IntegrationTemplate {
   category: 'crm' | 'email' | 'payment' | 'analytics';
   icon: React.ReactNode;
   features: string[];
-  setupComplexity: 'Easy' | 'Medium' | 'Advanced';
 }
 
 // Define API response types
-interface HubSpotTestConnectionResponse {
-  isConnected: boolean;
-  status: string;
-}
+import type { TestConnectionResult } from '@/types/api';
 
 interface HubSpotConnectResponse {
   authorizationUrl: string;
 }
 
-interface HubSpotSyncResponse {
-  totalRecords: number;
-  message: string;
-}
+// Compact actions dropdown for secondary actions
+const ActionMenu: React.FC<{
+  onTest: () => void;
+  onReconfigure?: () => void;
+  onDisconnect: () => void;
+  canReconfigure?: boolean;
+  disableDisconnect?: boolean;
+}> = ({ onTest, onReconfigure, onDisconnect, canReconfigure, disableDisconnect }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
+        title="More actions"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"> 
+          <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      </Button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-44 bg-surface-secondary/90 backdrop-blur-lg border border-border-primary/50 rounded-lg shadow-lg z-10">
+          <button
+            onClick={() => { setOpen(false); onTest(); }}
+            className="w-full text-left px-3 py-2 text-sm hover:bg-surface-secondary/70"
+          >
+            Test Connection
+          </button>
+          {canReconfigure && onReconfigure && (
+            <button
+              onClick={() => { setOpen(false); onReconfigure(); }}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-secondary/70"
+            >
+              Reconfigure
+            </button>
+          )}
+          <button
+            onClick={() => { setOpen(false); onDisconnect(); }}
+            disabled={disableDisconnect}
+            className="w-full text-left px-3 py-2 text-sm text-error-muted hover:bg-error/10 disabled:opacity-50"
+          >
+            Disconnect
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const IntegrationsSection = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'crm' | 'email' | 'payment' | 'analytics'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedIntegration, setSelectedIntegration] = useState<IntegrationTemplate | null>(null);
-  const { openModal, closeModal } = useModal();
   const { checkCompanyPolicy } = useAuthorization();
 
   const { addNotification } = useNotifications();
@@ -55,15 +96,7 @@ export const IntegrationsSection = () => {
 
   console.log(integrations);
   const { data: stats } = useGetIntegrationStats();
-  const connectMutation = useConnectIntegration({
-    onSuccess: () => {
-      addNotification({ type: 'success', title: 'Integration connected successfully' });
-      refetch(); // This will refresh the integrations from the server
-    },
-    onError: () => {
-      addNotification({ type: 'error', title: 'Failed to connect integration' });
-    }
-  });
+  // LEGACY connectMutation removed (OAuth-only now)
   const disconnectMutation = useDisconnectIntegration({
     onSuccess: () => {
       addNotification({ type: 'success', title: 'Integration disconnected successfully' });
@@ -76,12 +109,14 @@ export const IntegrationsSection = () => {
   const syncMutation = useSyncIntegration({
     onSuccess: () => {
       addNotification({ type: 'success', title: 'Integration synced successfully' });
-      refetch(); // This will refresh the integrations from the server
+      refetch();
     },
     onError: () => {
       addNotification({ type: 'error', title: 'Failed to sync integration' });
     }
   });
+
+  // Reconnect action handled elsewhere if needed
 
   const startConnectionMutation = useStartConnection({
     onSuccess: (result) => {
@@ -119,7 +154,6 @@ export const IntegrationsSection = () => {
         name: 'Salesforce',
         description: 'Sync customer data, lead scores, and opportunity information for enhanced churn prediction.',
         category: 'crm',
-        setupComplexity: 'Medium',
         features: ['Customer Data Sync', 'Lead Scoring', 'Opportunity Tracking', 'Real-time Updates'],
         icon: (
           <div className="w-12 h-12 bg-gradient-to-r from-accent-primary to-accent-primary rounded-xl flex items-center justify-center">
@@ -134,7 +168,6 @@ export const IntegrationsSection = () => {
         name: 'HubSpot',
         description: 'Connect your HubSpot CRM to automatically sync contacts, deals, and engagement metrics using secure OAuth authentication.',
         category: 'crm',
-        setupComplexity: 'Easy',
         features: ['OAuth Security', 'Contact Management', 'Deal Pipeline', 'Email Tracking', 'Marketing Automation'],
         icon: (
           <div className="w-12 h-12 bg-gradient-to-r from-warning to-error rounded-xl flex items-center justify-center">
@@ -152,7 +185,6 @@ export const IntegrationsSection = () => {
         name: 'Pipedrive',
         description: 'Integrate your sales pipeline data to enhance customer lifecycle predictions.',
         category: 'crm',
-        setupComplexity: 'Easy',
         features: ['Pipeline Management', 'Activity Tracking', 'Custom Fields', 'Sales Reporting'],
         icon: (
           <div className="w-12 h-12 bg-gradient-to-r from-success to-success-muted rounded-xl flex items-center justify-center">
@@ -167,7 +199,6 @@ export const IntegrationsSection = () => {
         name: 'Stripe',
         description: 'Sync payment data, subscription status, and billing events for revenue tracking.',
         category: 'payment',
-        setupComplexity: 'Medium',
         features: ['Payment Processing', 'Subscription Management', 'Billing Events', 'Revenue Analytics'],
         icon: (
           <div className="w-12 h-12 bg-gradient-to-r from-accent-secondary to-info rounded-xl flex items-center justify-center">
@@ -182,7 +213,6 @@ export const IntegrationsSection = () => {
         name: 'Mailchimp',
         description: 'Connect email campaign data to analyze customer engagement patterns.',
         category: 'email',
-        setupComplexity: 'Easy',
         features: ['Email Campaigns', 'Audience Segmentation', 'Open/Click Tracking', 'Automation Workflows'],
         icon: (
           <div className="w-12 h-12 bg-gradient-to-r from-warning-muted to-warning rounded-xl flex items-center justify-center">
@@ -197,7 +227,6 @@ export const IntegrationsSection = () => {
         name: 'Google Analytics',
         description: 'Track user behavior and engagement metrics to improve churn prediction accuracy.',
         category: 'analytics',
-        setupComplexity: 'Medium',
         features: ['User Behavior', 'Conversion Tracking', 'Event Analytics', 'Audience Insights'],
         icon: (
           <div className="w-12 h-12 bg-gradient-to-r from-accent-primary to-success rounded-xl flex items-center justify-center">
@@ -235,10 +264,10 @@ export const IntegrationsSection = () => {
     );
   };
 
-  // HubSpot-specific test connection function
-  const testHubSpotConnection = async (integrationId: string) => {
+  // Generic test connection for any integration
+  const testConnection = async (integrationId: string) => {
     try {
-      const result = await api.post(`/integrations/hubspot/${integrationId}/test`) as HubSpotTestConnectionResponse;
+      const result = await api.post(`/integrations/${integrationId}/test`) as TestConnectionResult;
       
       addNotification({
         type: result.isConnected ? 'success' : 'warning',
@@ -298,42 +327,7 @@ export const IntegrationsSection = () => {
     }
   };
 
-  interface ConnectionConfig {
-    syncOptions?: Record<string, unknown>[];
-    [key: string]: unknown;
-  }
-
-  interface HandleConnectionComplete {
-    (integrationId: string, integrationName: string, config: ConnectionConfig): Promise<void>;
-  }
-
-  const handleConnectionComplete: HandleConnectionComplete = async (integrationId, integrationName, config) => {
-    try {
-      await connectMutation.mutateAsync({
-        type: integrationId,
-        name: integrationName
-      });
-      
-      addNotification({ 
-        type: 'success', 
-        title: `${integrationName} connected successfully`,
-        message: `Started syncing ${config.syncOptions?.length || 0} data objects`
-      });
-      
-      refetch();
-      closeModal();
-      setSelectedIntegration(null);
-      
-    } catch (error: unknown) {
-      console.error('Connection failed:', error);
-      addNotification({ 
-        type: 'error', 
-        title: `Failed to connect ${integrationName}`,
-        message: error instanceof Error ? error.message : 'Please check your credentials and try again'
-      });
-      throw error;
-    }
-  };
+  // Legacy connection modal flow removed
 
   const handleDisconnect = async (integrationId: string) => {
     try {
@@ -367,35 +361,11 @@ export const IntegrationsSection = () => {
 
   const handleSync = async (integrationId: string) => {
     try {
-      // Find the integration to determine the type
-      const integration = integrations.find(i => i.id === integrationId);
-      if (!integration) return;
-
-      if (integration.type.toLowerCase() === 'hubspot') {
-        // Use HubSpot-specific sync endpoint
-        const response = await api.post(`/integrations/hubspot/${integrationId}/sync`, {
-          incrementalSync: true,
-          syncFromDate: null
-        }) as HubSpotSyncResponse;
-        
-        addNotification({
-          type: 'success',
-          title: 'HubSpot sync started',
-          message: `Processing ${response.totalRecords} records...`
-        });
-      } else {
-        // Use generic sync endpoint for other integrations
-        await syncMutation.mutateAsync({ integrationId });
-      }
-      
+      await syncMutation.mutateAsync({ integrationId });
       refetch();
     } catch (error: unknown) {
       console.error('Sync failed:', error);
-      addNotification({
-        type: 'error',
-        title: 'Failed to sync integration',
-        message: error instanceof Error ? error.message : 'Please try again'
-      });
+      addNotification({ type: 'error', title: 'Failed to sync integration', message: error instanceof Error ? error.message : 'Please try again' });
     }
   };
 
@@ -568,7 +538,9 @@ export const IntegrationsSection = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredTemplates.map((template) => {
           const integration = getIntegrationStatus(template.id);
-          const isConnected = integration?.status === 'Connected';
+          const isConnected = integration?.isConnected ?? false;
+          const hasConfig = !!integration?.syncConfiguration;
+          const needsReconnect = !!(integration as any)?.needsTokenRefresh || (integration as any)?.status === 'TokenExpired';
           
           return (
             <div
@@ -591,75 +563,35 @@ export const IntegrationsSection = () => {
                       }`}>
                         {isConnected ? 'Connected' : 'Not Connected'}
                       </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        template.setupComplexity === 'Easy' ? 'bg-success/20 text-success-muted' :
-                        template.setupComplexity === 'Medium' ? 'bg-warning/20 text-warning-muted' :
-                        'bg-error/20 text-error-muted'
-                      }`}>
-                        {template.setupComplexity} Setup
-                      </span>
+                      {needsReconnect && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-warning/20 text-warning-muted border border-warning/30">{(integration as any)?.status === 'TokenExpired' ? 'Token expired' : 'Reconnect required'}</span>
+                      )}
+ 
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {isConnected ? (
                     <>
-                      {template.id === 'hubspot' ? (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => testHubSpotConnection(integration!.id)}
-                            className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
-                          >
-                            Test Connection
-                          </Button>
-                          <CompanyAuthorization policyCheck={checkCompanyPolicy('integrations:write')}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSync(integration!.id)}
-                              disabled={syncMutation.isPending}
-                              className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
-                            >
-                              {syncMutation.isPending ? 'Syncing...' : 'Sync'}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDisconnect(integration!.id)}
-                              disabled={disconnectMutation.isPending}
-                              className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
-                            >
-                              {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
-                            </Button>
-                          </CompanyAuthorization>
-                        </>
-                      ) : (
-                        <>
-                          <CompanyAuthorization policyCheck={checkCompanyPolicy('integrations:write')}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSync(integration!.id)}
-                              disabled={syncMutation.isPending}
-                              className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
-                            >
-                              {syncMutation.isPending ? 'Syncing...' : 'Sync'}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDisconnect(integration!.id)}
-                              disabled={disconnectMutation.isPending}
-                              className="border-border-primary/50 hover:border-error/50 hover:text-error-muted"
-                            >
-                              {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
-                            </Button>
-                          </CompanyAuthorization>
-                        </>
-                      )}
+                      <CompanyAuthorization policyCheck={checkCompanyPolicy('integrations:write')}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => hasConfig ? handleSync(integration!.id) : navigate(`/app/settings/integrations/${integration!.id}/configure`)}
+                          disabled={syncMutation.isPending}
+                          className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary"
+                        >
+                          {hasConfig ? (syncMutation.isPending ? 'Syncing...' : 'Sync') : 'Configure'}
+                        </Button>
+                      </CompanyAuthorization>
+                      <ActionMenu
+                        onTest={() => testConnection(integration!.id)}
+                        onReconfigure={hasConfig ? () => navigate(`/app/settings/integrations/${integration!.id}/configure`) : undefined}
+                        canReconfigure={hasConfig}
+                        onDisconnect={() => handleDisconnect(integration!.id)}
+                        disableDisconnect={disconnectMutation.isPending}
+                      />
                     </>
                   ) : (
                     <CompanyAuthorization policyCheck={checkCompanyPolicy('integrations:write')}>
@@ -699,12 +631,28 @@ export const IntegrationsSection = () => {
                       <span>Last sync: {formatTimeAgo(integration.lastSyncedAt)}</span>
                     </div>
                   )}
+                  {integration.nextSyncAt && (
+                    <div className="flex items-center gap-2 text-text-muted">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Next sync: {new Date(integration.nextSyncAt as string).toLocaleString()}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Features */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-text-secondary">Key Features:</h4>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {integration?.syncConfiguration?.dataTypes?.map((dt) => (
+                    <span key={dt} className="px-2 py-1 bg-accent-primary/10 text-accent-primary rounded-md text-xs border border-accent-primary/30">{dt}</span>
+                  ))}
+                  {integration?.syncConfiguration?.syncFrequency && (
+                    <span className="px-2 py-1 bg-surface-secondary/50 text-text-secondary rounded-md text-xs border border-border-primary/50">{integration.syncConfiguration.syncFrequency} sync</span>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {template.features.map((feature, index) => (
                     <span

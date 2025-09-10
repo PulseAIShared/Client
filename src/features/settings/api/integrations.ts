@@ -8,6 +8,7 @@ import {
   IntegrationStatusResponse,
   IntegrationType,
   IntegrationStatus,
+  IntegrationApiItem,
   ConfigurationOptions,
   StartConnectionResult,
   OAuthCallbackRequest,
@@ -17,11 +18,64 @@ import {
   ReconnectIntegrationResult,
   TestConnectionResult,
   TriggerSyncResult,
-  DisconnectIntegrationResult
+  DisconnectIntegrationResult,
+  IntegrationInspection
 } from '@/types/api';
 import { mockIntegrations } from './mock-data';
 
 // API Functions
+const mapIntegrationFromApi = (item: IntegrationApiItem): IntegrationStatusResponse => {
+  const isConnected = item.status === 'Connected';
+  // Map server status + token flags to UI enum
+  const mappedStatus: IntegrationStatus = item.isTokenExpired
+    ? IntegrationStatus.TokenExpired
+    : isConnected
+      ? IntegrationStatus.Connected
+      : item.status === 'Disconnected'
+        ? IntegrationStatus.NotConnected
+        : item.status === 'Error'
+          ? IntegrationStatus.Error
+          : IntegrationStatus.Error;
+
+  return {
+    id: item.integrationId,
+    type: (item.type as IntegrationType),
+    name: item.name,
+    status: mappedStatus,
+    isConnected,
+    lastSyncedAt: item.lastSyncAt || undefined,
+    nextSyncAt: item.nextSyncAt || undefined,
+    syncedRecordCount: item.syncedRecordCount ?? 0,
+    syncConfiguration: item.syncConfiguration || undefined,
+    errorMessage: item.errorMessage || undefined,
+    needsTokenRefresh: item.needsTokenRefresh || false,
+    connectionDetails: item.connectedAt
+      ? {
+          connectedAt: item.connectedAt,
+          connectedBy: '',
+          permissions: [],
+        }
+      : undefined,
+  };
+};
+
+const mapStatusFilterToApi = (status: IntegrationStatus): string => {
+  switch (status) {
+    case IntegrationStatus.NotConnected:
+      return 'Disconnected';
+    case IntegrationStatus.Connected:
+      return 'Connected';
+    case IntegrationStatus.Error:
+      return 'Error';
+    case IntegrationStatus.Syncing:
+      return 'Syncing';
+    case IntegrationStatus.TokenExpired:
+      return 'TokenExpired';
+    default:
+      return String(status);
+  }
+};
+
 export const getIntegrations = async ({ 
   type, 
   status 
@@ -36,17 +90,19 @@ export const getIntegrations = async ({
   }
   
   if (status) {
-    queryParams.append('status', status);
+    queryParams.append('status', mapStatusFilterToApi(status));
   }
 
   const queryString = queryParams.toString();
   const url = queryString ? `/integrations?${queryString}` : '/integrations';
   
-  return await api.get(url);
+  const raw: IntegrationApiItem[] = await api.get(url);
+  return raw.map(mapIntegrationFromApi);
 };
 
 export const getIntegrationById = async (integrationId: string): Promise<IntegrationStatusResponse> => {
-  return await api.get(`/integrations/${integrationId}`);
+  const raw: IntegrationApiItem = await api.get(`/integrations/${integrationId}`);
+  return mapIntegrationFromApi(raw);
 };
 
 export const getConfigurationOptions = async (type: IntegrationType): Promise<ConfigurationOptions> => {
@@ -157,6 +213,24 @@ export const useGetConfigurationOptions = (type: IntegrationType, queryConfig?: 
 export const useGetIntegrationStats = (queryConfig?: QueryConfig<typeof getIntegrationStatsQueryOptions>) => {
   return useQuery({
     ...getIntegrationStatsQueryOptions(),
+    ...queryConfig,
+  });
+};
+
+// Inspection (capabilities discovery)
+export const inspectIntegration = async (integrationId: string): Promise<IntegrationInspection> => {
+  return await api.post(`/integrations/${integrationId}/inspect`, {});
+};
+
+export const getInspectIntegrationQueryOptions = (integrationId: string) => ({
+  queryKey: ['integrations', integrationId, 'inspect'],
+  queryFn: () => inspectIntegration(integrationId),
+  enabled: !!integrationId,
+});
+
+export const useInspectIntegration = (integrationId: string, queryConfig?: QueryConfig<typeof getInspectIntegrationQueryOptions>) => {
+  return useQuery({
+    ...getInspectIntegrationQueryOptions(integrationId),
     ...queryConfig,
   });
 };

@@ -1,0 +1,17 @@
+*** Begin Patch
+*** Update File: src/features/settings/components/integrations-section.tsx
+@@
+-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
++                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                         isConnected
+                           ? 'bg-success/20 text-success-muted border border-success/30'
+                           : 'bg-surface-secondary/50 text-text-muted border border-border-primary/50'
+                       }`}>
+                         {isConnected ? 'Connected' : 'Not Connected'}
+                       </span>
++                      {needsReconnect && (
++                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-warning/20 text-warning-muted border border-warning/30">
++                          {integration?.status === 'TokenExpired' ? 'Token expired' : 'Reconnect required'}
++                        </span>
++                      )}
+*** End Patch

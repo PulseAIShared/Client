@@ -735,6 +735,22 @@ export enum SyncFrequency {
 }
 
 // Integration Response Types
+// Raw server response for /integrations endpoints
+export interface IntegrationApiItem {
+  integrationId: string;
+  type: IntegrationType | string;
+  name: string;
+  status: 'Connected' | 'Disconnected' | 'Error' | string;
+  connectedAt: string;
+  lastSyncAt: string | null;
+  nextSyncAt: string | null;
+  syncedRecordCount: number;
+  errorMessage: string | null;
+  isTokenExpired: boolean;
+  needsTokenRefresh: boolean;
+  syncConfiguration: SyncConfiguration | null;
+}
+
 export interface IntegrationStatusResponse {
   id: string;
   type: IntegrationType;
@@ -742,10 +758,12 @@ export interface IntegrationStatusResponse {
   status: IntegrationStatus;
   isConnected: boolean;
   lastSyncedAt?: string;
+  nextSyncAt?: string;
   syncedRecordCount: number;
   syncConfiguration?: SyncConfiguration;
   errorMessage?: string;
   connectionDetails?: ConnectionDetails;
+  needsTokenRefresh?: boolean;
 }
 
 export interface ConnectionDetails {
@@ -765,6 +783,31 @@ export interface SyncConfiguration {
   batchSize: number;
   lastSuccessfulSync?: string;
   nextScheduledSync?: string;
+}
+
+// Inspection / capabilities discovery
+export interface DataTypeCapability {
+  id: string;
+  label: string;
+  supported: boolean;
+  permissionOk: boolean;
+  approxCount?: number;
+  missingScopes?: string[];
+  notes?: string;
+}
+
+export interface FieldMappingSuggestion {
+  sourceField: string;
+  targetField: string;
+  required: boolean;
+  sampleValue?: unknown;
+}
+
+export interface IntegrationInspection {
+  integrationId: string;
+  provider: IntegrationType | string;
+  dataTypes: DataTypeCapability[];
+  recommendedMappings?: Record<string, FieldMappingSuggestion[]>;
 }
 
 // Configuration Options
@@ -844,11 +887,12 @@ export interface ReconnectIntegrationResult {
 }
 
 export interface TestConnectionResult {
-  success: boolean;
-  connectionStatus: string;
+  integrationId: string;
+  isConnected: boolean;
+  status: string;
   lastTested: string;
-  errorMessage?: string;
-  details?: Record<string, unknown>;
+  tokenExpired: boolean;
+  canRefresh: boolean;
 }
 
 export interface TriggerSyncResult {

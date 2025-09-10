@@ -1,16 +1,16 @@
-// src/features/settings/components/hubspot-oauth-callback.tsx
+// src/features/settings/components/stripe-oauth-callback.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useNotifications } from '@/components/ui/notifications';
 import { api } from '@/lib/api-client';
 import { Spinner } from '@/components/ui/spinner';
 
-export const HubSpotOAuthCallback: React.FC = () => {
+export const StripeOAuthCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
-  const [message, setMessage] = useState('Processing HubSpot connection...');
+  const [message, setMessage] = useState('Processing Stripe connection...');
 
   const hasPostedRef = useRef(false);
 
@@ -29,7 +29,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
           setMessage(`OAuth error: ${error}`);
           addNotification({
             type: 'error',
-            title: 'HubSpot Connection Failed',
+            title: 'Stripe Connection Failed',
             message: `OAuth error: ${error}`
           });
           return;
@@ -40,40 +40,40 @@ export const HubSpotOAuthCallback: React.FC = () => {
           setMessage('Missing authorization code or state parameter');
           addNotification({
             type: 'error',
-            title: 'HubSpot Connection Failed',
+            title: 'Stripe Connection Failed',
             message: 'Invalid OAuth callback parameters'
           });
           return;
         }
 
         // Send callback data to backend
-        const response = await api.post('/integrations/hubspot/callback', {
+        await api.post('/integrations/stripe/callback', {
           code,
           state
         });
 
         setStatus('success');
-        setMessage('HubSpot connected successfully!');
+        setMessage('Stripe connected successfully!');
         
         addNotification({
           type: 'success',
-          title: 'HubSpot Connected',
-          message: 'Your HubSpot integration is now active'
+          title: 'Stripe Connected',
+          message: 'Your Stripe integration is now active'
         });
 
         // Redirect to settings page after a short delay
         setTimeout(() => {
           navigate('/app/settings', { replace: true });
-        }, 2000);
+        }, 1500);
 
       } catch (error: unknown) {
         console.error('OAuth callback error:', error);
         setStatus('error');
-        setMessage(error instanceof Error ? error.message : 'Failed to complete HubSpot connection');
+        setMessage(error instanceof Error ? error.message : 'Failed to complete Stripe connection');
         
         addNotification({
           type: 'error',
-          title: 'HubSpot Connection Failed',
+          title: 'Stripe Connection Failed',
           message: error instanceof Error ? error.message : 'Please try connecting again'
         });
       }
@@ -130,7 +130,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
           
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-text-primary mb-2">
-              {status === 'processing' && 'Connecting HubSpot...'}
+              {status === 'processing' && 'Connecting Stripe...'}
               {status === 'success' && 'Connection Successful!'}
               {status === 'error' && 'Connection Failed'}
             </h1>
