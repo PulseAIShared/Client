@@ -385,12 +385,17 @@ export const calculateActivityFrequency = (weeklyLoginFrequency: number): 'High'
   return 'Low';
 };
 
-export const formatCurrency = (amount: number): string => {
+export const formatCurrency = (amount: number | null | undefined, currency = 'USD', options?: Intl.NumberFormatOptions): string => {
+  if (amount == null || Number.isNaN(amount)) {
+    return 'N/A';
+  }
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    ...options,
   }).format(amount);
 };
 
@@ -1059,22 +1064,46 @@ export interface ImportSummaryResponse {
   [key: string]: ReactNode;
 }
 
-interface DataSource {
-  source: string;
-  externalId: string;
-  isPrimarySource: boolean;
-  lastSyncedAt: string;
-  importBatchId?: string;
-  importedByUserName?: string;
-  sourcePriority: number;
-  isActive: boolean;
-  syncVersion?: string | null;
-  syncStatus: string;
-  daysSinceLastSync: number;
-  priorityLevel: string;
+interface CustomerDataSourceItem {
+  id: string;
+  name: string;
+  type: string;
+  category: string;
+  lastSync?: string | null;
+  syncStatus?: string | null;
+  recordCount?: number | null;
+  isPrimary?: boolean;
 }
 
-interface PaymentInfo {
+interface CustomerDataSourcesOverview {
+  totalSources: number;
+  totalRecords?: number;
+  lastOverallSync?: string;
+}
+
+interface CustomerDataSourcesQuality {
+  completenessScorePercent?: number;
+  accuracyScorePercent?: number | null;
+  dataFreshnessDisplay?: string;
+}
+
+interface CustomerDataSourcesMeta {
+  totalSources?: number;
+  activeSources?: number;
+  lastOverallSync?: string;
+  sourceNames?: string[];
+  hasPaymentData?: boolean;
+  hasCrmData?: boolean;
+  hasMarketingData?: boolean;
+  hasSupportData?: boolean;
+  hasEngagementData?: boolean;
+  overview?: CustomerDataSourcesOverview;
+  sources?: CustomerDataSourceItem[];
+  categories?: string[];
+  quality?: CustomerDataSourcesQuality;
+}
+
+interface CustomerPaymentInfo {
   source: string;
   isPrimarySource: boolean;
   importBatchId?: string;
@@ -1093,94 +1122,184 @@ interface PaymentInfo {
   isActive: boolean;
 }
 
-interface QuickMetrics {
+interface CustomerQuickMetrics {
   totalDataSources: number;
   lastActivityDate?: string | null;
-  lastDataSync: string;
+  lastDataSync?: string | null;
   totalActivities: number;
   totalChurnPredictions: number;
   hasRecentActivity: boolean;
   hasMultipleSources: boolean;
   dataCompletenessScore: number;
-  daysSinceLastActivity: number;
-  daysSinceLastSync: number;
-  activityStatus: string;
-  dataFreshnessStatus: string;
-  overallHealthScore: string;
+  daysSinceLastActivity?: number;
+  daysSinceLastSync?: number;
+  activityStatus?: string;
+  dataFreshnessStatus?: string;
+  overallHealthScore?: string;
 }
 
-interface DataQuality {
-  completenessScore: number;
-  hasMultipleSources: boolean;
-  lastDataSync: string;
-  missingCriticalData: string[];
-  dataFreshness: string;
+interface CustomerDataQuality {
+  completenessScore?: number;
+  hasMultipleSources?: boolean;
+  lastDataSync?: string;
+  missingCriticalData?: string[];
+  dataFreshness?: string;
+  recommendedActions?: string[];
+  overallQuality?: number;
+  qualityIssues?: string[];
+}
+
+interface CustomerQualityMetrics {
+  completenessScore?: number;
+  hasMultipleSources?: boolean;
+  lastDataSync?: string;
+  missingFields?: string[];
+  dataFreshness?: string;
+  recommendedActions?: string[];
+  qualityLevel?: string;
+}
+
+interface CustomerChurnPrediction {
+  id: string;
+  riskScore: number;
+  riskLevel: number;
+  predictionDate: string;
+  riskFactors: Record<string, number>;
+  modelVersion?: string;
+}
+
+interface CustomerChurnOverview {
+  storedPrediction?: CustomerChurnPrediction | null;
+  currentPrediction?: CustomerChurnPrediction | null;
+  currentRiskScore?: number;
+  currentRiskLevel?: number;
+  analyzedAt?: string;
+  modelVersion?: string;
+  riskFactors?: Record<string, number>;
+  recommendations?: string[];
+}
+
+interface CustomerAnalyticsKeyMetrics {
+  loginFrequencyPerMonth?: number;
+  featureUsagePercent?: number;
+  supportTicketsLast30Days?: number;
+}
+
+interface CustomerAnalyticsData {
+  engagementTrends?: Array<{
+    month: string;
+    engagement: number;
+  }>;
+  churnRiskTrend?: Array<{
+    month: string;
+    riskScore: number;
+  }>;
+  keyMetrics?: CustomerAnalyticsKeyMetrics;
+}
+
+interface CustomerActivityTimelineEntry {
+  timestamp: string;
+  type: string;
+  description: string;
+  displayTime?: string;
+}
+
+interface CustomerCompletenessOverview {
+  customerId: string;
+  customerEmail: string;
+  customerName: string;
+  coreProfileScore: number;
+  paymentDataScore: number;
+  engagementDataScore: number;
+  supportDataScore: number;
+  crmDataScore: number;
+  marketingDataScore: number;
+  historicalDataScore: number;
+  overallCompletenessScore: number;
+  isEligibleForChurnAnalysis: boolean;
+  missingDataCategories: string[];
   recommendedActions: string[];
-  overallQuality: number;
-  qualityIssues: string[];
+}
+
+interface CustomerRiskPeer {
+  customerId: string;
+  name: string;
+  email: string;
+  riskScore: number;
+  riskLevel: number;
+  plan: string;
+  monthlyRecurringRevenue: number;
+  subscriptionStatus: string;
 }
 
 export interface CustomerDetailData {
   id: string;
   firstName: string;
   lastName: string;
+  fullName?: string;
   email: string;
-  phone?: string;
-  companyName?: string;
+  phone?: string | null;
+  companyName?: string | null;
   jobTitle?: string | null;
   location?: string | null;
   country?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  timeZone?: string | null;
   churnRiskScore: number;
   churnRiskLevel: number;
-  churnPredictionDate: string;
+  churnRiskDisplay?: string;
+  churnRiskStatus?: string;
+  churnPredictionDate?: string;
   subscriptionStatus: number;
+  subscriptionStatusDisplay?: string;
   plan: number;
+  planDisplay?: string;
+  paymentStatus: number;
+  paymentStatusDisplay?: string;
+  paymentMethodType?: string | null;
   monthlyRecurringRevenue: number;
   lifetimeValue: number;
+  currentBalance?: number;
+  currency?: string;
+  formattedMRR?: string;
+  formattedLTV?: string;
+  formattedBalance?: string;
   subscriptionStartDate: string;
   subscriptionEndDate?: string | null;
-  lastLoginDate?: string | null;
-  weeklyLoginFrequency: number;
-  featureUsagePercentage: number;
-  supportTicketCount: number;
-  paymentStatus: number;
+  trialStartDate?: string | null;
+  trialEndDate?: string | null;
   lastPaymentDate?: string | null;
+  lastPaymentDisplay?: string;
   nextBillingDate?: string | null;
-  paymentFailureCount: number;
+  nextBillingDisplay?: string;
+  lastLoginDate?: string | null;
+  lastLoginDisplay?: string;
+  weeklyLoginFrequency?: number;
+  featureUsagePercentage?: number;
+  engagementSummary?: string;
+  supportTicketCount?: number;
+  openSupportTickets?: number;
+  paymentFailureCount?: number;
+  hasRecentActivity?: boolean;
+  hasPaymentIssues?: boolean;
+  isTrialCustomer?: boolean;
+  needsAttention?: boolean;
+  activityStatus?: string;
+  riskStatus?: string;
+  primaryPaymentSource?: string | null;
+  primaryCrmSource?: string | null;
+  primaryMarketingSource?: string | null;
+  primarySupportSource?: string | null;
+  primaryEngagementSource?: string | null;
   dateCreated: string;
   lastSyncedAt: string;
-  primaryPaymentInfo?: PaymentInfo | null;
-  primaryCrmInfo?: unknown | null;
-  primaryMarketingInfo?: unknown | null;
-  primarySupportInfo?: unknown | null;
-  primaryEngagementInfo?: unknown | null;
-  quickMetrics: QuickMetrics;
-  dataQuality: DataQuality;
-  dataSourceDetails: {
-    crmSources: DataSource[];
-    paymentSources: DataSource[];
-    marketingSources: DataSource[];
-    supportSources: DataSource[];
-    engagementSources: DataSource[];
-    totalActiveSources: number;
-    lastOverallSync: string;
-    uniqueSourceNames: string[];
-  };
-  sourceSummary: {
-    crmSourceCount: number;
-    paymentSourceCount: number;
-    marketingSourceCount: number;
-    supportSourceCount: number;
-    engagementSourceCount: number;
-    totalSources: number;
-    hasMultipleSources: boolean;
-    hasPaymentData: boolean;
-    hasCrmData: boolean;
-    hasMarketingData: boolean;
-    hasSupportData: boolean;
-    hasEngagementData: boolean;
-  };
-  // New optional sections for ideal JSON shape used by UI
+  tenureDays?: number;
+  tenureDisplay?: string;
+  quickMetrics?: CustomerQuickMetrics;
+  qualityMetrics?: CustomerQualityMetrics;
+  dataQuality?: CustomerDataQuality;
+  dataSources?: CustomerDataSourcesMeta;
   display?: {
     fullName: string;
     tenureDisplay: string;
@@ -1192,51 +1311,21 @@ export interface CustomerDetailData {
     initials: string;
   };
   activity?: {
-    timeline: Array<{
-      timestamp: string;
-      type: string;
-      description: string;
-      displayTime?: string;
-    }>;
+    timeline: CustomerActivityTimelineEntry[];
   };
-  analytics?: {
-    engagementTrends: Array<{
-      month: string;
-      engagement: number;
-    }>;
-    churnRiskTrend: Array<{
-      month: string;
-      riskScore: number;
-    }>;
-    keyMetrics?: {
-      loginFrequencyPerMonth?: number;
-      featureUsagePercent?: number;
-      supportTicketsLast30Days?: number;
-    };
-  };
-  dataSources?: {
-    overview?: {
-      totalSources: number;
-      totalRecords?: number;
-      lastOverallSync?: string;
-    };
-    sources: Array<{
-      id: string;
-      name: string;
-      type: string; // hubspot|stripe|manual|...
-      category: string; // crm|payment|activity|support|marketing|engagement
-      lastSync?: string;
-      syncStatus?: string; // success|warning|error
-      recordCount?: number;
-      isPrimary?: boolean;
-    }>;
-    categories?: string[];
-    quality?: {
-      completenessScorePercent?: number;
-      accuracyScorePercent?: number;
-      dataFreshnessDisplay?: string;
-    };
-  };
+  analytics?: CustomerAnalyticsData;
+  churnHistory?: CustomerChurnPrediction[];
+  churnOverview?: CustomerChurnOverview;
+  churnSnapshot?: unknown | null;
+  recentActivities?: CustomerActivityTimelineEntry[];
+  qualitySummary?: string;
+  completeness?: CustomerCompletenessOverview;
+  riskPeers?: CustomerRiskPeer[];
+  primaryPaymentInfo?: CustomerPaymentInfo | null;
+  primaryCrmInfo?: unknown | null;
+  primaryMarketingInfo?: unknown | null;
+  primarySupportInfo?: unknown | null;
+  primaryEngagementInfo?: unknown | null;
 }
 
 
@@ -1601,3 +1690,8 @@ export const hasCompanyEditAccess = (companyRole: CompanyRole): boolean => {
 export const canAccessPlatformAdmin = (platformRole: PlatformRole): boolean => {
   return platformRole === PlatformRole.Admin || platformRole === PlatformRole.Moderator;
 };
+
+
+
+
+

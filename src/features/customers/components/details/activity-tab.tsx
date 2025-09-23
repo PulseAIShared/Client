@@ -1,5 +1,6 @@
 import React from 'react';
 import { CustomerDetailData } from '@/types/api';
+import { formatDate } from '@/utils/customer-helpers';
 
 const getActivityIcon = (type: string) => {
   switch (type) {
@@ -52,26 +53,68 @@ interface CustomerActivityTabProps {
 }
 
 export const CustomerActivityTab: React.FC<CustomerActivityTabProps> = ({ customer }) => {
-  const timeline = customer.activity?.timeline ?? [];
+  const timeline = customer.activity?.timeline ?? customer.recentActivities ?? [];
+  const summaryCards = [
+    {
+      id: 'last-activity',
+      label: 'Last Activity',
+      value: customer.quickMetrics?.lastActivityDate ? formatDate(customer.quickMetrics.lastActivityDate) : customer.lastLoginDisplay ?? 'No recent activity',
+    },
+    {
+      id: 'activity-status',
+      label: 'Activity Status',
+      value: customer.activityStatus ?? (customer.hasRecentActivity ? 'Active' : 'Inactive'),
+    },
+    {
+      id: 'total-activities',
+      label: 'Tracked Activities',
+      value: customer.quickMetrics?.totalActivities ?? timeline.length ?? 0,
+    },
+    {
+      id: 'support-tickets',
+      label: 'Open Support Tickets',
+      value: customer.openSupportTickets ?? customer.supportTicketCount ?? 0,
+    },
+    {
+      id: 'last-sync',
+      label: 'Last Data Sync',
+      value: customer.quickMetrics?.lastDataSync ? formatDate(customer.quickMetrics.lastDataSync) : customer.lastSyncedAt ? formatDate(customer.lastSyncedAt) : 'N/A',
+    },
+    {
+      id: 'login-frequency',
+      label: 'Weekly Logins',
+      value: customer.weeklyLoginFrequency != null ? `${customer.weeklyLoginFrequency}x` : 'N/A',
+    },
+  ];
+
   return (
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-      <div className="bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
-        <h3 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-6 sm:mb-8">Recent Activity Timeline</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {summaryCards.map((card) => (
+          <div key={card.id} className="p-4 sm:p-6 bg-surface-secondary/40 border border-border-primary/30 rounded-2xl shadow-lg">
+            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">{card.label}</span>
+            <div className="text-2xl sm:text-3xl font-bold text-text-primary mt-3">{card.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl">
+        <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-6 sm:mb-8">Recent Activity Timeline</h3>
         {timeline.length === 0 ? (
-          <div className="p-4 sm:p-6 bg-surface-secondary/30 rounded-2xl border border-border-primary/30 text-text-muted">
-            No activity yet. See Data Sources tab for recommended data actions to enable activity tracking.
+          <div className="p-4 sm:p-6 bg-surface-secondary/40 border border-border-primary/30 rounded-2xl text-text-muted">
+            No activity yet. Connect engagement and support systems to begin tracking interactions.
           </div>
         ) : (
           <div className="space-y-4 sm:space-y-6">
             {timeline.map((activity, index) => (
-              <div key={index} className="flex items-start gap-4 sm:gap-6 p-4 sm:p-6 bg-surface-secondary/30 rounded-2xl border border-border-primary/30 hover:bg-surface-secondary/50 transition-all duration-300">
+              <div key={index} className="flex items-start gap-4 sm:gap-6 p-4 sm:p-6 bg-surface-secondary/40 rounded-2xl border border-border-primary/30 hover:bg-surface-secondary/60 transition-all duration-300">
                 {getActivityIcon(activity.type)}
                 <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
                     <span className="text-text-primary font-semibold text-base sm:text-lg">{activity.description}</span>
                     <div className="text-right">
                       <div className="text-xs sm:text-sm text-text-muted">
-                        {new Date(activity.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {formatDate(activity.timestamp)}
                       </div>
                       {activity.displayTime && (
                         <div className="text-xs sm:text-sm text-text-muted">{activity.displayTime}</div>
@@ -88,5 +131,3 @@ export const CustomerActivityTab: React.FC<CustomerActivityTabProps> = ({ custom
     </div>
   );
 };
-
-
