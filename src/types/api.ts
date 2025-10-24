@@ -718,10 +718,8 @@ export interface FlowTemplate {
 // Integration Types and Enums
 export enum IntegrationType {
   HubSpot = 'HubSpot',
-  Salesforce = 'Salesforce',
-  Mailchimp = 'Mailchimp',
   Stripe = 'Stripe',
-  Slack = 'Slack'
+  PostHog = 'PostHog',
 }
 
 export enum IntegrationStatus {
@@ -753,12 +751,14 @@ export interface IntegrationApiItem {
   errorMessage: string | null;
   isTokenExpired: boolean;
   needsTokenRefresh: boolean;
+  needsConfiguration: boolean;
   syncConfiguration: SyncConfiguration | null;
+  tokenExpiresAt?: string | null;
 }
 
 export interface IntegrationStatusResponse {
   id: string;
-  type: IntegrationType;
+  type: IntegrationType | string;
   name: string;
   status: IntegrationStatus;
   isConnected: boolean;
@@ -769,6 +769,9 @@ export interface IntegrationStatusResponse {
   errorMessage?: string;
   connectionDetails?: ConnectionDetails;
   needsTokenRefresh?: boolean;
+  needsConfiguration?: boolean;
+  isTokenExpired?: boolean;
+  tokenExpiresAt?: string | null;
 }
 
 export interface ConnectionDetails {
@@ -826,6 +829,8 @@ export interface ConfigurationOptions {
   maxBatchSize: number;
 }
 
+export type IntegrationConfigurationMap = Record<string, ConfigurationOptions>;
+
 export interface DataTypeOption {
   id: string;
   name: string;
@@ -848,10 +853,22 @@ export interface SyncFrequencyOption {
   description: string;
 }
 
+export interface ProblemDetails<TMetadata = Record<string, unknown>> {
+  type?: string;
+  title?: string;
+  status?: number;
+  detail?: string;
+  instance?: string;
+  traceId?: string;
+  code?: string;
+  metadata?: TMetadata;
+}
+
 // OAuth Flow Types
 export interface StartConnectionResult {
   authorizationUrl: string;
   state: string;
+  existingIntegrationId?: string | null;
 }
 
 export interface OAuthCallbackRequest {
@@ -861,10 +878,10 @@ export interface OAuthCallbackRequest {
 }
 
 export interface HandleCallbackResult {
-  success: boolean;
-  integrationId?: string;
-  requiresConfiguration: boolean;
-  errorMessage?: string;
+  integrationId: string;
+  status: string;
+  message?: string;
+  needsConfiguration: boolean;
 }
 
 // Sync Configuration Types
@@ -886,15 +903,17 @@ export interface ConfigureIntegrationResult {
 
 // Connection Management Types
 export interface ReconnectIntegrationResult {
-  success: boolean;
+  integrationId: string;
   authorizationUrl?: string;
   errorMessage?: string;
+  message?: string;
 }
 
 export interface TestConnectionResult {
   integrationId: string;
   isConnected: boolean;
   status: string;
+  message?: string;
   lastTested: string;
   tokenExpired: boolean;
   canRefresh: boolean;
@@ -911,6 +930,18 @@ export interface TriggerSyncResult {
 export interface DisconnectIntegrationResult {
   success: boolean;
   message: string;
+  integrationId?: string;
+}
+
+export interface IntegrationSyncJobSummary {
+  integrationId: string;
+  jobId: string;
+  lastExecution?: string | null;
+  nextExecution?: string | null;
+  lastJobState: string;
+  isProcessing: boolean;
+  cron?: string | null;
+  description?: string;
 }
 
 // Legacy interface for backwards compatibility

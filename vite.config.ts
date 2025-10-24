@@ -13,10 +13,11 @@ const isProduction = process.env.NODE_ENV === 'production';
 const serverConfig = isProduction 
   ? { port: 3000 } 
   : {
+     host: '127.0.0.1',
       port: 3000,
       https: {
-        key: fs.readFileSync('localhost-key.pem'),
-        cert: fs.readFileSync('localhost.pem'),
+        key: fs.readFileSync('cert.key'),
+        cert: fs.readFileSync('cert.crt'),
       },
     };
 

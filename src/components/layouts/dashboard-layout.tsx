@@ -3,6 +3,7 @@ import { Sidebar, SideNavigationItem } from "../ui/nav";
 import { TopNav } from "../ui/nav/top-navigation";
 import { BiSolidDashboard } from "react-icons/bi";
 import { IoMdSettings } from "react-icons/io";
+import { TbPlugConnected } from "react-icons/tb";
 import { GiProgression } from "react-icons/gi";
 import { FaUser } from "react-icons/fa";
 import { useMediaQuery } from "@mantine/hooks";
@@ -55,6 +56,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       name: 'Conversations',
       icon: BsChatDots,
       link: '/app/conversations'
+    },
+    {
+      name: 'Integrations',
+      icon: TbPlugConnected,
+      link: '/app/integrations'
     },
     {
       name: 'Settings',

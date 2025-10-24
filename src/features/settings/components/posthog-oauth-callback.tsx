@@ -1,4 +1,4 @@
-// src/features/settings/components/hubspot-oauth-callback.tsx
+// src/features/settings/components/posthog-oauth-callback.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner';
@@ -8,17 +8,17 @@ import { clearOAuthSession, readOAuthSession } from '../lib/oauth-session';
 
 type CallbackStatus = 'processing' | 'success' | 'error';
 
-const FALLBACK_PROVIDER_TYPE = 'HubSpot';
+const FALLBACK_PROVIDER_TYPE = 'PostHog';
 const EXPIRATION_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
-export const HubSpotOAuthCallback: React.FC = () => {
+export const PostHogOAuthCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
   const handleCallbackMutation = useHandleCallback();
 
   const [status, setStatus] = useState<CallbackStatus>('processing');
-  const [message, setMessage] = useState('Processing HubSpot connection...');
+  const [message, setMessage] = useState('Processing PostHog connection...');
   const hasProcessedRef = useRef(false);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
         setMessage(`OAuth error: ${oauthError}`);
         addNotification({
           type: 'error',
-          title: 'HubSpot Connection Failed',
+          title: 'PostHog Connection Failed',
           message: `OAuth error: ${oauthError}`,
         });
         clearOAuthSession(providerType);
@@ -50,7 +50,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
         setMessage('Missing authorization code or state parameter');
         addNotification({
           type: 'error',
-          title: 'HubSpot Connection Failed',
+          title: 'PostHog Connection Failed',
           message: 'Invalid OAuth callback parameters',
         });
         clearOAuthSession(providerType);
@@ -63,7 +63,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
         setMessage('OAuth session not found or expired. Please restart the connection.');
         addNotification({
           type: 'error',
-          title: 'HubSpot Connection Failed',
+          title: 'PostHog Connection Failed',
           message: 'OAuth session expired. Please try connecting again.',
         });
         return;
@@ -75,7 +75,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
         setMessage('State mismatch detected. Connection cancelled for security.');
         addNotification({
           type: 'error',
-          title: 'HubSpot Connection Failed',
+          title: 'PostHog Connection Failed',
           message: 'OAuth state validation failed. Please try connecting again.',
         });
         clearOAuthSession(providerType);
@@ -87,7 +87,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
         setMessage('OAuth session expired. Please restart the connection.');
         addNotification({
           type: 'error',
-          title: 'HubSpot Connection Failed',
+          title: 'PostHog Connection Failed',
           message: 'OAuth session expired. Please try connecting again.',
         });
         clearOAuthSession(providerType);
@@ -104,14 +104,14 @@ export const HubSpotOAuthCallback: React.FC = () => {
           result.message ??
           (result.needsConfiguration
             ? 'Connection successful. Additional configuration required.'
-            : 'HubSpot connected successfully!');
+            : 'PostHog connected successfully!');
 
         setStatus('success');
         setMessage(successMessage);
 
         addNotification({
           type: 'success',
-          title: 'HubSpot Connected',
+          title: 'PostHog Connected',
           message: successMessage,
         });
 
@@ -129,13 +129,13 @@ export const HubSpotOAuthCallback: React.FC = () => {
         const problem = parseIntegrationProblem(error);
         const detail =
           problem.detail ??
-          'Failed to complete HubSpot connection. Please retry the integration process.';
+          'Failed to complete PostHog connection. Please retry the integration process.';
         setStatus('error');
         setMessage(detail);
 
         addNotification({
           type: 'error',
-          title: 'HubSpot Connection Failed',
+          title: 'PostHog Connection Failed',
           message: detail,
         });
       } finally {
@@ -194,7 +194,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
 
           <div className="mb-6">
             <h1 className="mb-2 text-2xl font-bold text-text-primary">
-              {status === 'processing' && 'Connecting HubSpot...'}
+              {status === 'processing' && 'Connecting PostHog...'}
               {status === 'success' && 'Connection Successful!'}
               {status === 'error' && 'Connection Failed'}
             </h1>
@@ -204,7 +204,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
           {status === 'success' && (
             <div className="space-y-4">
               <div className="rounded-lg border border-success/30 bg-success/10 p-4">
-                <p className="text-sm text-success">Redirecting you to the integrations dashboard…</p>
+                <p className="text-sm text-success">Redirecting you to the integrations dashboard.</p>
               </div>
             </div>
           )}
@@ -221,7 +221,7 @@ export const HubSpotOAuthCallback: React.FC = () => {
           )}
 
           {status === 'processing' && (
-            <div className="text-sm text-text-muted">Please wait while we complete the connection…</div>
+            <div className="text-sm text-text-muted">Please wait while we complete the connection.</div>
           )}
         </div>
       </div>

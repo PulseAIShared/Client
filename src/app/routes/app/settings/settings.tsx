@@ -1,9 +1,8 @@
 // src/app/routes/app/settings/settings.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
 import { 
-  IntegrationsSection,
   AccountSection,
   NotificationSettings,
   BillingSection,
@@ -11,26 +10,13 @@ import {
 } from '@/features/settings/components';
 import { useAuthorization } from '@/lib/authorization';
 
-type SettingsTab = 'integrations' | 'account' | 'notifications' | 'billing' | 'security';
+type SettingsTab = 'account' | 'notifications' | 'billing' | 'security';
 
 export const SettingsRoute = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTabParam = (searchParams.get('tab') as SettingsTab | null) || undefined;
-  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTabParam || 'integrations');
   const { checkCompanyPolicy } = useAuthorization();
 
   const allTabs = [
-    { 
-      id: 'integrations' as const, 
-      label: 'Integrations', 
-      description: 'Connect your favorite tools and platforms',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-        </svg>
-      ),
-      requiredPolicy: 'integrations:read' as const
-    },
     { 
       id: 'account' as const, 
       label: 'Account', 
@@ -80,9 +66,19 @@ export const SettingsRoute = () => {
   // Filter tabs based on user permissions
   const tabs = allTabs.filter(tab => checkCompanyPolicy(tab.requiredPolicy));
 
+  const initialTabParam = (searchParams.get('tab') as SettingsTab | null) || undefined;
+  const initialTab = useMemo(() => {
+    if (initialTabParam && tabs.some(tab => tab.id === initialTabParam)) {
+      return initialTabParam;
+    }
+    return tabs.length > 0 ? tabs[0].id : 'account';
+  }, [initialTabParam, tabs]);
+
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
+
   // Ensure activeTab is one the user can access
   // Keep active tab in sync with URL param (only when param changes via navigation)
-  React.useEffect(() => {
+  useEffect(() => {
     const param = (searchParams.get('tab') as SettingsTab | null) || undefined;
     if (param && tabs.some(t => t.id === param) && param !== activeTab) {
       setActiveTab(param);
@@ -90,7 +86,7 @@ export const SettingsRoute = () => {
   }, [searchParams, tabs]);
 
   // Ensure activeTab is permitted; fallback to first available
-  React.useEffect(() => {
+  useEffect(() => {
     if (tabs.length > 0 && !tabs.some(t => t.id === activeTab)) {
       setActiveTab(tabs[0].id);
     }
@@ -98,8 +94,6 @@ export const SettingsRoute = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'integrations':
-        return <IntegrationsSection />;
       case 'account':
         return <AccountSection />;
       case 'notifications':
@@ -109,7 +103,7 @@ export const SettingsRoute = () => {
       case 'security':
         return <SecuritySection />;
       default:
-        return <IntegrationsSection />;
+        return <AccountSection />;
     }
   };
 
@@ -129,7 +123,7 @@ export const SettingsRoute = () => {
                   Settings
                 </h1>
                 <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-2xl">
-                  Configure your PulseLTV workspace, integrations, and preferences
+                  Configure your PulseLTV workspace preferences, billing, and security controls.
                 </p>
               </div>
               

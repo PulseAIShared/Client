@@ -8,7 +8,6 @@ import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
 import { signalRConnection } from '@/lib/signalr';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useModal } from '@/app/modal-provider';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   useGetIntegrations,
   useStartConnection,
@@ -17,7 +16,6 @@ import {
   useDisconnectIntegration,
   useTestConnection,
   useConfigureIntegration,
-  useDeleteIntegrationPermanent,
   useGetAllConfigurationOptions,
   useGetConfigurationOptions,
   useGetSyncJobs,
@@ -610,7 +608,6 @@ type ManualSyncModalContainerProps = {
   onSyncStart: (integrationId: string) => void;
   onSyncSettled: () => void;
   onSyncSuccess: () => void;
-  onRequireConfiguration: (integrationId: string, metadata?: Record<string, unknown>) => void;
 };
 
 const ManualSyncModalContainer: React.FC<ManualSyncModalContainerProps> = ({
@@ -619,7 +616,6 @@ const ManualSyncModalContainer: React.FC<ManualSyncModalContainerProps> = ({
   onSyncStart,
   onSyncSettled,
   onSyncSuccess,
-  onRequireConfiguration,
 }) => {
   const { addNotification } = useNotifications();
   const [incrementalSync, setIncrementalSync] = useState(true);
@@ -663,11 +659,6 @@ const ManualSyncModalContainer: React.FC<ManualSyncModalContainerProps> = ({
         title: problem.code === 'Integration.SyncInProgress' ? 'Sync already in progress' : 'Manual sync failed',
         message: recommended ? `${baseDetail} ${recommended}` : baseDetail,
       });
-      if (problem.code === 'Integration.NotConfigured') {
-        onClose();
-        onRequireConfiguration(integration.id, metadata);
-        return;
-      }
     },
     onSettled: () => {
       onSyncSettled();
@@ -737,142 +728,6 @@ const ManualSyncModalContainer: React.FC<ManualSyncModalContainerProps> = ({
             isLoading={triggerSyncMutation.isPending}
           >
             Run Sync
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-type PermanentDeleteModalContainerProps = {
-  integration: IntegrationStatusResponse;
-  onClose: () => void;
-  onDeleted: () => void;
-};
-
-const PermanentDeleteModalContainer: React.FC<PermanentDeleteModalContainerProps> = ({
-  integration,
-  onClose,
-  onDeleted,
-}) => {
-  const { addNotification } = useNotifications();
-  const queryClient = useQueryClient();
-  const [confirmation, setConfirmation] = useState('');
-  const [localError, setLocalError] = useState<string | null>(null);
-  const normalizeText = useCallback((value: string) => value.replace(/\s+/g, ' ').trim().toLowerCase(), []);
-
-  const deleteMutation = useDeleteIntegrationPermanent({
-    onSuccess: () => {
-      addNotification({
-        type: 'success',
-        title: 'Integration permanently deleted',
-        message:
-          'The integration and its historical data were removed. Run the connect flow again if you need to ingest data in the future.',
-      });
-
-      void queryClient.invalidateQueries({ queryKey: ['integrations'] });
-      void queryClient.removeQueries({ queryKey: ['integrations', integration.id] });
-      void queryClient.removeQueries({ queryKey: ['integrations', integration.id, 'inspect'] });
-      void queryClient.invalidateQueries({ queryKey: ['integrations', 'sync-jobs'] });
-      void queryClient.invalidateQueries({ queryKey: ['integrations', 'stats'] });
-
-      onDeleted();
-      onClose();
-      setConfirmation('');
-    },
-    onError: (error) => {
-      const problem = parseIntegrationProblem(error);
-      logIntegrationProblem('Permanent integration delete failed', problem, { integrationId: integration.id });
-
-      const traceSuffix = problem.traceId ? ` (trace ID: ${problem.traceId})` : '';
-      const blockingMessage =
-        problem.detail ??
-        (problem.code === 'Integration.NotFound'
-          ? 'Integration not found. It may have already been removed.'
-          : 'Unable to permanently delete the integration. Please try again or contact support with the trace ID.');
-
-      setLocalError(`${blockingMessage}${traceSuffix}`);
-      addNotification({
-        type: 'error',
-        title: 'Unable to delete integration',
-        message: `${blockingMessage}${traceSuffix}`,
-      });
-    },
-  });
-
-  const handleSubmit = async () => {
-    setLocalError(null);
-    await deleteMutation.mutateAsync(integration.id);
-  };
-
-  const pending = deleteMutation.isPending;
-  const confirmationMatches =
-    confirmation.trim().length > 0 &&
-    normalizeText(confirmation) === normalizeText(integration.name);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg rounded-2xl border border-border-primary/40 bg-surface-primary/95 p-6 shadow-2xl">
-        <div className="mb-4 flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-error/15 text-error">
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.1 19h13.8c1.1 0 1.8-1.2 1.3-2.2L13.3 5.8a1.5 1.5 0 00-2.6 0L3.8 16.8c-.5 1 .2 2.2 1.3 2.2z" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-text-primary">Delete integration permanently</h2>
-            <p className="text-sm text-text-secondary">
-              This removes {integration.name} and all historical sync data. This action cannot be undone.
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="rounded-xl border border-border-primary/40 bg-surface-secondary/70 p-4 text-sm text-text-secondary">
-            <p>
-              All sync history, job state, and cached analytics will be removed immediately. To ingest data from{' '}
-              <span className="font-medium text-text-primary">{integration.name}</span> again, you must reconnect and run a fresh configuration.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text-secondary">
-              Type <span className="text-text-primary">{integration.name}</span> to confirm
-            </label>
-            <input
-              type="text"
-              value={confirmation}
-              onChange={(event) => setConfirmation(event.target.value)}
-              className="w-full rounded-lg border border-border-primary/50 bg-surface-secondary/80 px-3 py-2 text-text-primary focus:border-error focus:outline-none"
-              placeholder={integration.name}
-            />
-            {confirmation && !confirmationMatches ? (
-              <p className="text-xs text-error-muted">
-                Enter <span className="font-medium text-text-primary">{integration.name}</span> exactly to enable deletion.
-              </p>
-            ) : (
-              <p className="text-xs text-text-muted">Confirmation is case-insensitive.</p>
-            )}
-          </div>
-
-          {localError ? (
-            <div className="rounded-lg border border-error/40 bg-error/15 p-3 text-sm text-error-muted">
-              {localError}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={onClose} disabled={pending}>
-            Cancel
-          </Button>
-          <Button
-            className="bg-gradient-to-r from-error to-error-muted text-white hover:from-error hover:to-error-muted"
-            onClick={handleSubmit}
-            disabled={!confirmationMatches || pending}
-            isLoading={pending}
-          >
-            Permanently delete
           </Button>
         </div>
       </div>
@@ -1031,18 +886,6 @@ export const IntegrationsSection: React.FC = () => {
     onError: (error, integrationId) => {
       const problem = parseIntegrationProblem(error);
       logIntegrationProblem('Test integration connection failed', problem, { integrationId });
-      const metadata = problem.metadata as Record<string, unknown> | undefined;
-
-      if (problem.code === 'Integration.NotConfigured' && integrationId) {
-        addNotification({
-          type: 'warning',
-          title: 'Configuration required',
-          message: problem.detail ?? 'Complete the integration configuration before testing the connection.',
-        });
-        handleRequireConfiguration(integrationId, metadata);
-        return;
-      }
-
       addNotification({
         type: 'error',
         title: 'Connection test failed',
@@ -1134,8 +977,7 @@ export const IntegrationsSection: React.FC = () => {
       integration.status === IntegrationStatus.Error ||
       integration.status === IntegrationStatus.TokenExpired ||
       integration.needsTokenRefresh ||
-      integration.needsConfiguration ||
-      !integration.syncConfiguration
+      integration.needsConfiguration
   ).length;
   const syncingCount = integrations.filter((integration) => integration.status === IntegrationStatus.Syncing).length;
   const totalSyncedRecords = integrations.reduce(
@@ -1160,40 +1002,6 @@ export const IntegrationsSection: React.FC = () => {
     [openModal, closeModal, refetch, refetchJobs],
   );
 
-  const handleRequireConfiguration = useCallback(
-    (integrationId: string, metadata?: Record<string, unknown>) => {
-      const endpointValue =
-        metadata && typeof (metadata as Record<string, unknown>).configurationEndpoint === 'string'
-          ? String((metadata as Record<string, unknown>).configurationEndpoint)
-          : undefined;
-
-      if (endpointValue) {
-        if (/^https?:\/\//i.test(endpointValue)) {
-          window.location.assign(endpointValue);
-          return;
-        }
-
-        const normalizedEndpoint = endpointValue.startsWith('/')
-          ? endpointValue
-          : `/${endpointValue}`;
-        navigate(normalizedEndpoint, { replace: false });
-        return;
-      }
-
-      const targetIntegration = integrations.find((item) => item.id === integrationId);
-      if (targetIntegration) {
-        handleOpenConfig(targetIntegration);
-        return;
-      }
-
-      const params = new URLSearchParams();
-      params.set('integrationId', integrationId);
-      params.set('action', 'configure');
-      setSearchParams(params, { replace: false });
-    },
-    [integrations, navigate, handleOpenConfig, setSearchParams],
-  );
-
   const handleOpenManualSync = useCallback(
     (integration: IntegrationStatusResponse) => {
       openModal(
@@ -1206,25 +1014,6 @@ export const IntegrationsSection: React.FC = () => {
           onSyncSuccess={() => {
             refetch();
             refetchJobs();
-          }}
-          onRequireConfiguration={handleRequireConfiguration}
-        />,
-      );
-    },
-    [openModal, closeModal, refetch, refetchJobs],
-  );
-
-  const handleOpenPermanentDelete = useCallback(
-    (integration: IntegrationStatusResponse) => {
-      openModal(
-        <PermanentDeleteModalContainer
-          key={`delete-${integration.id}`}
-          integration={integration}
-          onClose={closeModal}
-          onDeleted={() => {
-            refetch();
-            refetchJobs();
-            navigate('/app/integrations', { replace: true });
           }}
         />,
       );
@@ -1245,6 +1034,36 @@ export const IntegrationsSection: React.FC = () => {
     [openModal, closeModal],
   );
 
+  const handleRequireConfiguration = useCallback(
+    (integrationId: string, metadata?: Record<string, unknown>) => {
+      const endpointValue =
+        metadata && typeof (metadata as Record<string, unknown>).configurationEndpoint === 'string'
+          ? String((metadata as Record<string, unknown>).configurationEndpoint)
+          : undefined;
+
+      if (endpointValue) {
+        if (/^https?:\/\//i.test(endpointValue)) {
+          window.location.assign(endpointValue);
+          return;
+        }
+
+        navigate(endpointValue, { replace: false });
+        return;
+      }
+
+      const targetIntegration = integrations.find((item) => item.id === integrationId);
+      if (targetIntegration) {
+        handleOpenConfig(targetIntegration);
+        return;
+      }
+
+      const params = new URLSearchParams();
+      params.set('integrationId', integrationId);
+      params.set('action', 'configure');
+      setSearchParams(params, { replace: false });
+    },
+    [integrations, navigate, handleOpenConfig, setSearchParams],
+  );
   const handleDisconnect = (integration: IntegrationStatusResponse) => {
     const confirmed = window.confirm(
       'Disconnecting will stop all scheduled syncs and remove stored credentials. Continue?'
@@ -1462,6 +1281,7 @@ export const IntegrationsSection: React.FC = () => {
               const meta = getProviderMetadata(integration.type);
               const accentGradient = meta.accentGradient ?? CATEGORY_GRADIENTS[meta.category] ?? CATEGORY_GRADIENTS.other;
               const primaryActionClass = `bg-gradient-to-r ${accentGradient} text-white shadow-md hover:shadow-xl`;
+              const configOptions = configurationOptionsMap?.[integration.type] as ConfigurationOptions | undefined;
               const showReconnect =
                 integration.status === IntegrationStatus.TokenExpired ||
                 integration.needsTokenRefresh ||
@@ -1470,8 +1290,6 @@ export const IntegrationsSection: React.FC = () => {
                 syncingIntegrationId === integration.id || integration.status === IntegrationStatus.Syncing;
               const connectedAt = integration.connectionDetails?.connectedAt;
               const syncConfig = integration.syncConfiguration;
-              const requiresConfiguration = integration.needsConfiguration || !syncConfig;
-              const configOptions = configurationOptionsMap?.[integration.type] as ConfigurationOptions | undefined;
 
               return (
                 <div
@@ -1490,9 +1308,9 @@ export const IntegrationsSection: React.FC = () => {
                           <div className="flex flex-wrap items-center gap-3">
                             <h3 className="text-lg font-semibold text-text-primary">{integration.name}</h3>
                             <StatusBadge status={integration.status} />
-                            {requiresConfiguration && (
+                            {integration.needsConfiguration && (
                               <span className="rounded-full bg-warning/15 px-2.5 py-1 text-xs font-medium text-warning">
-                                Configuration required
+                                Needs configuration
                               </span>
                             )}
                           </div>
@@ -1635,29 +1453,22 @@ export const IntegrationsSection: React.FC = () => {
                       <div className="flex flex-col gap-3 border-t border-border-primary/30 pt-4 md:flex-row md:items-center md:justify-between">
                         <p className="text-xs text-text-muted">
                           {integration.isConnected
-                            ? requiresConfiguration
-                              ? 'Complete the configuration to unlock manual syncs and connection tests.'
-                              : isSyncing
-                                ? 'Sync in progress - manual actions are temporarily disabled.'
-                                : 'Manual controls take effect immediately for this integration.'
+                            ? isSyncing
+                              ? 'Sync in progress - manual actions are temporarily disabled.'
+                              : 'Manual controls take effect immediately for this integration.'
                             : 'Start the OAuth flow to enable this integration.'}
                         </p>
                         <div className="flex flex-wrap items-center gap-3">
                           {integration.isConnected ? (
                             <>
                               <Button onClick={() => handleOpenConfig(integration)} className={primaryActionClass}>
-                                {requiresConfiguration ? 'Complete configuration' : 'Edit configuration'}
+                                Edit configuration
                               </Button>
                               <Button
                                 variant="outline"
                                 onClick={() => handleOpenManualSync(integration)}
                                 isLoading={syncingIntegrationId === integration.id}
-                                disabled={requiresConfiguration || isSyncing}
-                                title={
-                                  requiresConfiguration
-                                    ? 'Complete configuration before starting a manual sync.'
-                                    : undefined
-                                }
+                                disabled={isSyncing}
                               >
                                 {isSyncing ? 'Syncing...' : 'Manual sync'}
                               </Button>
@@ -1665,12 +1476,6 @@ export const IntegrationsSection: React.FC = () => {
                                 variant="outline"
                                 onClick={() => testConnectionMutation.mutate(integration.id)}
                                 isLoading={testingIntegrationId === integration.id}
-                                disabled={requiresConfiguration}
-                                title={
-                                  requiresConfiguration
-                                    ? 'Configure the integration before running a test.'
-                                    : undefined
-                                }
                               >
                                 Test connection
                               </Button>
@@ -1685,31 +1490,15 @@ export const IntegrationsSection: React.FC = () => {
                               >
                                 Disconnect
                               </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => handleOpenPermanentDelete(integration)}
-                                className="border border-error/50 text-error hover:bg-error/10"
-                              >
-                                Delete permanently
-                              </Button>
                             </>
                           ) : (
-                            <>
-                              <Button
-                                onClick={() => startConnectionMutation.mutate(integration.type)}
-                                isLoading={connectingType === integration.type && startConnectionMutation.isPending}
-                                className={primaryActionClass}
-                              >
-                                Connect
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => handleOpenPermanentDelete(integration)}
-                                className="border border-error/50 text-error hover:bg-error/10"
-                              >
-                                Delete permanently
-                              </Button>
-                            </>
+                            <Button
+                              onClick={() => startConnectionMutation.mutate(integration.type)}
+                              isLoading={connectingType === integration.type && startConnectionMutation.isPending}
+                              className={primaryActionClass}
+                            >
+                              Connect
+                            </Button>
                           )}
                           {showReconnect && (
                             <Button

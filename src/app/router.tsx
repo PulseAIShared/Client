@@ -171,6 +171,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'integrations',
+          lazy: async () => {
+            const { IntegrationsRoute } = await import('./routes/app/integrations/integrations');
+            return { Component: IntegrationsRoute };
+          },
+        },
+        {
           path: 'settings/integrations/:integrationId/configure',
           lazy: async () => {
             const { IntegrationConfigureRoute } = await import('./routes/app/settings/integration-configure');
@@ -241,19 +248,26 @@ export const createAppRouter = () =>
         },
       },
       {
-          path: 'oauth/hubspot/callback',
-          lazy: async () => {
-            const { HubSpotOAuthCallback } = await import('../features/settings/components/hubspot-oauth-callback');
-            return { Component: HubSpotOAuthCallback };
-          },
+        path: 'oauth/hubspot/callback',
+        lazy: async () => {
+          const { HubSpotOAuthCallback } = await import('../features/settings/components/hubspot-oauth-callback');
+          return { Component: HubSpotOAuthCallback };
         },
-        {
-          path: 'oauth/stripe/callback',
-          lazy: async () => {
-            const { StripeOAuthCallback } = await import('../features/settings/components/stripe-oauth-callback');
-            return { Component: StripeOAuthCallback };
-          },
+      },
+      {
+        path: 'oauth/stripe/callback',
+        lazy: async () => {
+          const { StripeOAuthCallback } = await import('../features/settings/components/stripe-oauth-callback');
+          return { Component: StripeOAuthCallback };
         },
+      },
+      {
+        path: 'oauth/posthog/callback',
+        lazy: async () => {
+          const { PostHogOAuthCallback } = await import('../features/settings/components/posthog-oauth-callback');
+          return { Component: PostHogOAuthCallback };
+        },
+      },
           ],
         },
         {
