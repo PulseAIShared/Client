@@ -5,7 +5,7 @@ import { BiSolidDashboard } from "react-icons/bi";
 import { IoMdSettings } from "react-icons/io";
 import { TbPlugConnected } from "react-icons/tb";
 import { GiProgression } from "react-icons/gi";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaUsers } from "react-icons/fa";
 import { useMediaQuery } from "@mantine/hooks";
 import { MdSegment, MdCampaign, MdPayments } from "react-icons/md";
 import { BsChatDots } from "react-icons/bs";
@@ -56,6 +56,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       name: 'Conversations',
       icon: BsChatDots,
       link: '/app/conversations'
+    },
+    {
+      name: 'Team',
+      icon: FaUsers,
+      link: '/app/team'
     },
     {
       name: 'Integrations',

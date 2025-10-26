@@ -51,6 +51,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'accept-invite',
+          lazy: async () => {
+            const { AcceptInviteRoute } = await import('./routes/accept-invite');
+            return { Component: AcceptInviteRoute };
+          },
+        },
+        {
           path: 'book-demo',
           lazy: async () => {
             const BookDemoPage = await import('./routes/book-demo');
@@ -175,6 +182,13 @@ export const createAppRouter = () =>
           lazy: async () => {
             const { IntegrationsRoute } = await import('./routes/app/integrations/integrations');
             return { Component: IntegrationsRoute };
+          },
+        },
+        {
+          path: 'team',
+          lazy: async () => {
+            const { TeamRoute } = await import('./routes/app/team/team');
+            return { Component: TeamRoute };
           },
         },
         {

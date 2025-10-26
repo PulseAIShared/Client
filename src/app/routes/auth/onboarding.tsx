@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser, useProcessOnboardingStep } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Form, Input, Select } from '@/components/ui/form';
 import { z } from 'zod';
 import '@/features/landing/components/css/hero-section.css'; // Import animations
+import { useQueryClient } from '@tanstack/react-query';
+import { useNotifications } from '@/components/ui/notifications';
+import { parseTeamProblem, teamQueryKeys, useAcceptTeamInvitation } from '@/features/team/api/team';
+import { TEAM_INVITATION_TOKEN_KEY } from '@/features/team/constants';
 
 // Step schemas
 const profileStepSchema = z.object({
@@ -77,6 +81,25 @@ type OnboardingStep = 1 | 2;
 export const OnboardingRoute = () => {
   const user = useUser();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { addNotification } = useNotifications();
+  const acceptInvitation = useAcceptTeamInvitation();
+  
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [hasAttemptedInviteAccept, setHasAttemptedInviteAccept] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      const token = window.sessionStorage.getItem(TEAM_INVITATION_TOKEN_KEY);
+      setInviteToken(token);
+    } catch (storageError) {
+      console.warn('Unable to read invitation token from storage', storageError);
+    }
+  }, []);
   
   // Server is the only source of truth for current step
   const serverStep = user.data?.onboardingCurrentStep || 1;
@@ -108,6 +131,130 @@ export const OnboardingRoute = () => {
   // For SSO users who skip profile setup, map currentStep to display step
   const displayStep = needsProfileSetup ? currentStep : (currentStep === 2 ? 1 : currentStep);
   const displayTotalSteps = totalSteps;
+  const hasInviteToken = Boolean(inviteToken);
+
+  const attemptInviteAccept = useCallback(
+    async (options?: { force?: boolean }) => {
+      if (!inviteToken) {
+        return;
+      }
+      if (acceptInvitation.isPending) {
+        return;
+      }
+      if (hasAttemptedInviteAccept && !options?.force) {
+        return;
+      }
+
+      setHasAttemptedInviteAccept(true);
+      setInviteError(null);
+
+      try {
+        const response = await acceptInvitation.mutateAsync({ token: inviteToken });
+
+        try {
+          window.sessionStorage.removeItem(TEAM_INVITATION_TOKEN_KEY);
+        } catch (storageError) {
+          console.warn('Unable to clear invitation token from storage', storageError);
+        }
+
+        setInviteToken(null);
+
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: teamQueryKeys.summary }),
+          queryClient.invalidateQueries({ queryKey: teamQueryKeys.members }),
+          queryClient.invalidateQueries({ queryKey: teamQueryKeys.invitations }),
+          queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }),
+        ]);
+
+        await user.refetch();
+
+        addNotification({
+          type: 'success',
+          title: response?.companyName ? `Welcome to ${response.companyName}` : 'Invitation accepted',
+          message: response?.companyName
+            ? `You now have access to ${response.companyName}.`
+            : 'Your team access is ready.',
+        });
+
+        navigate('/app', { replace: true });
+      } catch (error) {
+        const problem = parseTeamProblem(error);
+        let message = problem.detail ?? 'Unable to accept invitation.';
+
+        switch (problem.code) {
+          case 'Users.InvalidOrExpiredInvitation':
+            message = 'This invitation is invalid or has expired. Request a new link from your admin.';
+            break;
+          case 'Users.InvitationAlreadySent':
+          case 'Invitation.AcceptFailed':
+            message = 'This invitation link has already been used. Ask your team to send another invite.';
+            break;
+          case 'Users.CompanyUserLimitReached':
+            message = 'This team is at capacity. Contact the inviter to free a seat or upgrade the plan.';
+            break;
+          default:
+            break;
+        }
+
+        setInviteError(message);
+        addNotification({
+          type: 'error',
+          title: 'Invite could not be completed',
+          message: problem.traceId ? `${message} (trace ${problem.traceId})` : message,
+        });
+      }
+    },
+    [
+      inviteToken,
+      acceptInvitation,
+      hasAttemptedInviteAccept,
+      queryClient,
+      user,
+      addNotification,
+      navigate,
+    ],
+  );
+
+  useEffect(() => {
+    if (!inviteToken) {
+      return;
+    }
+    if (currentStep < 2) {
+      return;
+    }
+    void attemptInviteAccept();
+  }, [inviteToken, currentStep, attemptInviteAccept]);
+
+  const handleProfileSubmit = async (values: Record<string, any>) => {
+    setError(null);
+
+    try {
+      await processStepMutation.mutateAsync({
+        step: "1",
+        firstName: values.firstName,
+        lastName: values.lastName,
+        password: values.password,
+      });
+
+      if (hasInviteToken) {
+        await attemptInviteAccept();
+      }
+    } catch (submissionError) {
+      console.error('Profile update failed:', submissionError);
+      // onError handler on the mutation will surface the error
+    }
+  };
+
+  const handleDiscardInvite = () => {
+    try {
+      window.sessionStorage.removeItem(TEAM_INVITATION_TOKEN_KEY);
+    } catch (storageError) {
+      console.warn('Unable to clear invitation token from storage', storageError);
+    }
+    setInviteToken(null);
+    setInviteError(null);
+    setHasAttemptedInviteAccept(false);
+  };
 
   const handleCreateCompany = async (values: Record<string, any>) => {
     setError(null);
@@ -133,24 +280,40 @@ export const OnboardingRoute = () => {
     }
   };
 
-  const renderProgressBar = () => (
-    <div className="w-full max-w-md mx-auto mb-8">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-blue-900">
-          Step {displayStep} of {displayTotalSteps}
-        </span>
-        <span className="text-sm text-slate-600">
-          {Math.round((displayStep / displayTotalSteps) * 100)}% complete
-        </span>
+  const renderProgressBar = () => {
+    if (displayTotalSteps === 1) {
+      return null;
+    }
+
+    const steps = hasInviteToken
+      ? [
+          { label: 'Profile Setup', step: 1 },
+          { label: 'Join Your Team', step: 2 },
+        ]
+      : [
+          { label: 'Profile Setup', step: 1 },
+          { label: 'Company Details', step: 2 },
+        ];
+
+    return (
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-slate-600">
+            Step {displayStep} of {displayTotalSteps}
+          </span>
+          <span className="text-sm font-medium text-blue-900">
+            {steps[displayStep - 1]?.label ?? 'Setup'}
+          </span>
+        </div>
+        <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-sky-500 transition-all duration-500 ease-out"
+            style={{ width: `${(displayStep / displayTotalSteps) * 100}%` }}
+          />
+        </div>
       </div>
-      <div className="w-full bg-slate-200 rounded-full h-2">
-        <div 
-          className="bg-gradient-to-r from-sky-500 to-blue-900 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${(displayStep / displayTotalSteps) * 100}%` }}
-        />
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderProfileStep = () => (
     <div className="space-y-6">
@@ -165,15 +328,7 @@ export const OnboardingRoute = () => {
       
       <Form
         schema={profileStepSchema}
-        onSubmit={(values) => {
-          setError(null);
-          processStepMutation.mutate({
-            step: "1", // Profile step
-            firstName: values.firstName,
-            lastName: values.lastName,
-            password: values.password,
-          });
-        }}
+        onSubmit={handleProfileSubmit}
       >
         {({ register, formState }) => (
           <div className="space-y-4 [&_label]:!text-blue-900 [&_label]:!font-medium">
@@ -201,9 +356,9 @@ export const OnboardingRoute = () => {
             <Button 
               type="submit" 
               isLoading={processStepMutation.isPending}
-              className="w-full"
+              className="w-full bg-sky-500 hover:bg-sky-600 text-white"
             >
-              {processStepMutation.isPending ? 'Updating Profile...' : 'Continue'}
+              {processStepMutation.isPending ? 'Saving...' : 'Continue'}
             </Button>
           </div>
         )}
@@ -211,74 +366,128 @@ export const OnboardingRoute = () => {
     </div>
   );
 
-  const renderCompanyStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-blue-900 mb-2">
-          Tell Us About Your Company
-        </h2>
-        <p className="text-slate-600">
-          Help us customize your experience
-        </p>
-      </div>
-      
-      <Form
-        schema={companyStepSchema}
-        onSubmit={handleCreateCompany}
-      >
-        {({ register, formState }) => (
-          <div className="space-y-4 [&_label]:!text-blue-900 [&_label]:!font-medium">
-            <Input
-              label="Company Name"
-              registration={register('companyName')}
-              error={formState.errors.companyName as any}
-              className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
-            />
-            <Input
-              label="Company Domain"
-              registration={register('companyDomain')}
-              error={formState.errors.companyDomain as any}
-              placeholder="yourcompany.com"
-              className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select
-                label="Industry"
-                options={INDUSTRY_OPTIONS}
-                registration={register('industry')}
-                error={formState.errors.industry as any}
-                defaultValue=""
-                className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
-              />
-              <Select
-                label="Company Size"
-                options={COMPANY_SIZE_OPTIONS}
-                registration={register('companySize')}
-                error={formState.errors.companySize as any}
-                defaultValue=""
-                className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
-              />
+  const renderCompanyStep = () => {
+    if (hasInviteToken) {
+      const isProcessingInvite = acceptInvitation.isPending;
+
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-blue-900 mb-2">
+              Join Your Team
+            </h2>
+            <p className="text-slate-600">
+              {inviteError
+                ? 'We couldn’t complete your invite. Review the message below or try again.'
+                : isProcessingInvite
+                ? 'We’re finalising your access. This should only take a moment.'
+                : 'We’re ready to drop you into the workspace you were invited to.'}
+            </p>
+          </div>
+
+          {inviteError ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {inviteError}
             </div>
-            <Select
-              label="Country"
-              options={COUNTRY_OPTIONS}
-              registration={register('country')}
-              error={formState.errors.country as any}
-              defaultValue=""
-              className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
-            />
-            <Button 
-              type="submit" 
-              isLoading={processStepMutation.isPending}
-              className="w-full bg-sky-500 hover:bg-sky-600 text-white"
+          ) : (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              {isProcessingInvite
+                ? 'Validating your invitation token and updating your workspace access…'
+                : 'Click below to finish connecting this account to your team.'}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button
+              onClick={() => void attemptInviteAccept({ force: true })}
+              disabled={isProcessingInvite}
+              isLoading={isProcessingInvite}
+              className="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white"
             >
-              {processStepMutation.isPending ? 'Creating Company & Completing Setup...' : 'Complete Setup'}
+              {isProcessingInvite ? 'Joining team…' : inviteError ? 'Try again' : 'Finish joining'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleDiscardInvite}
+              disabled={isProcessingInvite}
+            >
+              Start a new workspace instead
             </Button>
           </div>
-        )}
-      </Form>
-    </div>
-  );
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-blue-900 mb-2">
+            Tell Us About Your Company
+          </h2>
+          <p className="text-slate-600">
+            Help us customize your experience
+          </p>
+        </div>
+        
+        <Form
+          schema={companyStepSchema}
+          onSubmit={handleCreateCompany}
+        >
+          {({ register, formState }) => (
+            <div className="space-y-4 [&_label]:!text-blue-900 [&_label]:!font-medium">
+              <Input
+                label="Company Name"
+                registration={register('companyName')}
+                error={formState.errors.companyName as any}
+                className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
+              />
+              <Input
+                label="Company Domain"
+                registration={register('companyDomain')}
+                error={formState.errors.companyDomain as any}
+                placeholder="yourcompany.com"
+                className="bg-white border-slate-300 text-blue-900 placeholder-slate-500 focus:border-sky-500"
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Select
+                  label="Industry"
+                  options={INDUSTRY_OPTIONS}
+                  registration={register('industry')}
+                  error={formState.errors.industry as any}
+                  defaultValue=""
+                  className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
+                />
+                <Select
+                  label="Company Size"
+                  options={COMPANY_SIZE_OPTIONS}
+                  registration={register('companySize')}
+                  error={formState.errors.companySize as any}
+                  defaultValue=""
+                  className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
+                />
+              </div>
+              <Select
+                label="Country"
+                options={COUNTRY_OPTIONS}
+                registration={register('country')}
+                error={formState.errors.country as any}
+                defaultValue=""
+                className="bg-white border-slate-300 text-blue-900 focus:border-sky-500"
+              />
+              <Button 
+                type="submit" 
+                isLoading={processStepMutation.isPending}
+                className="w-full bg-sky-500 hover:bg-sky-600 text-white"
+              >
+                {processStepMutation.isPending ? 'Creating Company & Completing Setup...' : 'Complete Setup'}
+              </Button>
+            </div>
+          )}
+        </Form>
+      </div>
+    );
+  };
 
   const renderStepContent = () => {
     // Server determines what step to show based on user's onboarding progress

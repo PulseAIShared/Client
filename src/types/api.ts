@@ -1675,6 +1675,55 @@ export interface AIRecommendation {
   count: number;
 }
 
+// Team management
+export interface TeamSummaryResponse {
+  companyId: string;
+  companyName: string;
+  planName?: string;
+  maxSeats: number;
+  memberCount: number;
+  pendingInvitations: number;
+  trialEndsAt?: string | null;
+  createdAt?: string;
+}
+
+export interface TeamMemberResponse {
+  userId: string;
+  name: string;
+  email: string;
+  role: CompanyRole;
+  joinedAt: string;
+  invitedBy?: string | null;
+}
+
+export interface TeamInvitationResponse {
+  invitationId: string;
+  email: string;
+  role: CompanyRole;
+  invitedAt: string;
+  invitedBy?: string | null;
+  expiresAt?: string | null;
+  isAccepted: boolean;
+  acceptedAt?: string | null;
+}
+
+export interface SendTeamInvitationRequest {
+  email: string;
+  role: CompanyRole;
+}
+
+export interface AcceptTeamInvitationRequest {
+  token: string;
+}
+
+export interface AcceptTeamInvitationResponse {
+  joinedViaInvitation: boolean;
+  companyId: string;
+  companyName?: string | null;
+  inviterName?: string | null;
+  inviterEmail?: string | null;
+}
+
 // Helper functions for role system
 export const formatPlatformRole = (role: PlatformRole): string => {
   switch (role) {

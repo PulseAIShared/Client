@@ -8,6 +8,7 @@ import { useSendVerificationCode, useVerifyCode, useUser } from '@/lib/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { setToken } from '@/lib/api-client';
 import { WaitlistSignupModal } from '@/features/waitlist/components/waitlist-signup-modal';
+import { TEAM_INVITATION_TOKEN_KEY } from '@/features/team/constants';
 
 type AuthStep = 'email' | 'code';
 
@@ -23,6 +24,7 @@ export const RegisterRoute = () => {
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const user = useUser();
   const queryClient = useQueryClient();
+
   // Auth hooks
   const sendCodeMutation = useSendVerificationCode({
     onSuccess: () => {
@@ -37,9 +39,8 @@ export const RegisterRoute = () => {
   const verifyCodeMutation = useVerifyCode({
     onSuccess: async (data) => {
       console.log('Registration successful:', data);
-      // Refetch user data to get fresh onboarding status
+      setError(null);
       await user.refetch();
-      // Navigate to /app - ProtectedRoute will handle onboarding redirect
       navigate('/app');
     },
     onError: (error) => {
@@ -66,6 +67,17 @@ export const RegisterRoute = () => {
         inviterName: inviterName || undefined,
         hasInvitation: true,
       });
+      try {
+        window.sessionStorage.setItem(TEAM_INVITATION_TOKEN_KEY, invitationToken);
+      } catch (error) {
+        console.warn('Unable to persist invitation token', error);
+      }
+    } else {
+      try {
+        window.sessionStorage.removeItem(TEAM_INVITATION_TOKEN_KEY);
+      } catch (error) {
+        // ignore storage cleanup issues
+      }
     }
   }, [searchParams]);
 
