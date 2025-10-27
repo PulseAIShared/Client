@@ -7,9 +7,10 @@ import {
 } from '@mantine/core';
 
 import { Link, useLocation } from 'react-router-dom';
+import { IconType } from 'react-icons';
 
 interface LinksGroupProps {
-  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  icon: IconType;
   name: string;
   initiallyOpened?: boolean;
   link: string;
@@ -32,7 +33,7 @@ export function LinksGroup({
       to={link}
       onClick={onClick}
       className={`
-        group relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-primary/20
+        group relative flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-primary/20
         ${isActive 
           ? 'bg-gradient-to-r from-accent-primary/15 to-accent-secondary/15 text-text-primary shadow-sm' 
           : 'text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50'
@@ -48,7 +49,7 @@ export function LinksGroup({
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <ThemeIcon 
             variant="light" 
-            size={36}
+            size={32}
             className={`
               transition-all duration-200 group-hover:scale-110
               ${isActive 
@@ -58,7 +59,7 @@ export function LinksGroup({
             `}
           >
             <Icon 
-              style={{ width: rem(18), height: rem(18) }} 
+              style={{ width: rem(16), height: rem(16) }} 
               className={`transition-colors duration-200 ${
                 isActive 
                   ? 'text-accent-primary' 
@@ -66,7 +67,7 @@ export function LinksGroup({
               }`}
             />
           </ThemeIcon>
-          <Box ml="md" className="font-medium transition-colors duration-200">
+          <Box ml="sm" className="text-sm font-medium transition-colors duration-200">
             {name}
           </Box>
         </Box>

@@ -1,5 +1,5 @@
 // src/components/layouts/dashboard-layout.tsx
-import { Sidebar, SideNavigationItem } from "../ui/nav";
+import { Sidebar, SideNavigationSection } from "../ui/nav";
 import { TopNav } from "../ui/nav/top-navigation";
 import { BiSolidDashboard } from "react-icons/bi";
 import { IoMdSettings } from "react-icons/io";
@@ -20,58 +20,82 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { theme } = useTheme();
 
-  const navigation: SideNavigationItem[] = [
+  const navigationSections: SideNavigationSection[] = [
     {
-      name: 'Dashboard',
-      icon: BiSolidDashboard,
-      link: '/app'
-    },
-
-    {
-      name: 'Customers',
-      icon: FaUser,
-      link: '/app/customers'
-    },
-    {
-      name: 'Segments',
-      icon: MdSegment,
-      link: '/app/segments'
+      title: 'Overview',
+      items: [
+        {
+          name: 'Dashboard',
+          icon: BiSolidDashboard,
+          link: '/app',
+        },
+      ],
     },
     {
-      name: 'Campaigns',
-      icon: MdCampaign,
-      link: '/app/campaigns'
+      title: 'Customer Intelligence',
+      items: [
+        {
+          name: 'Customers',
+          icon: FaUser,
+          link: '/app/customers',
+        },
+        {
+          name: 'Segments',
+          icon: MdSegment,
+          link: '/app/segments',
+        },
+        {
+          name: 'Insights',
+          icon: GiProgression,
+          link: '/app/insights',
+        },
+      ],
     },
     {
-      name: 'Recovery',
-      icon: MdPayments,
-      link: '/app/recovery'
+      title: 'Lifecycle Automation',
+      items: [
+        {
+          name: 'Campaigns',
+          icon: MdCampaign,
+          link: '/app/campaigns',
+        },
+        {
+          name: 'Recovery',
+          icon: MdPayments,
+          link: '/app/recovery',
+        },
+      ],
     },
     {
-      name: 'Insights',
-      icon: GiProgression,
-      link: '/app/insights'
+      title: 'AI Assistant',
+      items: [
+        {
+          name: 'Conversations',
+          icon: BsChatDots,
+          link: '/app/conversations',
+        },
+      ],
     },
     {
-      name: 'Conversations',
-      icon: BsChatDots,
-      link: '/app/conversations'
+      title: 'Operations',
+      items: [
+        {
+          name: 'Team',
+          icon: FaUsers,
+          link: '/app/team',
+        },
+        {
+          name: 'Integrations',
+          icon: TbPlugConnected,
+          link: '/app/integrations',
+        },
+        {
+          name: 'Settings',
+          icon: IoMdSettings,
+          link: '/app/settings',
+        },
+      ],
     },
-    {
-      name: 'Team',
-      icon: FaUsers,
-      link: '/app/team'
-    },
-    {
-      name: 'Integrations',
-      icon: TbPlugConnected,
-      link: '/app/integrations'
-    },
-    {
-      name: 'Settings',
-      icon: IoMdSettings,
-      link: '/app/settings'
-    }
   ];
 
   return (
@@ -80,9 +104,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <TopNav />
       <div className="flex flex-grow min-h-0">
-        <Sidebar navigation={navigation} />
+        <Sidebar sections={navigationSections} />
         <div className="flex-1 overflow-x-hidden">
-          <main className={`mt-16 md:mt-20 ${isMobile ? 'px-4 py-6' : 'pl-[300px] pr-8 py-8'} min-h-screen`}>
+          <main className={`mt-16 md:mt-20 ${isMobile ? 'px-4 py-6' : 'pl-[264px] pr-8 py-8'} min-h-screen`}>
             <div className="max-w-7xl mx-auto">
               {children}
             </div>

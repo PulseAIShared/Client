@@ -5,50 +5,20 @@ import { useNotifications } from '@/components/ui/notifications';
 import { useUploadImport } from '@/features/customers/api/import';
 import { useAuthorization } from '@/lib/authorization';
 import pulseTemplateUrl from '@/assets/pulse-template.csv?url';
+
 interface CustomerImportModalProps {
   onClose: () => void;
   onImportStarted: () => void;
 }
-
-type ImportMode = 'pulse-template' | 'hubspot' | 'salesforce' | 'pipedrive' | 'csv-mapping';
-
-// Define CRM field mappings
-const CRM_TEMPLATES = {
-  'pulse-template': {
-    name: 'PulseLTV Template',
-    description: 'Our standard customer import format',
-    requiredFields: ['name', 'email', 'plan', 'monthlyRevenue', 'subscriptionStartDate', 'lastActivity'],
-  },
-  'hubspot': {
-    name: 'HubSpot Contacts Export',
-    description: 'Standard HubSpot contacts CSV export format',
-    requiredFields: ['Full Name', 'Email'],
-  },
-  'salesforce': {
-    name: 'Salesforce Contacts Export', 
-    description: 'Standard Salesforce contacts report format',
-    requiredFields: ['Name', 'Email'],
-  },
-  'pipedrive': {
-    name: 'Pipedrive Persons Export',
-    description: 'Standard Pipedrive persons export format',
-    requiredFields: ['Name', 'Email'],
-  },
-  'csv-mapping': {
-    name: 'CSV Mapping',
-    description: 'Custom CSV mapping format',
-    requiredFields: ['name', 'email'],
-  }
-};
 
 export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({ 
   onClose, 
   onImportStarted 
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [importMode, setImportMode] = useState<ImportMode>('pulse-template');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importJobId, setImportJobId] = useState<string | null>(null);
+  const [skipDuplicates, setSkipDuplicates] = useState(false);
   
   const { addNotification } = useNotifications();
   const uploadImport = useUploadImport();
@@ -88,10 +58,10 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     }
 
     setCsvFile(file);
-    setCurrentStep(3); // Skip preview for now, go straight to upload
+    setCurrentStep(2);
   };
 
-  const handleUpload = async (skipDuplicates = false) => {
+  const handleUpload = async () => {
     if (!csvFile) {
       addNotification({
         type: 'error',
@@ -104,7 +74,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     try {
       const formData = new FormData();
       formData.append('file', csvFile);
-      formData.append('importMode', importMode);
+      formData.append('importMode', 'pulse-template');
       formData.append('skipDuplicates', skipDuplicates.toString());
 
       const response = await uploadImport.mutateAsync(formData);
@@ -112,7 +82,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
       if (response.importJobId) {
         setImportJobId(response.importJobId);
         onImportStarted();
-        setCurrentStep(4);
+        setCurrentStep(3);
       } else {
         addNotification({
           type: 'error',
@@ -130,77 +100,18 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     }
   };
 
-  const downloadTemplate = (mode: ImportMode) => {
-    if (mode === 'pulse-template') {
-      const link = document.createElement('a');
-      link.href = pulseTemplateUrl;
-      link.download = 'pulse-customer-template.csv';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      // For other templates, you might want to generate them dynamically
-      addNotification({
-        type: 'info',
-        title: 'Template download',
-        message: `Downloading ${CRM_TEMPLATES[mode].name} template...`
-      });
-    }
+  const downloadTemplate = () => {
+    const link = document.createElement('a');
+    link.href = pulseTemplateUrl;
+    link.download = 'pulse-customer-template.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent-primary/20 to-accent-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-text-primary mb-2">Import Customers</h2>
-              <p className="text-text-muted">Choose your import method and get started</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {Object.entries(CRM_TEMPLATES).map(([key, template]) => (
-                <div
-                  key={key}
-                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                    importMode === key
-                      ? 'border-accent-primary bg-accent-primary/10'
-                      : 'border-border-primary/30 bg-surface-secondary/30 hover:border-accent-primary/50'
-                  }`}
-                  onClick={() => setImportMode(key as ImportMode)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-text-primary">{template.name}</h3>
-                    {importMode === key && (
-                      <div className="w-5 h-5 bg-accent-primary rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-sm text-text-muted mb-3">{template.description}</p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadTemplate(key as ImportMode);
-                    }}
-                    className="text-xs text-accent-primary hover:text-accent-secondary transition-colors"
-                  >
-                    Download template →
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 2:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -210,7 +121,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-2">Upload CSV File</h2>
-              <p className="text-text-muted">Select your CSV file to import</p>
+              <p className="text-text-muted">Select your customer export using the Pulse template</p>
             </div>
 
             <div className="border-2 border-dashed border-border-primary/50 rounded-2xl p-8 text-center hover:border-accent-primary/50 transition-colors">
@@ -236,11 +147,23 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                   Browse files
                 </div>
               </label>
+              <div className="mt-6 flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={downloadTemplate}
+                  className="text-sm text-accent-primary hover:text-accent-secondary transition-colors"
+                >
+                  Download customer CSV template
+                </button>
+                <p className="text-xs text-text-muted">
+                  One template covers every import. Grab it here if you need a fresh copy.
+                </p>
+              </div>
             </div>
           </div>
         );
 
-      case 3:
+      case 2:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -262,8 +185,8 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-text-primary">{csvFile.name}</h3>
-                    <p className="text-sm text-text-muted">{(csvFile.size / 1024).toFixed(1)} KB</p>
+                    <h3 className="font-semibold text-text-primary">${csvFile.name}</h3>
+                    <p className="text-sm text-text-muted">${(csvFile.size / 1024).toFixed(1)} KB</p>
                   </div>
                 </div>
               </div>
@@ -275,6 +198,8 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                   type="checkbox"
                   id="skip-duplicates"
                   className="rounded border-border-primary bg-surface-secondary focus:ring-accent-primary"
+                  checked={skipDuplicates}
+                  onChange={(event) => setSkipDuplicates(event.target.checked)}
                 />
                 <label htmlFor="skip-duplicates" className="text-sm text-text-primary">
                   Skip duplicate customers (based on email)
@@ -284,7 +209,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="text-center space-y-6">
             <div className="w-16 h-16 bg-gradient-to-br from-success/20 to-success-muted/20 rounded-full flex items-center justify-center mx-auto">
@@ -306,7 +231,6 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
         return null;
     }
   };
-
   return (
     <div className="fixed inset-0 bg-bg-primary/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-surface-primary/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -331,7 +255,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
         {/* Enhanced Footer */}
         <div className="flex items-center justify-between p-6 border-t border-border-primary/30">
           <div className="flex gap-2">
-            {currentStep > 1 && currentStep < 4 && (
+            {currentStep > 1 && currentStep < 3 && (
               <button
                 onClick={() => setCurrentStep(currentStep - 1)}
                 className="px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 rounded-lg transition-colors"
@@ -342,7 +266,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
           </div>
           
           <div className="flex gap-3">
-            {currentStep < 4 && (
+            {currentStep < 3 && (
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary/50 rounded-lg transition-colors"
@@ -351,27 +275,9 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
               </button>
             )}
             
-            {currentStep === 1 && (
+            {currentStep === 2 && (
               <button
-                onClick={() => setCurrentStep(2)}
-                className="px-6 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium"
-              >
-                Continue
-              </button>
-            )}
-            
-            {currentStep === 2 && csvFile && (
-              <button
-                onClick={() => setCurrentStep(3)}
-                className="px-6 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium"
-              >
-                Continue
-              </button>
-            )}
-            
-            {currentStep === 3 && (
-              <button
-                onClick={() => handleUpload(false)}
+                onClick={handleUpload}
                 disabled={uploadImport.isPending}
                 className="px-6 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -379,7 +285,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
               </button>
             )}
             
-            {currentStep === 4 && (
+            {currentStep === 3 && (
               <button
                 onClick={onClose}
                 className="px-6 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-medium"

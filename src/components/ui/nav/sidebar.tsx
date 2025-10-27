@@ -4,7 +4,6 @@ import {
   Code,
   Drawer,
   ScrollArea,
-  useMantineTheme,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useState, useEffect } from 'react';
@@ -23,9 +22,13 @@ export type SideNavigationItem = {
   link: string;
 };
 
+export type SideNavigationSection = {
+  title?: string;
+  items: SideNavigationItem[];
+};
 
 type SidebarProps = {
-  navigation: SideNavigationItem[];
+  sections: SideNavigationSection[];
 };
 
 const Logo = () => {
@@ -39,11 +42,11 @@ const Logo = () => {
   );
 };
 
-export const Sidebar = ({ navigation }: SidebarProps) => {
+export const Sidebar = ({ sections }: SidebarProps) => {
 
   const [drawerOpened, setDrawerOpened] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   
   // Close drawer when screen size changes from mobile to desktop
   useEffect(() => {
@@ -64,38 +67,40 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
   const adminSection = (
     <PlatformAuthorization allowedPlatformRoles={[PlatformRole.Admin, PlatformRole.Moderator]}>
-      <div className="mt-6 pt-6 border-t border-border-primary/30">
-        <div className="px-4 mb-3">
-          <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Admin</h3>
+      <div className="mt-4 pt-5 border-t border-border-primary/30 space-y-2">
+        <div className="px-2">
+          <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em]">Admin</h3>
         </div>
-        <LinksGroup
-          name="Users"
-          icon={FaUsersCog}
-          link="/app/admin/users"
-          onClick={handleLinkClick}
-          key="admin-users"
-        />
-        <LinksGroup
-          name="Support Dashboard"
-          icon={FaHeadset}
-          link="/app/admin/support"
-          onClick={handleLinkClick}
-          key="admin-support"
-        />
-        <LinksGroup
-          name="Waiting List"
-          icon={FaListUl}
-          link="/app/admin/waiting-list"
-          onClick={handleLinkClick}
-          key="admin-waiting-list"
-        />
-        <LinksGroup
-          name="Connection Diagnostics"
-          icon={FaNetworkWired}
-          link="/app/admin/connection-diagnostics"
-          onClick={handleLinkClick}
-          key="admin-connection-diagnostics"
-        />
+        <div className="space-y-1.5">
+          <LinksGroup
+            name="Users"
+            icon={FaUsersCog}
+            link="/app/admin/users"
+            onClick={handleLinkClick}
+            key="admin-users"
+          />
+          <LinksGroup
+            name="Support Dashboard"
+            icon={FaHeadset}
+            link="/app/admin/support"
+            onClick={handleLinkClick}
+            key="admin-support"
+          />
+          <LinksGroup
+            name="Waiting List"
+            icon={FaListUl}
+            link="/app/admin/waiting-list"
+            onClick={handleLinkClick}
+            key="admin-waiting-list"
+          />
+          <LinksGroup
+            name="Connection Diagnostics"
+            icon={FaNetworkWired}
+            link="/app/admin/connection-diagnostics"
+            onClick={handleLinkClick}
+            key="admin-connection-diagnostics"
+          />
+        </div>
       </div>
     </PlatformAuthorization>
   );
@@ -104,15 +109,28 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
     <div className="h-full bg-surface-primary/95 backdrop-blur-xl border-r border-border-primary/30 flex flex-col shadow-lg">
       {/* Navigation - Scrollable area */}
       <ScrollArea className="flex-1" style={{ height: 'calc(100vh - 180px)' }}>
-        <div className="space-y-2 px-3 py-6">
-          {navigation.map((item) => (
-            <LinksGroup
-              key={item.name}
-              name={item.name}
-              icon={item.icon}
-              link={item.link}
-              onClick={handleLinkClick}
-            />
+        <div className="space-y-6 px-3 py-6">
+          {sections.map((section) => (
+            <div key={section.title ?? section.items.map((item) => item.name).join('-')} className="space-y-2">
+              {section.title && (
+                <div className="px-2">
+                  <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em]">
+                    {section.title}
+                  </h3>
+                </div>
+              )}
+              <div className="space-y-1.5">
+                {section.items.map((item) => (
+                  <LinksGroup
+                    key={item.name}
+                    name={item.name}
+                    icon={item.icon}
+                    link={item.link}
+                    onClick={handleLinkClick}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
           {adminSection}
         </div>
@@ -147,7 +165,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
 
       {/* Enhanced Sidebar for Desktop */}
       {!isMobile && (
-        <nav className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-[300px] z-10">
+        <nav className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-[264px] z-10">
           {sidebarContent}
         </nav>
       )}
@@ -158,7 +176,7 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
         onClose={toggleDrawer}
         title={<Logo />}
         padding="md"
-        size="280px"
+        size="260px"
         zIndex={1000}
         withCloseButton
         styles={{
@@ -182,15 +200,28 @@ export const Sidebar = ({ navigation }: SidebarProps) => {
         }}
       >
         <ScrollArea style={{ height: 'calc(100vh - 120px)' }}>
-          <div className="space-y-2 py-4">
-            {navigation.map((item) => (
-              <LinksGroup
-                key={item.name}
-                name={item.name}
-                icon={item.icon}
-                link={item.link}
-                onClick={handleLinkClick}
-              />
+          <div className="space-y-6 py-4">
+            {sections.map((section) => (
+              <div key={section.title ?? section.items.map((item) => item.name).join('-')} className="space-y-2 px-1.5">
+                {section.title && (
+                  <div className="px-1.5">
+                    <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em]">
+                      {section.title}
+                    </h3>
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  {section.items.map((item) => (
+                    <LinksGroup
+                      key={item.name}
+                      name={item.name}
+                      icon={item.icon}
+                      link={item.link}
+                      onClick={handleLinkClick}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
             {adminSection}
           </div>
