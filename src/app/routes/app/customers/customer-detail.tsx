@@ -2,26 +2,14 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
+import { CustomerProfileProvider } from '@/features/customers/components/details/customer-profile-context';
 import { CustomerDetailView } from '@/features/customers/components/details/customer-detail-view';
-import { useGetCustomerById } from '@/features/customers/api/customers';
-import { Spinner } from '@/components/ui/spinner';
 
 export const CustomerDetailRoute = () => {
   const { customerId } = useParams<{ customerId: string }>();
   const navigate = useNavigate();
-  const { data: customer, isLoading, error } = useGetCustomerById(customerId!);
 
-  if (isLoading) {
-    return (
-      <ContentLayout>
-        <div className="flex items-center justify-center py-12">
-          <Spinner size="xl" />
-        </div>
-      </ContentLayout>
-    );
-  }
-
-  if (error || !customer) {
+  if (!customerId) {
     return (
       <ContentLayout>
         <div className="space-y-6">
@@ -53,7 +41,9 @@ export const CustomerDetailRoute = () => {
 
   return (
     <ContentLayout>
-      <CustomerDetailView customer={customer} />
+      <CustomerProfileProvider customerId={customerId}>
+        <CustomerDetailView />
+      </CustomerProfileProvider>
     </ContentLayout>
   );
 };
