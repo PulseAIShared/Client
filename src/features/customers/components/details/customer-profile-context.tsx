@@ -196,20 +196,6 @@ interface CustomerProfileProviderProps {
 
 const CustomerProfileContext = createContext<CustomerProfileContextValue | undefined>(undefined);
 
-const getWeekKey = (input: string): string => {
-  const parsed = new Date(input);
-  if (Number.isNaN(parsed.getTime())) {
-    return 'unknown';
-  }
-
-  const firstDay = new Date(parsed.getFullYear(), 0, 1);
-  const diff = parsed.getTime() - firstDay.getTime();
-  const startDay = firstDay.getDay() === 0 ? 7 : firstDay.getDay();
-  const week = Math.ceil((diff / 86_400_000 + startDay) / 7);
-
-  return `${parsed.getFullYear()}-W${week.toString().padStart(2, '0')}`;
-};
-
 const collectActivities = (customer?: CustomerDetailData | null): ActivityEntry[] => {
   if (!customer) {
     return [];
@@ -220,10 +206,10 @@ const collectActivities = (customer?: CustomerDetailData | null): ActivityEntry[
   }
 
   return (customer.recentActivities ?? []).map((item) => ({
-    timestamp: item.timestamp ?? item.activityDate ?? '',
+    timestamp: item.timestamp ?? '',
     type: item.type,
     description: item.description,
-    displayTime: item.displayTime ?? item.activityDate ?? null,
+    displayTime: item.displayTime ?? null,
   }));
 };
 
@@ -272,29 +258,17 @@ const buildHeader = (customer?: CustomerDetailData | null): CustomerHeaderProps 
     };
   }
 
-  const customerName = customer.display?.fullName?.trim() || `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() || customer.email;
+  const customerName = customer.display?.fullName?.trim() || ${customer.firstName ?? ''} .trim() || customer.email;
   const segments = new Set<string>();
   if (customer.display?.planName) segments.add(customer.display.planName);
   if (customer.subscriptionStatusDisplay) segments.add(customer.subscriptionStatusDisplay);
   (customer.dataSources?.categories ?? []).forEach((category) => segments.add(category));
-  if (customer.primaryMarketingSource) segments.add(`Marketing: ${customer.primaryMarketingSource}`);
-  if (customer.primarySupportSource) segments.add(`Support: ${customer.primarySupportSource}`);
+  if (customer.primaryMarketingSource) segments.add(Marketing: );
+  if (customer.primarySupportSource) segments.add(Support: );
 
   const baselineScore = customer.churnOverview?.storedPrediction?.riskScore ?? customer.churnRiskScore ?? null;
-  const aiScore = customer.churnOverview?.currentPrediction?.aiRiskScore ?? customer.churnOverview?.currentPrediction?.riskScore ?? baselineScore;
-  let aiRiskLevel = customer.churnOverview?.currentPrediction?.aiRiskLevel ?? customer.churnOverview?.currentRiskLevel;
-  if (!aiRiskLevel) {
-    if (aiScore == null) {
-      aiRiskLevel = 'Unknown';
-    } else if (aiScore >= 75) {
-      aiRiskLevel = 'High';
-    } else if (aiScore >= 40) {
-      aiRiskLevel = 'Moderate';
-    } else {
-      aiRiskLevel = 'Low';
-    }
-  }
-
+  const aiScore = customer.churnOverview?.currentPrediction?.riskScore ?? customer.churnRiskScore ?? baselineScore;
+  const aiRiskLevel = customer.churnOverview?.currentPrediction?.riskLevel ?? customer.churnOverview?.currentRiskLevel ?? customer.churnRiskLevel ?? 'Unknown';
   const completeness = customer.completeness?.overallCompletenessScore ?? customer.qualityMetrics?.completenessScore ?? customer.quickMetrics?.dataCompletenessScore ?? null;
 
   return {
@@ -312,7 +286,7 @@ const buildHeader = (customer?: CustomerDetailData | null): CustomerHeaderProps 
 
 const buildOverview = (customer?: CustomerDetailData | null): OverviewWidgetsSheet => {
   const baselineScore = customer?.churnOverview?.storedPrediction?.riskScore ?? customer?.churnRiskScore ?? null;
-  const aiScore = customer?.churnOverview?.currentPrediction?.aiRiskScore ?? customer?.churnOverview?.currentPrediction?.riskScore ?? customer?.churnRiskScore ?? baselineScore;
+  const aiScore = customer?.churnOverview?.currentPrediction?.riskScore ?? customer?.churnRiskScore ?? baselineScore;
   return {
     baselineScore,
     aiScore,
@@ -364,14 +338,14 @@ const buildAccountBilling = (customer?: CustomerDetailData | null): AccountBilli
     {
       id: 'tenure',
       label: 'Tenure',
-      date: customer?.subscriptionStartDate ? `${calculateTenure(customer.subscriptionStartDate)} months` : null,
+      date: customer?.subscriptionStartDate ? ${calculateTenure(customer.subscriptionStartDate)} months : null,
       status: 'info',
     },
   ],
   contractLog: (customer?.churnHistory ?? []).map((entry) => ({
     id: entry.id,
     date: entry.predictionDate,
-    summary: `Risk score ${entry.riskScore}`,
+    summary: Risk score ,
     details: entry.riskFactors ? Object.keys(entry.riskFactors).slice(0, 3).join(', ') : null,
   })),
 });
@@ -385,11 +359,11 @@ const buildEngagement = (customer?: CustomerDetailData | null): EngagementData =
   activities.forEach((activity, index) => {
     const type = activity.type?.toLowerCase() ?? '';
     if (type === 'login') {
-      const key = activity.timestamp ? getWeekKey(activity.timestamp) : `week-${index}`;
+      const key = activity.timestamp ? formatDate(getWeekKeyDate(activity.timestamp)) : week-;
       weeklyLoginsMap.set(key, (weeklyLoginsMap.get(key) ?? 0) + 1);
       if (activity.timestamp) {
         sessions.push({
-          id: `${activity.timestamp}-${index}`,
+          id: ${activity.timestamp}-,
           startedAt: activity.timestamp,
           durationMinutes: null,
           feature: null,
@@ -406,7 +380,6 @@ const buildEngagement = (customer?: CustomerDetailData | null): EngagementData =
   });
 
   const weeklyLogins = Array.from(weeklyLoginsMap.entries())
-    .sort(([a], [b]) => (a > b ? 1 : -1))
     .map(([week, count]) => ({ week, count }))
     .slice(-12);
 
@@ -438,7 +411,7 @@ const buildSupport = (customer?: CustomerDetailData | null): SupportData => {
   const escalations: SupportData['escalations'] = [];
 
   activities.forEach((activity, index) => {
-    const period = activity.timestamp ? activity.timestamp.slice(0, 7) : `period-${index}`;
+    const period = activity.timestamp ? activity.timestamp.slice(0, 7) : period-;
     const severity: 'low' | 'medium' | 'high' = /critical|p1|high/i.test(activity.description ?? '')
       ? 'high'
       : /medium|p2/i.test(activity.description ?? '')
@@ -450,7 +423,7 @@ const buildSupport = (customer?: CustomerDetailData | null): SupportData => {
     ticketVolumeMap.set(period, counts);
 
     openTickets.push({
-      id: `${period}-${index}`,
+      id: ${period}-,
       subject: activity.description ?? 'Support interaction',
       severity,
       status: 'Open',
@@ -467,7 +440,7 @@ const buildSupport = (customer?: CustomerDetailData | null): SupportData => {
 
     if (/escalation/i.test(activity.description ?? '')) {
       escalations.push({
-        id: `esc-${index}`,
+        id: sc-,
         date: activity.timestamp ?? new Date().toISOString(),
         summary: activity.description ?? 'Escalation recorded',
         severity: severity.toUpperCase(),
@@ -476,9 +449,7 @@ const buildSupport = (customer?: CustomerDetailData | null): SupportData => {
   });
 
   return {
-    ticketVolume: Array.from(ticketVolumeMap.entries())
-      .sort(([a], [b]) => (a > b ? 1 : -1))
-      .map(([period, counts]) => ({ period, ...counts })),
+    ticketVolume: Array.from(ticketVolumeMap.entries()).map(([period, counts]) => ({ period, ...counts })),
     slaSuccessRate:
       customer?.supportTicketCount && customer.supportTicketCount > 0
         ? ((customer.supportTicketCount - (customer.openSupportTickets ?? 0)) / customer.supportTicketCount) * 100
@@ -494,7 +465,7 @@ const buildMarketing = (customer?: CustomerDetailData | null): MarketingData => 
   const sourceNames = customer?.dataSources?.sourceNames ?? [];
 
   const campaigns = sourceNames.map((name, index) => ({
-    id: `campaign-${index}`,
+    id: campaign-,
     name,
     channel: categories[index] ?? 'General',
     influencedRevenue: null,
@@ -503,7 +474,7 @@ const buildMarketing = (customer?: CustomerDetailData | null): MarketingData => 
   }));
 
   const attribution = categories.map((channel, index) => ({
-    id: `attr-${index}`,
+    id: ttr-,
     channel,
     percent: categories.length > 0 ? Math.round(100 / categories.length) : 0,
     revenue: null,
@@ -546,7 +517,7 @@ const buildDataHealth = (customer?: CustomerDetailData | null): DataHealthData =
   }));
 
   const importHistory = (customer?.dataSources?.sources ?? []).map((source, index) => ({
-    id: source.id ?? `import-${index}`,
+    id: source.id ?? import-,
     source: source.name,
     importedAt: source.lastSync ?? customer?.dataSources?.lastOverallSync ?? null,
     records: source.recordCount ?? null,
@@ -573,15 +544,15 @@ const buildSourcesLogs = (customer?: CustomerDetailData | null): SourcesLogsData
     ...(customer?.dataQuality?.qualityIssues ?? []),
     ...(customer?.qualityMetrics?.recommendedActions ?? []),
   ].map((summary, index) => ({
-    id: `anomaly-${index}`,
+    id: nomaly-,
     detectedAt: customer?.lastSyncedAt ?? new Date().toISOString(),
     summary,
     severity: 'medium',
   }));
 
   return {
-    sources: sources.map((source) => ({
-      id: source.id,
+    sources: sources.map((source, index) => ({
+      id: source.id ?? source-,
       name: source.name,
       type: source.type,
       recordCount: source.recordCount ?? null,
@@ -590,7 +561,7 @@ const buildSourcesLogs = (customer?: CustomerDetailData | null): SourcesLogsData
       isPrimary: source.isPrimary ?? false,
     })),
     syncHistory: sources.map((source, index) => ({
-      id: source.id ?? `sync-${index}`,
+      id: source.id ?? sync-,
       date: source.lastSync ?? customer?.dataSources?.lastOverallSync ?? new Date().toISOString(),
       source: source.name,
       status: source.syncStatus ?? 'unknown',
@@ -618,21 +589,21 @@ const buildAiInsights = (customer?: CustomerDetailData | null, overview: Overvie
   const stored = customer.churnOverview?.storedPrediction;
 
   const summaryParts: string[] = [];
-  summaryParts.push(`**Risk posture**: ${customer.churnOverview?.currentRiskLevel ?? customer.riskStatus ?? 'Unknown'}.`);
+  summaryParts.push(**Risk posture**: .);
   if (customer.dataQuality?.recommendedActions?.length) {
-    summaryParts.push(`**Data quality**: ${customer.dataQuality.recommendedActions.join(', ')}.`);
+    summaryParts.push(**Data quality**: .);
   }
 
   return {
     summaryMarkdown: summaryParts.join('\n\n'),
     recommendations: (customer.churnOverview?.recommendations ?? []).map((label, index) => ({
-      id: `rec-${index}`,
+      id: ec-,
       label,
     })),
-    aiScore: current?.aiRiskScore ?? current?.riskScore ?? customer.churnRiskScore ?? null,
-    aiLevel: current?.aiRiskLevel ?? customer.churnOverview?.currentRiskLevel ?? 'Unknown',
+    aiScore: current?.riskScore ?? customer.churnRiskScore ?? null,
+    aiLevel: current?.riskLevel ?? customer.churnOverview?.currentRiskLevel ?? customer.churnRiskLevel ?? 'Unknown',
     baselineScore: stored?.riskScore ?? customer.churnRiskScore ?? null,
-    signature: current?.baselineSignature ?? stored?.baselineSignature ?? customer.churnOverview?.modelVersion ?? null,
+    signature: customer.churnOverview?.modelVersion ?? null,
     lastRun: customer.churnOverview?.analyzedAt ?? customer.churnPredictionDate ?? null,
   };
 };
@@ -704,7 +675,7 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
       recommendations: ai.recommendations,
     });
 
-    if (customer.churnOverview?.currentPrediction?.baselineSignature && status !== 'fresh') {
+    if (customer.churnOverview?.currentRiskLevel != null && status !== 'fresh') {
       setStatus('fresh');
     }
   }, [customerQuery.data, setStatus, status, syncInsights]);
@@ -728,3 +699,17 @@ export const useCustomerProfile = () => {
   }
   return context;
 };
+
+function getWeekKeyDate(date: string): Date {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    return new Date();
+  }
+  const firstDay = new Date(parsed.getFullYear(), 0, 1);
+  const diff = parsed.getTime() - firstDay.getTime();
+  const startDay = firstDay.getDay() === 0 ? 7 : firstDay.getDay();
+  const week = Math.ceil((diff / 86_400_000 + startDay) / 7);
+  const result = new Date(parsed.getFullYear(), 0, 1);
+  result.setDate(result.getDate() + week * 7);
+  return result;
+}
