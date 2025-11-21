@@ -306,6 +306,13 @@ export interface CustomersQueryParams {
   plan?: SubscriptionPlan;
   paymentStatus?: PaymentStatus;
   churnRiskLevel?: ChurnRiskLevel;
+  hasRecentActivity?: boolean;
+  hasPaymentIssues?: boolean;
+  isSubscribed?: boolean;
+  mrrMin?: number;
+  mrrMax?: number;
+  industry?: string;
+  leadSource?: string;
   sortBy?: string;
   sortDescending?: boolean;
 }
