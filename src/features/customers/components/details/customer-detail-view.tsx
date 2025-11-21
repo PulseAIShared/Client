@@ -141,17 +141,17 @@ export const CustomerDetailView: React.FC = () => {
       .slice(0, 2) || '??';
   }, [header.customerName]);
 
-  const heroBadges = useMemo(() => {
-    const badges: string[] = [];
-    if (header.churnRiskLevel) {
-      badges.push(header.churnRiskLevel);
+  const statusPills = useMemo(() => {
+    const pills: Array<{ label: string; tone: string }> = [];
+    if (header.planName) pills.push({ label: header.planName, tone: 'bg-accent-primary/10 text-accent-primary border-accent-primary/40' });
+    if (header.subscriptionStatus) pills.push({ label: header.subscriptionStatus, tone: 'bg-surface-secondary/60 text-text-primary border-border-primary/40' });
+    if (header.paymentStatus) pills.push({ label: `Billing: ${header.paymentStatus}`, tone: 'bg-success/10 text-success border-success/30' });
+    if (header.completenessScore != null) pills.push({ label: `Data ${Math.round(header.completenessScore)}%`, tone: 'bg-surface-secondary/80 text-text-secondary border-border-primary/30' });
+    if (header.primarySegments.length > 0) {
+      header.primarySegments.slice(0, 2).forEach((segment) => pills.push({ label: segment, tone: 'bg-surface-secondary/70 text-text-secondary border-border-primary/40' }));
     }
-    if (header.completenessScore != null) {
-      badges.push(`Data ${Math.round(header.completenessScore)}%`);
-    }
-    header.primarySegments.forEach((segment) => badges.push(segment));
-    return badges.slice(0, 4);
-  }, [header.churnRiskLevel, header.completenessScore, header.primarySegments]);
+    return pills;
+  }, [header.completenessScore, header.paymentStatus, header.planName, header.primarySegments, header.subscriptionStatus]);
 
   const tenureDisplay = useMemo(() => {
     if (!rawCustomer?.subscriptionStartDate) {
@@ -161,6 +161,9 @@ export const CustomerDetailView: React.FC = () => {
   }, [rawCustomer]);
 
   const lastSynced = rawCustomer?.lastSyncedAt ? formatDate(rawCustomer.lastSyncedAt) : null;
+
+  const locationLabel = rawCustomer?.location ?? header.location ?? rawCustomer?.country ?? null;
+  const timeZoneLabel = rawCustomer?.timeZone;
 
   const handleRerunAnalysis = async () => {
     setAiStatus('refreshing');
@@ -209,22 +212,22 @@ export const CustomerDetailView: React.FC = () => {
     <div className="space-y-6 sm:space-y-8 lg:space-y-12">
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/25 via-accent-secondary/20 to-surface-secondary/30 rounded-3xl blur-3xl"></div>
-        <div className="relative bg-surface-primary/90 backdrop-blur-xl border border-border-primary/40 rounded-3xl shadow-2xl overflow-hidden">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 p-6 sm:p-8">
-            <div className="flex items-start gap-5">
-              <div className="relative">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-accent-primary to-accent-secondary text-white flex items-center justify-center text-2xl font-bold shadow-xl">
-                  {initials}
+        <div className="relative bg-surface-primary/95 backdrop-blur-xl border border-border-primary/40 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="p-6 sm:p-8 lg:p-10 space-y-6">
+            <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+              <div className="flex items-start gap-5">
+                <div className="relative">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-accent-primary to-accent-secondary text-white flex items-center justify-center text-2xl font-bold shadow-xl">
+                    {initials}
+                  </div>
+                  {header.statusBadge && (
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-surface-primary/90 border border-border-primary/40 shadow-md">
+                      {header.statusBadge}
+                    </span>
+                  )}
                 </div>
-                {header.statusBadge && (
-                  <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-surface-primary/90 border border-border-primary/40 shadow-md">
-                    {header.statusBadge}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary tracking-tight">{header.customerName}</h1>
                     <span className={`text-xs font-semibold uppercase tracking-wide px-3 py-1 rounded-full border ${aiStatusTone[aiStatus] ?? aiStatusTone.idle}`}>
                       {aiStatus === 'stale' && 'AI insights stale'}
@@ -233,8 +236,13 @@ export const CustomerDetailView: React.FC = () => {
                       {aiStatus === 'idle' && 'AI insights ready'}
                     </span>
                   </div>
-                  {header.companyName && <p className="text-text-secondary mt-1">{header.companyName}</p>}
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-text-secondary">
+                  {header.companyName && (
+                    <p className="text-text-secondary mt-1">
+                      {rawCustomer?.jobTitle ? `${rawCustomer.jobTitle} • ` : ''}
+                      {header.companyName}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-text-secondary">
                     <span className="flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0z" />
@@ -249,75 +257,82 @@ export const CustomerDetailView: React.FC = () => {
                         {rawCustomer.phone}
                       </span>
                     )}
-                    {header.accountOwner && <span className="flex items-center gap-2 text-xs uppercase tracking-wide font-semibold">Owner: {header.accountOwner}</span>}
-                    {tenureDisplay && <span className="flex items-center gap-2 text-xs uppercase tracking-wide font-semibold text-text-secondary/80">Tenure: {tenureDisplay}</span>}
+                    {locationLabel && (
+                      <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22s7-5.373 7-12.5S16.418 2 12 2 5 6.373 5 9.5 12 22 12 22z" />
+                        </svg>
+                        {locationLabel}
+                      </span>
+                    )}
+                    {timeZoneLabel && <span className="text-xs uppercase tracking-wide font-semibold text-text-secondary/80">Timezone: {timeZoneLabel}</span>}
+                    {tenureDisplay && <span className="text-xs uppercase tracking-wide font-semibold text-text-secondary/80">Tenure: {tenureDisplay}</span>}
                     {lastSynced && <span className="text-xs text-text-secondary/70">Last synced {lastSynced}</span>}
                   </div>
                 </div>
-
-                {heroBadges.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {heroBadges.map((badge, index) => (
-                      <span
-                        key={`${badge}-${index}`}
-                        className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-secondary/60 border border-border-primary/40 text-text-secondary"
-                      >
-                        {badge}
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
+
+              {statusPills.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {statusPills.map((pill, index) => (
+                    <span
+                      key={`${pill.label}-${index}`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${pill.tone}`}
+                    >
+                      {pill.label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="w-full lg:w-auto">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <CompanyAuthorization policyCheck={true} forbiddenFallback={null}>
-                  <Button
-                    variant="outline"
-                    className="border-border-primary/40 hover:border-accent-primary/60 hover:text-accent-primary bg-surface-secondary/40"
-                    onClick={handleScheduleOutreach}
-                  >
-                    Schedule Outreach
-                  </Button>
-                </CompanyAuthorization>
-                <CompanyAuthorization policyCheck={canEditCustomers} forbiddenFallback={null}>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <Button
-                      className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/90 hover:to-accent-secondary/90 text-white shadow-lg hover:shadow-xl transition-all"
-                      onClick={() => navigate(`/app/analytics/run-churn-analysis?customerId=${customerId}`)}
-                    >
-                      Rerun Analysis
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-border-primary/40 hover:border-accent-primary/60 hover:text-accent-primary bg-surface-secondary/40"
-                      onClick={handleRerunAnalysis}
-                    >
-                      Refresh Profile
-                    </Button>
-                  </div>
-                </CompanyAuthorization>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+              <CompanyAuthorization policyCheck={true} forbiddenFallback={null}>
                 <Button
-                  variant="ghost"
-                  className="border border-transparent hover:border-border-primary/60 hover:bg-surface-secondary/30 text-text-secondary"
-                  onClick={handleOpenSources}
+                  variant="outline"
+                  className="flex-1 min-w-[160px] border-border-primary/50 bg-surface-secondary/50 hover:border-accent-primary/60 hover:text-accent-primary hover:bg-accent-primary/10 transition"
+                  onClick={handleScheduleOutreach}
                 >
-                  View Sources
+                  Schedule Outreach
                 </Button>
-              </div>
+              </CompanyAuthorization>
+              <CompanyAuthorization policyCheck={canEditCustomers} forbiddenFallback={null}>
+                <Button
+                  className="flex-1 min-w-[160px] bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/90 hover:to-accent-secondary/90 text-white shadow-lg hover:shadow-xl transition-all"
+                  onClick={() => navigate(`/app/analytics/run-churn-analysis?customerId=${customerId}`)}
+                >
+                  Rerun Analysis
+                </Button>
+              </CompanyAuthorization>
+              <CompanyAuthorization policyCheck={canEditCustomers} forbiddenFallback={null}>
+                <Button
+                  variant="outline"
+                  className="flex-1 min-w-[160px] border-border-primary/50 bg-surface-secondary/50 hover:border-accent-primary/60 hover:text-accent-primary hover:bg-accent-primary/10 transition"
+                  onClick={handleRerunAnalysis}
+                >
+                  Refresh Profile
+                </Button>
+              </CompanyAuthorization>
+              <Button
+                variant="ghost"
+                className="flex-1 min-w-[160px] border border-transparent hover:border-border-primary/60 hover:bg-surface-secondary/40 text-text-secondary"
+                onClick={handleOpenSources}
+              >
+                View Sources
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="bg-surface-primary/90 backdrop-blur-xl border border-border-primary/40 rounded-3xl shadow-xl overflow-hidden">
-        <div className="flex flex-wrap border-b border-border-primary/30">
+        <div className="flex flex-nowrap overflow-x-auto border-b border-border-primary/30">
           {tabConfig.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-5 sm:px-6 py-4 text-sm font-semibold transition-all border-b-2 ${
+              className={`flex items-center gap-3 px-5 sm:px-6 py-4 text-sm font-semibold transition-all border-b-2 min-w-[140px] ${
                 activeTab === tab.id
                   ? 'text-accent-primary border-accent-primary bg-accent-primary/10'
                   : 'text-text-secondary border-transparent hover:bg-surface-secondary/40 hover:text-text-primary'

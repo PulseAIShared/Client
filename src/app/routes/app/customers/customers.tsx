@@ -11,7 +11,7 @@ import { useGetImportHistory } from '@/features/customers/api/import';
 import { ImportHistoryModal } from '@/features/customers/components/import-history-modal';
 import { MobileCustomerCards } from '@/features/customers/components/mobile-customer-cards';
 import { DeleteCustomersModal } from '@/features/customers/components/customers-delete-modal';
-import { getActivityColor, getRiskColor, getSubscriptionStatusColor } from '@/utils/customer-helpers';
+import { getActivityColor, getSubscriptionStatusColor } from '@/utils/customer-helpers';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
 import { 
@@ -22,10 +22,12 @@ import {
   CustomersQueryParams,
   formatSubscriptionStatus,
   CustomerDisplayData,
-  CompanyRole
+  formatPlanName,
+  formatPaymentStatus
 } from '@/types/api';
+import { formatCurrency } from '@/types/api';
 
-type SortField = 'fullName' | 'tenureDays' | 'lifetimeValue' | 'churnRiskScore' | 'activityStatus' | 'email' | 'plan';
+type SortField = 'fullName' | 'tenureDays' | 'lifetimeValue' | 'churnRiskScore' | 'activityStatus' | 'email' | 'plan' | 'subscriptionStatus';
 
 // Map frontend sort fields to actual API field names from the JSON structure
 const sortFieldMap: Record<SortField, string> = {
@@ -35,7 +37,8 @@ const sortFieldMap: Record<SortField, string> = {
   churnRiskScore: 'churnRiskScore',
   activityStatus: 'activityStatus', 
   email: 'email',
-  plan: 'plan'
+  plan: 'plan',
+  subscriptionStatus: 'subscriptionStatus'
 };
 
 const ChurnRiskBadge: React.FC<{ score: number }> = ({ score }) => {
@@ -69,7 +72,6 @@ export const CustomersRoute = () => {
   
   // Check if user has write permissions for customers
   const canEditCustomers = checkCompanyPolicy('customers:write');
-  const canReadCustomers = checkCompanyPolicy('customers:read');
 
   // Import modal states
   const [showImportModal, setShowImportModal] = useState(false);
@@ -88,6 +90,10 @@ export const CustomersRoute = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [customersToDelete, setCustomersToDelete] = useState<CustomerDisplayData[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [mrrRange, setMrrRange] = useState<{ min?: string; max?: string }>({});
+  const [industryFilter, setIndustryFilter] = useState<string | undefined>();
+  const [leadSourceFilter, setLeadSourceFilter] = useState<string | undefined>();
 
   // Debounce search term to avoid excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -138,6 +144,8 @@ export const CustomersRoute = () => {
       subscriptionStatus: undefined,
       churnRiskLevel: undefined,
       paymentStatus: undefined,
+      hasPaymentIssues: undefined,
+      hasRecentActivity: undefined,
     };
 
     switch (filter) {
@@ -148,10 +156,13 @@ export const CustomersRoute = () => {
         newParams.churnRiskLevel = ChurnRiskLevel.High;
         break;
       case 'payment-issues':
-        newParams.paymentStatus = PaymentStatus.Failed;
+        newParams.hasPaymentIssues = true;
         break;
       case 'cancelled':
         newParams.subscriptionStatus = SubscriptionStatus.Cancelled;
+        break;
+      case 'recent':
+        newParams.hasRecentActivity = true;
         break;
     }
 
@@ -298,7 +309,8 @@ export const CustomersRoute = () => {
     all: pagination?.totalCount || 0,
     active: customers.filter(c => c.subscriptionStatus === SubscriptionStatus.Active).length,
     'high-risk': customers.filter(c => c.churnRiskLevel === ChurnRiskLevel.High || c.churnRiskLevel === ChurnRiskLevel.Critical).length,
-    'payment-issues': customers.filter(c => c.subscriptionStatus === SubscriptionStatus.PastDue).length,
+    recent: customers.filter(c => c.hasRecentActivity).length,
+    'payment-issues': customers.filter(c => (c as any).hasPaymentIssues || c.subscriptionStatus === SubscriptionStatus.PastDue).length,
     cancelled: customers.filter(c => c.subscriptionStatus === SubscriptionStatus.Cancelled).length,
   }), [customers, pagination?.totalCount]);
 
@@ -320,6 +332,65 @@ export const CustomersRoute = () => {
       setSelectedCustomers(new Set(customers.map(c => c.id)));
     }
   };
+
+  const industryOptions = useMemo(() => {
+    const set = new Set<string>();
+    customers.forEach((c) => {
+      if ((c as any).industry) set.add((c as any).industry);
+    });
+    return Array.from(set);
+  }, [customers]);
+
+  const leadSourceOptions = useMemo(() => {
+    const set = new Set<string>();
+    customers.forEach((c) => {
+      if ((c as any).leadSource) set.add((c as any).leadSource);
+    });
+    return Array.from(set);
+  }, [customers]);
+
+  const updateQueryParam = (updates: Partial<CustomersQueryParams>) => {
+    setQueryParams((prev) => ({ ...prev, ...updates, page: 1 }));
+  };
+
+  const handleAdvancedFilterApply = () => {
+    updateQueryParam({
+      mrrMin: mrrRange.min ? Number(mrrRange.min) : undefined,
+      mrrMax: mrrRange.max ? Number(mrrRange.max) : undefined,
+      industry: industryFilter,
+      leadSource: leadSourceFilter,
+    });
+    setShowFilters(false);
+  };
+
+  const handleAdvancedReset = () => {
+    setMrrRange({});
+    setIndustryFilter(undefined);
+    setLeadSourceFilter(undefined);
+    updateQueryParam({
+      mrrMin: undefined,
+      mrrMax: undefined,
+      industry: undefined,
+      leadSource: undefined,
+      plan: undefined,
+      subscriptionStatus: undefined,
+      paymentStatus: undefined,
+      churnRiskLevel: undefined,
+      hasRecentActivity: undefined,
+      hasPaymentIssues: undefined,
+      isSubscribed: undefined,
+    });
+    setSelectedFilter('all');
+  };
+
+  const totalMRR = useMemo(() => {
+    return customers.reduce((acc, c) => acc + ((c as any).monthlyRecurringRevenue ?? 0), 0);
+  }, [customers]);
+
+  const avgChurn = useMemo(
+    () => (customers.length ? customers.reduce((acc, c) => acc + (c.churnRiskScore ?? 0), 0) / customers.length : 0),
+    [customers],
+  );
 
   const SortIcon: React.FC<{ field: SortField }> = ({ field }) => {
     const apiField = sortFieldMap[field];
@@ -344,76 +415,73 @@ export const CustomersRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-        {/* Enhanced Header */}
+        {/* Sleek Header */}
         <div className="relative group">
-          {/* Enhanced background gradient effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/5 via-accent-secondary/5 to-accent-primary/5 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
-          
-          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-8">
-              <div className="space-y-3">
-    
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary mb-2">
-                  Customers Overview
-                </h1>
-                <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-2xl">
-                  Monitor customer behavior, churn risk, and lifetime value with AI-powered insights
-                </p>
-              </div>
-              
-              {/* Enhanced Mobile-First Button Layout */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-                {/* Primary Action - Staff+ only */}
-                <CompanyAuthorization
-                  policyCheck={canEditCustomers}
-                  forbiddenFallback={null}
-                >
-                  <button 
-                    onClick={() => setShowImportModal(true)}
-                    className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-xl hover:shadow-lg hover:shadow-accent-secondary/25 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold text-sm sm:text-base flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent-secondary to-accent-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                    <svg className="relative w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <span className="relative hidden sm:inline">Import Customers</span>
-                    <span className="relative sm:hidden">Import</span>
-                  </button>
-                </CompanyAuthorization>
-                
-                {/* Secondary Actions */}
-                <div className="flex flex-row gap-3 w-full sm:w-auto">
-                  <CompanyAuthorization
-                    policyCheck={canEditCustomers}
-                    forbiddenFallback={null}
-                  >
-                    <button 
-                      onClick={() => setShowImportHistory(true)}
-                      className="group flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-4 bg-surface-secondary/50 text-text-primary rounded-xl hover:bg-surface-primary/50 transition-all duration-200 font-medium text-sm sm:text-base border border-border-primary/30 hover:border-border-secondary hover:shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
-                    >
-                      <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="hidden sm:inline">Import History</span>
-                      <span className="sm:hidden">History</span>
-                    </button>
-                  </CompanyAuthorization>
-                  <CompanyAuthorization
-                    policyCheck={canEditCustomers}
-                    forbiddenFallback={null}
-                  >
-                    <button 
-                      onClick={handleExportAll}
-                      className="group flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-4 bg-surface-secondary/50 text-text-primary rounded-xl hover:bg-surface-primary/50 transition-all duration-200 font-medium text-sm sm:text-base border border-border-primary/30 hover:border-border-secondary hover:shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
-                    >
-                      <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span className="hidden sm:inline">Export Data</span>
-                      <span className="sm:hidden">Export</span>
-                    </button>
-                  </CompanyAuthorization>
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/8 via-accent-secondary/8 to-accent-primary/8 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
+          <div className="relative bg-surface-primary/95 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="space-y-3">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary">
+                    Customers
+                  </h1>
+                  <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-3xl">
+                    Track health, revenue, and engagement at a glance. Filters mirror the API so what you see is exactly what we fetch.
+                  </p>
                 </div>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+                  <CompanyAuthorization policyCheck={canEditCustomers} forbiddenFallback={null}>
+                    <button
+                      onClick={() => setShowImportModal(true)}
+                      className="group relative w-full sm:w-auto px-6 sm:px-7 py-3 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-xl hover:shadow-lg hover:shadow-accent-secondary/20 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold text-sm sm:text-base flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-accent-secondary to-accent-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                      <svg className="relative w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span className="relative">Import Customers</span>
+                    </button>
+                  </CompanyAuthorization>
+                  <div className="flex flex-row gap-3 w-full sm:w-auto">
+                    <CompanyAuthorization policyCheck={canEditCustomers} forbiddenFallback={null}>
+                      <button
+                        onClick={() => setShowImportHistory(true)}
+                        className="group flex-1 sm:flex-none px-4 sm:px-6 py-3 bg-surface-secondary/60 text-text-primary rounded-xl hover:bg-surface-primary/70 transition-all duration-200 font-medium text-sm sm:text-base border border-border-primary/40 hover:border-accent-primary/30 hover:shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
+                      >
+                        <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        History
+                      </button>
+                    </CompanyAuthorization>
+                    <CompanyAuthorization policyCheck={canEditCustomers} forbiddenFallback={null}>
+                      <button
+                        onClick={handleExportAll}
+                        className="group flex-1 sm:flex-none px-4 sm:px-6 py-3 bg-surface-secondary/60 text-text-primary rounded-xl hover:bg-surface-primary/70 transition-all duration-200 font-medium text-sm sm:text-base border border-border-primary/40 hover:border-accent-primary/30 hover:shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
+                      >
+                        <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export
+                      </button>
+                    </CompanyAuthorization>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { label: 'Total customers', value: pagination?.totalCount ?? 0, hint: `${filterCounts.active} active` },
+                  { label: 'Total MRR', value: formatCurrency(totalMRR, 'USD'), hint: 'Based on current page' },
+                  { label: 'Avg churn risk', value: `${Math.round(avgChurn)}%`, hint: `${filterCounts['high-risk']} high-risk` },
+                  { label: 'Recent activity', value: filterCounts.recent, hint: 'Last-seen customers' },
+                ].map((stat) => (
+                  <div key={stat.label} className="p-4 bg-surface-secondary/60 border border-border-primary/30 rounded-2xl shadow-inner">
+                    <div className="text-xs uppercase tracking-wide text-text-muted font-semibold">{stat.label}</div>
+                    <div className="text-xl font-semibold text-text-primary mt-1">{stat.value}</div>
+                    <div className="text-xs text-text-secondary/80 mt-1">{stat.hint}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -482,6 +550,7 @@ export const CustomersRoute = () => {
                     { key: 'all', label: 'All', count: filterCounts.all },
                     { key: 'active', label: 'Active', count: filterCounts.active },
                     { key: 'high-risk', label: 'High Risk', count: filterCounts['high-risk'] },
+                    { key: 'recent', label: 'Recent', count: filterCounts.recent },
                     { key: 'payment-issues', label: 'Payment', count: filterCounts['payment-issues'] },
                     { key: 'cancelled', label: 'Cancelled', count: filterCounts.cancelled }
                   ].map((filter) => (
@@ -530,24 +599,184 @@ export const CustomersRoute = () => {
                     { key: 'all', label: 'All Customers', shortLabel: 'All', count: filterCounts.all },
                     { key: 'active', label: 'Active', shortLabel: 'Active', count: filterCounts.active },
                     { key: 'high-risk', label: 'High Risk', shortLabel: 'High Risk', count: filterCounts['high-risk'] },
+                    { key: 'recent', label: 'Recent', shortLabel: 'Recent', count: filterCounts.recent },
                     { key: 'payment-issues', label: 'Payment Issues', shortLabel: 'Payment', count: filterCounts['payment-issues'] },
                     { key: 'cancelled', label: 'Cancelled', shortLabel: 'Cancelled', count: filterCounts.cancelled }
                   ].map((filter) => (
                     <button
                       key={filter.key}
                       onClick={() => handleFilterChange(filter.key)}
-                      className={`px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                        selectedFilter === filter.key
-                          ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
-                          : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/80 border border-border-primary/30'
-                      }`}
-                    >
-                      {filter.label} ({filter.count})
-                    </button>
-                  ))}
-                </div>
+                    className={`px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                      selectedFilter === filter.key
+                        ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30'
+                        : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/80 border border-border-primary/30'
+                    }`}
+                  >
+                    {filter.label} ({filter.count})
+                  </button>
+                ))}
               </div>
             </div>
+            <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+              <button
+                onClick={() => setShowFilters((prev) => !prev)}
+                className="px-4 py-2 rounded-xl text-sm font-semibold border border-border-primary/40 bg-surface-secondary/60 hover:border-accent-primary/40 hover:text-accent-primary transition-colors flex items-center gap-2"
+              >
+                <svg className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+                Advanced filters
+              </button>
+              {showFilters && (
+                <div className="flex items-center gap-2 text-xs text-text-secondary">
+                  API params: status, plan, payment, risk, activity, mrr, industry, source
+                </div>
+              )}
+            </div>
+            {showFilters && (
+              <div className="mt-4 grid grid-cols-1 lg:grid-cols-4 gap-3 bg-surface-secondary/50 border border-border-primary/30 rounded-2xl p-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase">Plan</label>
+                  <select
+                    className="w-full rounded-lg border border-border-primary/40 bg-surface-primary/80 px-3 py-2 text-sm"
+                    value={queryParams.plan ?? ''}
+                    onChange={(e) => updateQueryParam({ plan: e.target.value === '' ? undefined : Number(e.target.value) as SubscriptionPlan })}
+                  >
+                    <option value="">All plans</option>
+                    {[SubscriptionPlan.Basic, SubscriptionPlan.Pro, SubscriptionPlan.Enterprise].map((plan) => (
+                      <option key={plan} value={plan}>{formatPlanName(plan)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase">Subscription</label>
+                  <select
+                    className="w-full rounded-lg border border-border-primary/40 bg-surface-primary/80 px-3 py-2 text-sm"
+                    value={queryParams.subscriptionStatus ?? ''}
+                    onChange={(e) => updateQueryParam({ subscriptionStatus: e.target.value === '' ? undefined : Number(e.target.value) as SubscriptionStatus })}
+                  >
+                    <option value="">All</option>
+                    {Object.values(SubscriptionStatus).filter((v) => typeof v === 'number').map((status) => (
+                      <option key={status as number} value={status as number}>{formatSubscriptionStatus(status as SubscriptionStatus)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase">Payment status</label>
+                  <select
+                    className="w-full rounded-lg border border-border-primary/40 bg-surface-primary/80 px-3 py-2 text-sm"
+                    value={queryParams.paymentStatus ?? ''}
+                    onChange={(e) => updateQueryParam({ paymentStatus: e.target.value === '' ? undefined : Number(e.target.value) as PaymentStatus })}
+                  >
+                    <option value="">All</option>
+                    {Object.values(PaymentStatus).filter((v) => typeof v === 'number').map((status) => (
+                      <option key={status as number} value={status as number}>{formatPaymentStatus(status as PaymentStatus)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase">Churn risk</label>
+                  <select
+                    className="w-full rounded-lg border border-border-primary/40 bg-surface-primary/80 px-3 py-2 text-sm"
+                    value={queryParams.churnRiskLevel ?? ''}
+                    onChange={(e) => updateQueryParam({ churnRiskLevel: e.target.value === '' ? undefined : Number(e.target.value) as ChurnRiskLevel })}
+                  >
+                    <option value="">All</option>
+                    {Object.values(ChurnRiskLevel).filter((v) => typeof v === 'number').map((risk) => (
+                      <option key={risk as number} value={risk as number}>{ChurnRiskLevel[risk as number]}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase">MRR range</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="Min"
+                      value={mrrRange.min ?? ''}
+                      onChange={(e) => setMrrRange((prev) => ({ ...prev, min: e.target.value }))}
+                      className="w-full rounded-lg border border-border-primary/40 bg-surface-primary/80 px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="Max"
+                      value={mrrRange.max ?? ''}
+                      onChange={(e) => setMrrRange((prev) => ({ ...prev, max: e.target.value }))}
+                      className="w-full rounded-lg border border-border-primary/40 bg-surface-primary/80 px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase">Industry</label>
+                  <select
+                    className="w-full rounded-lg border border-border-primary/40 bg-surface-primary/80 px-3 py-2 text-sm"
+                    value={industryFilter ?? ''}
+                    onChange={(e) => setIndustryFilter(e.target.value || undefined)}
+                  >
+                    <option value="">All</option>
+                    {industryOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase">Lead source</label>
+                  <select
+                    className="w-full rounded-lg border border-border-primary/40 bg-surface-primary/80 px-3 py-2 text-sm"
+                    value={leadSourceFilter ?? ''}
+                    onChange={(e) => setLeadSourceFilter(e.target.value || undefined)}
+                  >
+                    <option value="">All</option>
+                    {leadSourceOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase">Flags</label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { key: 'hasRecentActivity', label: 'Recent', value: queryParams.hasRecentActivity },
+                      { key: 'hasPaymentIssues', label: 'Payment issues', value: queryParams.hasPaymentIssues },
+                      { key: 'isSubscribed', label: 'Marketing opt-in', value: queryParams.isSubscribed },
+                    ].map((flag) => (
+                      <button
+                        key={flag.key}
+                        onClick={() =>
+                          updateQueryParam({
+                            [flag.key]: flag.value ? undefined : true,
+                          } as Partial<CustomersQueryParams>)
+                        }
+                        className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                          flag.value
+                            ? 'bg-accent-primary/15 text-accent-primary border-accent-primary/40'
+                            : 'bg-surface-primary/80 text-text-secondary border-border-primary/40 hover:border-accent-primary/30'
+                        }`}
+                      >
+                        {flag.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 lg:col-span-4 justify-end">
+                  <button
+                    onClick={handleAdvancedReset}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold border border-border-primary/40 bg-surface-primary/80 hover:border-accent-primary/40 hover:text-accent-primary transition-colors"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    onClick={handleAdvancedFilterApply}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/90 hover:to-accent-secondary/90 shadow-md transition-colors"
+                  >
+                    Apply filters
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
             <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 shadow-lg overflow-hidden">
               <div className="p-6 border-b border-border-primary/30">
@@ -592,8 +821,45 @@ export const CustomersRoute = () => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              {selectedCustomers.size > 0 && (
+                <div className="flex items-center justify-between px-6 py-3 bg-surface-secondary/40 border-b border-border-primary/30 sticky top-0 z-10">
+                  <div className="text-sm text-text-muted">{selectedCustomers.size} selected</div>
+                  <div className="flex items-center gap-2">
+                    <CompanyAuthorization policyCheck={canEditCustomers} forbiddenFallback={null}>
+                      <button
+                        onClick={handleBulkDelete}
+                        className="px-3 py-2 bg-error/15 text-error rounded-lg hover:bg-error/25 transition-colors text-sm border border-error/30 flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete selected
+                      </button>
+                    </CompanyAuthorization>
+                    <CompanyAuthorization policyCheck={canEditCustomers} forbiddenFallback={null}>
+                      <button
+                        onClick={handleExportSelected}
+                        className="px-3 py-2 bg-surface-primary/80 text-text-primary rounded-lg hover:bg-surface-primary/90 transition-colors text-sm border border-border-primary/40"
+                      >
+                        Export selected
+                      </button>
+                    </CompanyAuthorization>
+                  </div>
+                </div>
+              )}
+
+              <div className="relative overflow-hidden">
+                <table className="w-full table-auto border-collapse">
+                  <colgroup>
+                    {canEditCustomers && <col style={{ width: '48px' }} />}
+                    <col style={{ width: '220px' }} />
+                    <col style={{ width: '200px' }} />
+                    <col style={{ width: '110px' }} />
+                    <col style={{ width: '140px' }} />
+                    <col style={{ width: '140px' }} />
+                    <col style={{ width: '120px' }} />
+                    {canEditCustomers && <col style={{ width: '80px' }} />}
+                  </colgroup>
                   <thead className="bg-surface-secondary/30">
                     <tr>
                       <CompanyAuthorization
@@ -601,12 +867,12 @@ export const CustomersRoute = () => {
                         forbiddenFallback={<th className="text-left py-4 px-6 font-semibold text-text-secondary w-12"></th>}
                       >
                         <th className="text-left py-4 px-6 font-semibold text-text-secondary">
-                          <input
-                            type="checkbox"
-                            checked={selectedCustomers.size === customers.length && customers.length > 0}
-                            onChange={toggleSelectAll}
-                            className="rounded border-border-primary bg-surface-secondary focus:ring-accent-primary"
-                          />
+                        <input
+                          type="checkbox"
+                          checked={selectedCustomers.size === customers.length && customers.length > 0}
+                          onChange={toggleSelectAll}
+                          className="rounded border-border-primary bg-surface-secondary focus:ring-accent-primary"
+                        />
                         </th>
                       </CompanyAuthorization>
                       <th 
@@ -619,16 +885,16 @@ export const CustomersRoute = () => {
                         </div>
                       </th>
                       <th 
-                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors" 
+                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors whitespace-normal break-words" 
                         onClick={() => handleSort('plan')}
                       >
                         <div className="flex items-center gap-2">
-                          Plan
+                          Billing
                           <SortIcon field="plan" />
                         </div>
                       </th>
                       <th 
-                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors" 
+                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors whitespace-normal break-words" 
                         onClick={() => handleSort('tenureDays')}
                       >
                         <div className="flex items-center gap-2">
@@ -637,7 +903,7 @@ export const CustomersRoute = () => {
                         </div>
                       </th>
                       <th 
-                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors" 
+                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors whitespace-normal break-words" 
                         onClick={() => handleSort('lifetimeValue')}
                       >
                         <div className="flex items-center gap-2">
@@ -646,7 +912,7 @@ export const CustomersRoute = () => {
                         </div>
                       </th>
                       <th 
-                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors" 
+                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors whitespace-normal break-words" 
                         onClick={() => handleSort('churnRiskScore')}
                       >
                         <div className="flex items-center gap-2">
@@ -655,7 +921,7 @@ export const CustomersRoute = () => {
                         </div>
                       </th>
                       <th 
-                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors" 
+                        className="text-left py-4 px-6 font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-colors whitespace-normal break-words" 
                         onClick={() => handleSort('activityStatus')}
                       >
                         <div className="flex items-center gap-2">
@@ -667,7 +933,9 @@ export const CustomersRoute = () => {
                         policyCheck={canEditCustomers}
                         forbiddenFallback={<th className="text-left py-4 px-6 font-semibold text-text-secondary w-16"></th>}
                       >
-                        <th className="text-left py-4 px-6 font-semibold text-text-secondary">Actions</th>
+                        <th className="text-left py-4 px-6 font-semibold text-text-secondary sticky right-0 bg-surface-secondary/60 backdrop-blur-sm">
+                          Actions
+                        </th>
                       </CompanyAuthorization>
                     </tr>
                   </thead>
@@ -691,32 +959,40 @@ export const CustomersRoute = () => {
                             />
                           </td>
                         </CompanyAuthorization>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm">
-                              {customer.fullName.split(' ').map(n => n[0]).join('')}
+                        <td className="py-4 px-6 align-top">
+                          <div className="flex items-start gap-3">
+                            <div className="min-w-[40px] w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm">
+                              {customer.fullName.split(' ').map((n) => n[0]).join('')}
                             </div>
-                            <div>
-                              <div className="font-medium text-text-primary">{customer.fullName}</div>
-                              <div className="text-sm text-text-muted">{customer.email}</div>
+                            <div className="space-y-1 break-words">
+                              <div className="font-medium text-text-primary leading-snug break-words">{customer.fullName}</div>
+                              <div className="text-xs text-text-muted leading-snug break-words">{customer.email}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-6">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getSubscriptionStatusColor(customer.subscriptionStatus)}`}>
-                            {formatSubscriptionStatus(customer.subscriptionStatus)}
-                          </span>
+                        <td className="py-4 px-6 whitespace-normal break-words align-top">
+                          <div className="flex flex-col gap-1">
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-secondary/70 border border-border-primary/30 text-text-primary w-max">
+                              {formatPlanName(customer.plan)}
+                            </span>
+                            <span className={`px-3 py-1 rounded-full text-[11px] font-semibold w-max ${getSubscriptionStatusColor(customer.subscriptionStatus)}`}>
+                              {formatSubscriptionStatus(customer.subscriptionStatus)}
+                            </span>
+                            <span className="text-xs text-text-secondary">
+                              {formatPaymentStatus((customer as any).paymentStatus ?? PaymentStatus.Current)}
+                            </span>
+                          </div>
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-6 whitespace-normal break-words align-top">
                           <div className="text-text-primary font-medium">{customer.tenureDisplay}</div>
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="text-text-primary font-semibold">${customer.lifetimeValue.toLocaleString()}</div>
+                        <td className="py-4 px-6 whitespace-normal break-words align-top">
+                          <div className="text-text-primary font-semibold">{formatCurrency(customer.lifetimeValue, 'USD')}</div>
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-6 whitespace-normal break-words align-top">
                           <ChurnRiskBadge score={Math.round(customer.churnRiskScore)} />
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-6 whitespace-normal break-words align-top">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActivityColor(customer.activityStatus)}`}>
                             {customer.activityStatus}
                           </span>
@@ -725,7 +1001,7 @@ export const CustomersRoute = () => {
                           policyCheck={canEditCustomers}
                           forbiddenFallback={<td className="py-4 px-6"></td>}
                         >
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 sticky right-0 bg-surface-primary/90 backdrop-blur-sm border-l border-border-primary/20 align-top">
                             <button 
                               onClick={(e) => handleSingleDelete(customer, e)}
                               className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"

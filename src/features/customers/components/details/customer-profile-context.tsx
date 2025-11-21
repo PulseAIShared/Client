@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import { useGetCustomerById } from '@/features/customers/api/customers';
 import { CustomerDetailData } from '@/types/api';
-import { calculateTenure, formatDate } from '@/utils/customer-helpers';
+import { formatDate } from '@/utils/customer-helpers';
 import { useCustomerAiInsightsStore } from '@/features/customers/state/customer-ai-insights-store';
 
 type RiskFactorEntry = { key: string; weight: number };
@@ -24,6 +24,14 @@ export interface CustomerHeaderProps {
   aiRiskLevel: string;
   completenessScore?: number | null;
   statusBadge?: string | null;
+  planName?: string | null;
+  subscriptionStatus?: string | null;
+  paymentStatus?: string | null;
+  riskScore?: number | null;
+  churnRiskDisplay?: string | null;
+  lastSyncedAt?: string | null;
+  activityStatus?: string | null;
+  location?: string | null;
 }
 
 export interface OverviewWidgetsSheet {
@@ -262,13 +270,28 @@ const buildHeader = (customer?: CustomerDetailData | null): CustomerHeaderProps 
       aiRiskLevel: 'Unknown',
       completenessScore: null,
       statusBadge: null,
+      planName: null,
+      subscriptionStatus: null,
+      paymentStatus: null,
+      riskScore: null,
+      churnRiskDisplay: null,
+      lastSyncedAt: null,
+      activityStatus: null,
+      location: null,
     };
   }
 
-  const customerName = customer.display?.fullName?.trim() || `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() || customer.email;
+  const customerName =
+    customer.display?.fullName?.trim() ||
+    customer.fullName?.trim() ||
+    `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() ||
+    customer.email;
+
   const segments = new Set<string>();
   if (customer.display?.planName) segments.add(customer.display.planName);
+  if (customer.planDisplay) segments.add(customer.planDisplay);
   if (customer.subscriptionStatusDisplay) segments.add(customer.subscriptionStatusDisplay);
+  if (customer.crmOverview?.lifecycleStage) segments.add(customer.crmOverview.lifecycleStage);
   (customer.dataSources?.categories ?? []).forEach((category) => segments.add(category));
   if (customer.primaryMarketingSource) segments.add(`Marketing: ${customer.primaryMarketingSource}`);
   if (customer.primarySupportSource) segments.add(`Support: ${customer.primarySupportSource}`);
@@ -282,12 +305,20 @@ const buildHeader = (customer?: CustomerDetailData | null): CustomerHeaderProps 
     customerName,
     customerEmail: customer.email,
     companyName: customer.companyName,
-    accountOwner: customer.primaryCrmSource,
+    accountOwner: customer.crmOverview?.salesOwnerName ?? customer.primaryCrmSource,
     primarySegments: Array.from(segments).slice(0, 4),
     churnRiskLevel: customer.display?.riskLevelName ?? customer.riskStatus ?? 'Unknown',
     aiRiskLevel: typeof aiRiskLevel === 'number' ? aiRiskLevel.toString() : String(aiRiskLevel ?? 'Unknown'),
     completenessScore: completeness,
     statusBadge: customer.subscriptionStatusDisplay ?? customer.display?.subscriptionStatusName ?? null,
+    planName: customer.display?.planName ?? customer.planDisplay ?? null,
+    subscriptionStatus: customer.subscriptionStatusDisplay ?? customer.display?.subscriptionStatusName ?? null,
+    paymentStatus: customer.paymentStatusDisplay ?? customer.display?.paymentStatusName ?? null,
+    riskScore: typeof aiScore === 'number' ? aiScore : baselineScore,
+    churnRiskDisplay: customer.churnRiskDisplay ?? customer.riskStatus ?? null,
+    lastSyncedAt: customer.lastSyncedAt ?? null,
+    activityStatus: customer.activityStatus ?? customer.riskStatus ?? null,
+    location: customer.location ?? customer.country ?? null,
   };
 };
 
@@ -303,59 +334,83 @@ const buildOverview = (customer?: CustomerDetailData | null): OverviewWidgetsShe
   };
 };
 
-const buildAccountBilling = (customer?: CustomerDetailData | null): AccountBillingData => ({
-  crm: {
-    pipelineStage: customer?.subscriptionStatusDisplay ?? customer?.display?.subscriptionStatusName ?? null,
-    accountExecutive: customer?.primaryCrmSource ?? null,
-    monthlyRecurringRevenue: customer?.monthlyRecurringRevenue ?? null,
-    contractValue: customer?.lifetimeValue ?? null,
-    contractStart: customer?.subscriptionStartDate ?? null,
-    renewalDate: customer?.nextBillingDate ?? customer?.subscriptionEndDate ?? null,
-    contractEnd: customer?.subscriptionEndDate ?? null,
-  },
-  paymentHealth: {
-    arr: customer?.monthlyRecurringRevenue != null ? customer.monthlyRecurringRevenue * 12 : null,
-    mrr: customer?.monthlyRecurringRevenue ?? null,
-    delinquencyStatus: customer?.paymentStatusDisplay ?? customer?.display?.paymentStatusName ?? null,
-    lifetimeValue: customer?.lifetimeValue ?? null,
-    billingContacts: [customer?.email, customer?.primaryPaymentSource].filter(Boolean) as string[],
-    invoices: [
+const buildAccountBilling = (customer?: CustomerDetailData | null): AccountBillingData => {
+  const payment = customer?.paymentOverview;
+  const crm = customer?.crmOverview;
+
+  return {
+    crm: {
+      pipelineStage: crm?.pipelineStage ?? customer?.subscriptionStatusDisplay ?? customer?.display?.subscriptionStatusName ?? null,
+      accountExecutive: crm?.salesOwnerName ?? customer?.primaryCrmSource ?? null,
+      monthlyRecurringRevenue: payment?.monthlyRecurringRevenue ?? customer?.monthlyRecurringRevenue ?? null,
+      contractValue: crm?.totalDealValue ?? payment?.lifetimeValue ?? customer?.lifetimeValue ?? null,
+      contractStart: payment?.subscriptionStartDate ?? customer?.subscriptionStartDate ?? null,
+      renewalDate: payment?.nextBillingDate ?? customer?.nextBillingDate ?? customer?.subscriptionEndDate ?? null,
+      contractEnd: payment?.subscriptionEndDate ?? customer?.subscriptionEndDate ?? null,
+    },
+    paymentHealth: {
+      arr: payment?.monthlyRecurringRevenue != null ? payment.monthlyRecurringRevenue * (payment.billingIntervalCount ?? 12) : customer?.monthlyRecurringRevenue != null ? customer.monthlyRecurringRevenue * 12 : null,
+      mrr: payment?.monthlyRecurringRevenue ?? customer?.monthlyRecurringRevenue ?? null,
+      delinquencyStatus: payment?.paymentStatus ? payment.paymentStatus.toString() : customer?.paymentStatusDisplay ?? customer?.display?.paymentStatusName ?? null,
+      lifetimeValue: payment?.lifetimeValue ?? customer?.lifetimeValue ?? null,
+      billingContacts: [customer?.email, customer?.primaryPaymentSource, crm?.salesOwnerName].filter(Boolean) as string[],
+      invoices: [
+        {
+          id: 'last-payment',
+          amount: payment?.monthlyRecurringRevenue ?? customer?.monthlyRecurringRevenue ?? null,
+          status: payment?.invoiceStatus ?? customer?.paymentStatusDisplay ?? null,
+          dueDate: payment?.nextBillingDate ?? customer?.nextBillingDate ?? null,
+          issuedDate: payment?.lastPaymentDate ?? customer?.lastPaymentDate ?? null,
+        },
+        {
+          id: 'upcoming',
+          amount: payment?.monthlyRecurringRevenue ?? customer?.monthlyRecurringRevenue ?? null,
+          status: payment?.chargeStatus ?? 'scheduled',
+          dueDate: payment?.nextBillingDate ?? customer?.nextBillingDate ?? null,
+          issuedDate: customer?.subscriptionStartDate ?? payment?.subscriptionStartDate ?? null,
+        },
+      ].filter((invoice) => invoice.dueDate || invoice.issuedDate),
+    },
+    renewalTimeline: [
       {
-        id: 'primary-invoice',
-        amount: customer?.monthlyRecurringRevenue ?? null,
-        status: customer?.paymentStatusDisplay ?? null,
-        dueDate: customer?.nextBillingDate ?? null,
-        issuedDate: customer?.lastPaymentDate ?? null,
+        id: 'trial-start',
+        label: 'Trial Start',
+        date: payment?.trialStartDate ?? customer?.trialStartDate ?? null,
+        status: payment?.trialStartDate ? 'completed' : 'info',
       },
-    ],
-  },
-  renewalTimeline: [
-    {
-      id: 'contract-start',
-      label: 'Contract Start',
-      date: customer?.subscriptionStartDate ?? null,
-      status: 'completed',
-    },
-    {
-      id: 'next-renewal',
-      label: 'Next Renewal',
-      date: customer?.nextBillingDate ?? customer?.subscriptionEndDate ?? null,
-      status: customer?.subscriptionEndDate ? 'scheduled' : 'projected',
-    },
-    {
-      id: 'tenure',
-      label: 'Tenure',
-      date: customer?.subscriptionStartDate ? `${calculateTenure(customer.subscriptionStartDate)} months` : null,
-      status: 'info',
-    },
-  ],
-  contractLog: (customer?.churnHistory ?? []).map((entry) => ({
-    id: entry.id,
-    date: entry.predictionDate,
-    summary: `Risk score ${entry.riskScore}`,
-    details: entry.riskFactors ? Object.keys(entry.riskFactors).slice(0, 3).join(', ') : null,
-  })),
-});
+      {
+        id: 'trial-end',
+        label: 'Trial End',
+        date: payment?.trialEndDate ?? customer?.trialEndDate ?? null,
+        status: payment?.trialEndDate ? 'completed' : 'info',
+      },
+      {
+        id: 'contract-start',
+        label: 'Contract Start',
+        date: payment?.subscriptionStartDate ?? customer?.subscriptionStartDate ?? null,
+        status: 'completed',
+      },
+      {
+        id: 'next-renewal',
+        label: 'Next Renewal',
+        date: payment?.nextBillingDate ?? customer?.nextBillingDate ?? customer?.subscriptionEndDate ?? null,
+        status: customer?.subscriptionEndDate ? 'scheduled' : 'projected',
+      },
+      {
+        id: 'contract-end',
+        label: 'Contract End',
+        date: payment?.subscriptionEndDate ?? customer?.subscriptionEndDate ?? null,
+        status: payment?.subscriptionEndDate || customer?.subscriptionEndDate ? 'scheduled' : 'info',
+      },
+    ].filter((item) => item.date != null || item.status === 'projected'),
+    contractLog: (customer?.churnHistory ?? []).map((entry) => ({
+      id: entry.id,
+      date: entry.predictionDate,
+      summary: `Risk score ${entry.riskScore}`,
+      details: entry.riskFactors ? Object.keys(entry.riskFactors).slice(0, 3).join(', ') : null,
+    })),
+  };
+};
 
 const buildEngagement = (customer?: CustomerDetailData | null): EngagementData => {
   const activities = collectActivities(customer);
@@ -363,17 +418,22 @@ const buildEngagement = (customer?: CustomerDetailData | null): EngagementData =
   const sessions: EngagementData['sessions'] = [];
   const featureCounts: Record<string, number> = {};
 
+  const engagementTrend = customer?.analytics?.engagementTrends ?? [];
+  engagementTrend.forEach((entry) => {
+    weeklyLoginsMap.set(entry.month, entry.engagement);
+  });
+
   activities.forEach((activity, index) => {
     const type = activity.type?.toLowerCase() ?? '';
-    if (type === 'login') {
+    if (type === 'login' || type === 'session') {
       const key = activity.timestamp ? getWeekKey(activity.timestamp) : `week-${index}`;
       weeklyLoginsMap.set(key, (weeklyLoginsMap.get(key) ?? 0) + 1);
       if (activity.timestamp) {
         sessions.push({
           id: `${activity.timestamp}-${index}`,
           startedAt: activity.timestamp,
-          durationMinutes: null,
-          feature: null,
+          durationMinutes: customer?.engagementOverview?.averageSessionDuration ?? null,
+          feature: activity.description ?? null,
           isAnomaly: /anomaly|error|failed/i.test(activity.description ?? ''),
           notes: activity.description,
         });
@@ -386,11 +446,27 @@ const buildEngagement = (customer?: CustomerDetailData | null): EngagementData =
     }
   });
 
-  const weeklyLogins = Array.from(weeklyLoginsMap.entries())
-    .map(([week, count]) => ({ week, count }))
-    .slice(-12);
+  if (sessions.length === 0 && customer?.engagementOverview?.lastLoginDate) {
+    sessions.push({
+      id: 'last-login',
+      startedAt: customer.engagementOverview.lastLoginDate,
+      durationMinutes: customer.engagementOverview.averageSessionDuration ?? null,
+      feature: 'Product login',
+      isAnomaly: false,
+      notes: 'Latest recorded login',
+    });
+  }
 
-  const topFeatures = Object.entries(featureCounts)
+  const weeklyLogins =
+    weeklyLoginsMap.size > 0
+      ? Array.from(weeklyLoginsMap.entries())
+          .map(([week, count]) => ({ week, count }))
+          .slice(-12)
+      : customer?.weeklyLoginFrequency
+      ? [{ week: 'This week', count: customer.weeklyLoginFrequency }]
+      : [];
+
+  const topFeaturesFromActivities = Object.entries(featureCounts)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 6)
     .map(([name, usageCount], index) => ({
@@ -399,29 +475,44 @@ const buildEngagement = (customer?: CustomerDetailData | null): EngagementData =
       category: index < 3 ? 'Core' : 'Advanced',
     }));
 
+  const featureUsagePercent =
+    customer?.analytics?.keyMetrics?.featureUsagePercent ??
+    customer?.engagementOverview?.featureUsagePercentage ??
+    customer?.featureUsagePercentage ??
+    null;
+
+  const topFeatures =
+    topFeaturesFromActivities.length > 0
+      ? topFeaturesFromActivities
+      : featureUsagePercent != null
+      ? [
+          { name: 'Core adoption', usageCount: Math.round(featureUsagePercent), category: 'core' },
+          { name: 'Advanced adoption', usageCount: Math.round(featureUsagePercent * 0.4), category: 'advanced' },
+        ]
+      : [];
+
   return {
     weeklyLogins,
-    featureUsagePercent: customer?.analytics?.keyMetrics?.featureUsagePercent ?? customer?.featureUsagePercentage ?? null,
+    featureUsagePercent,
     featureCounts,
-    avgSessionDuration: null,
-    lastLogin: customer?.lastLoginDate ?? null,
+    avgSessionDuration: customer?.engagementOverview?.averageSessionDuration ?? null,
+    lastLogin: customer?.engagementOverview?.lastLoginDate ?? customer?.lastLoginDate ?? null,
     sessions: sessions.slice(0, 10),
     topFeatures,
   };
 };
 
 const buildSupport = (customer?: CustomerDetailData | null): SupportData => {
-  const activities = collectActivities(customer).filter((activity) => (activity.type?.toLowerCase() ?? '') === 'support');
   const ticketVolumeMap = new Map<string, { low: number; medium: number; high: number }>();
   const openTickets: SupportData['openTickets'] = [];
   const sentimentTrend: SupportData['sentimentTrend'] = [];
   const escalations: SupportData['escalations'] = [];
 
-  activities.forEach((activity, index) => {
-    const period = activity.timestamp ? activity.timestamp.slice(0, 7) : `period-${index}`;
-    const severity: 'low' | 'medium' | 'high' = /critical|p1|high/i.test(activity.description ?? '')
+  (customer?.supportTimeline ?? []).forEach((event, index) => {
+    const period = event.timestamp ? event.timestamp.slice(0, 7) : `period-${index}`;
+    const severity: 'low' | 'medium' | 'high' = /critical|urgent|high/i.test(event.severity ?? '')
       ? 'high'
-      : /medium|p2/i.test(activity.description ?? '')
+      : /medium/i.test(event.severity ?? '')
       ? 'medium'
       : 'low';
 
@@ -430,36 +521,63 @@ const buildSupport = (customer?: CustomerDetailData | null): SupportData => {
     ticketVolumeMap.set(period, counts);
 
     openTickets.push({
-      id: `${period}-${index}`,
-      subject: activity.description ?? 'Support interaction',
+      id: `${event.type}-${index}`,
+      subject: event.summary ?? 'Support interaction',
       severity,
-      status: 'Open',
-      openedAt: activity.timestamp ?? new Date().toISOString(),
-      lastUpdatedAt: activity.displayTime ?? null,
+      status: event.type === 'closed' ? 'Closed' : 'Open',
+      openedAt: event.timestamp ?? new Date().toISOString(),
+      lastUpdatedAt: event.timestamp ?? null,
       owner: customer?.primarySupportSource ?? null,
       sentiment: null,
     });
 
     sentimentTrend.push({
-      date: activity.timestamp ?? new Date().toISOString(),
-      score: /resolved|positive|satisfied/i.test(activity.description ?? '') ? 0.75 : 0.45,
+      date: event.timestamp ?? new Date().toISOString(),
+      score: event.severity === 'critical' ? 0.3 : event.severity === 'high' ? 0.4 : 0.6,
     });
 
-    if (/escalation/i.test(activity.description ?? '')) {
+    if (event.severity === 'critical' || event.type === 'urgent_tickets') {
       escalations.push({
         id: `esc-${index}`,
-        date: activity.timestamp ?? new Date().toISOString(),
-        summary: activity.description ?? 'Escalation recorded',
-        severity: severity.toUpperCase(),
+        date: event.timestamp ?? new Date().toISOString(),
+        summary: event.summary ?? 'Escalation recorded',
+        severity: event.severity ?? 'high',
       });
     }
   });
 
+  if (openTickets.length === 0 && customer?.supportOverview?.openTickets) {
+    openTickets.push({
+      id: 'open-1',
+      subject: 'Open support tickets',
+      severity: customer.supportOverview.urgentTickets && customer.supportOverview.urgentTickets > 0 ? 'high' : 'medium',
+      status: 'Open',
+      openedAt: customer.supportOverview.lastTicketDate ?? new Date().toISOString(),
+      lastUpdatedAt: customer.supportOverview.lastTicketDate ?? null,
+      owner: customer.primarySupportSource ?? null,
+      sentiment: null,
+    });
+  }
+
+  const ticketVolume =
+    ticketVolumeMap.size > 0
+      ? Array.from(ticketVolumeMap.entries()).map(([period, counts]) => ({ period, ...counts }))
+      : [
+          {
+            period: 'Current',
+            low: Math.max((customer?.supportOverview?.openTickets ?? 0) - (customer?.supportOverview?.urgentTickets ?? 0), 0),
+            medium: 0,
+            high: customer?.supportOverview?.urgentTickets ?? 0,
+          },
+        ];
+
   return {
-    ticketVolume: Array.from(ticketVolumeMap.entries()).map(([period, counts]) => ({ period, ...counts })),
+    ticketVolume,
     slaSuccessRate:
       customer?.supportTicketCount && customer.supportTicketCount > 0
         ? ((customer.supportTicketCount - (customer.openSupportTickets ?? 0)) / customer.supportTicketCount) * 100
+        : customer?.supportOverview?.customerSatisfactionScore
+        ? customer.supportOverview.customerSatisfactionScore * 20
         : null,
     openTickets: openTickets.slice(0, 10),
     sentimentTrend: sentimentTrend.slice(-12),
@@ -468,36 +586,45 @@ const buildSupport = (customer?: CustomerDetailData | null): SupportData => {
 };
 
 const buildMarketing = (customer?: CustomerDetailData | null): MarketingData => {
-  const categories = customer?.dataSources?.categories ?? [];
-  const sourceNames = customer?.dataSources?.sourceNames ?? [];
+  const marketing = customer?.marketingOverview;
+  const campaigns = marketing
+    ? [
+        {
+          id: 'campaign-activity',
+          name: marketing.leadSource ? `${marketing.leadSource} campaigns` : 'Recent campaigns',
+          channel: marketing.utmMedium ?? marketing.utmSource ?? 'Email',
+          influencedRevenue: null,
+          status: marketing.isSubscribed ? 'Active' : 'Paused',
+          lastTouch: marketing.lastCampaignEngagement ?? customer?.lastSyncedAt ?? null,
+        },
+      ]
+    : [];
 
-  const campaigns = sourceNames.map((name, index) => ({
-    id: `campaign-${index}`,
-    name,
-    channel: categories[index] ?? 'General',
-    influencedRevenue: null,
-    status: 'Active',
-    lastTouch: customer?.lastSyncedAt ?? null,
-  }));
-
-  const attribution = categories.map((channel, index) => ({
-    id: `attr-${index}`,
-    channel,
-    percent: categories.length > 0 ? Math.round(100 / categories.length) : 0,
-    revenue: null,
-  }));
+  const attribution = [
+    marketing?.utmSource,
+    marketing?.utmCampaign,
+    marketing?.utmMedium,
+    marketing?.utmContent,
+  ]
+    .filter(Boolean)
+    .map((channel, index, arr) => ({
+      id: `attr-${index}`,
+      channel: channel ?? 'Unknown',
+      percent: arr.length > 0 ? Math.round(100 / arr.length) : 0,
+      revenue: null,
+    }));
 
   return {
     campaigns,
     emailStats: {
-      openRate: null,
-      clickRate: null,
+      openRate: marketing?.averageOpenRate ?? null,
+      clickRate: marketing?.averageClickRate ?? null,
       unsubRate: null,
     },
     lifecycleFunnel: [
-      { stage: 'Awareness', count: 1, conversion: null },
-      { stage: 'Engaged', count: customer?.hasRecentActivity ? 1 : 0, conversion: null },
-      { stage: 'Customer', count: 1, conversion: null },
+      { stage: 'Lead', count: 1, conversion: null },
+      { stage: marketing?.leadSource ?? 'Engaged', count: marketing?.campaignCount ?? 0, conversion: null },
+      { stage: customer?.subscriptionStatusDisplay ?? 'Customer', count: 1, conversion: null },
     ],
     nurtureSequences: [],
     attribution,
@@ -506,6 +633,9 @@ const buildMarketing = (customer?: CustomerDetailData | null): MarketingData => 
 
 const buildDataHealth = (customer?: CustomerDetailData | null): DataHealthData => {
   const completenessByDomain: Array<{ domain: string; score: number }> = [];
+  const syncHistory =
+    (customer as unknown as { syncHistory?: Array<{ source?: string; category?: string; lastSync?: string | null; status?: string | null }> } | null | undefined)
+      ?.syncHistory ?? [];
   if (customer?.completeness) {
     completenessByDomain.push({ domain: 'CRM', score: customer.completeness.crmDataScore });
     completenessByDomain.push({ domain: 'Payment', score: customer.completeness.paymentDataScore });
@@ -515,13 +645,22 @@ const buildDataHealth = (customer?: CustomerDetailData | null): DataHealthData =
     completenessByDomain.push({ domain: 'Historical', score: customer.completeness.historicalDataScore });
   } else if (customer?.qualityMetrics?.completenessScore != null) {
     completenessByDomain.push({ domain: 'Overall', score: customer.qualityMetrics.completenessScore });
+  } else if (customer?.dataHealth?.completenessScore != null) {
+    completenessByDomain.push({ domain: 'Overall', score: customer.dataHealth.completenessScore });
   }
 
-  const lastSyncTimes = (customer?.dataSources?.sources ?? []).map((source, index) => ({
-    source: source.name ?? `Source ${index + 1}`,
-    lastSync: source.lastSync ?? customer?.dataSources?.lastOverallSync ?? null,
-    status: source.syncStatus ?? null,
-  }));
+  const lastSyncTimes =
+    syncHistory.length > 0
+      ? syncHistory.map((sync, index) => ({
+          source: `${sync.source ?? sync.category ?? 'Sync'} ${index + 1}`,
+          lastSync: sync.lastSync ?? customer?.lastSyncedAt ?? null,
+          status: sync.status ?? null,
+        }))
+      : (customer?.dataSources?.sources ?? []).map((source, index) => ({
+          source: source.name ?? `Source ${index + 1}`,
+          lastSync: source.lastSync ?? customer?.dataSources?.lastOverallSync ?? null,
+          status: source.syncStatus ?? null,
+        }));
 
   const importHistory = (customer?.dataSources?.sources ?? []).map((source, index) => ({
     id: source.id ?? `import-${index}`,
@@ -531,11 +670,14 @@ const buildDataHealth = (customer?: CustomerDetailData | null): DataHealthData =
     status: source.syncStatus ?? null,
   }));
 
-  const missingFields = [
-    ...(customer?.qualityMetrics?.missingFields ?? []),
-    ...(customer?.dataQuality?.qualityIssues ?? []),
-    ...(customer?.completeness?.missingDataCategories ?? []),
-  ];
+  const missingFields = Array.from(
+    new Set([
+      ...(customer?.qualityMetrics?.missingFields ?? []),
+      ...(customer?.dataQuality?.qualityIssues ?? []),
+      ...(customer?.completeness?.missingDataCategories ?? []),
+      ...(customer?.dataHealth?.issues?.map((issue) => issue.field) ?? []),
+    ]),
+  );
 
   return {
     completenessByDomain,
@@ -550,12 +692,17 @@ const buildSourcesLogs = (customer?: CustomerDetailData | null): SourcesLogsData
   const anomalies = [
     ...(customer?.dataQuality?.qualityIssues ?? []),
     ...(customer?.qualityMetrics?.recommendedActions ?? []),
+    ...(customer?.dataHealth?.issues?.map((issue) => issue.description) ?? []),
   ].map((summary, index) => ({
     id: `anomaly-${index}`,
     detectedAt: customer?.lastSyncedAt ?? new Date().toISOString(),
     summary,
     severity: 'medium',
   }));
+
+  const syncHistory =
+    (customer as unknown as { syncHistory?: Array<{ source?: string; category?: string; lastSync?: string | null; status?: string | null }> } | null | undefined)
+      ?.syncHistory ?? [];
 
   return {
     sources: sources.map((source, index) => ({
@@ -567,13 +714,22 @@ const buildSourcesLogs = (customer?: CustomerDetailData | null): SourcesLogsData
       lastSync: source.lastSync ?? customer?.dataSources?.lastOverallSync ?? null,
       isPrimary: source.isPrimary ?? false,
     })),
-    syncHistory: sources.map((source, index) => ({
-      id: source.id ?? `sync-${index}`,
-      date: source.lastSync ?? customer?.dataSources?.lastOverallSync ?? new Date().toISOString(),
-      source: source.name,
-      status: source.syncStatus ?? 'unknown',
-      durationSeconds: null,
-    })),
+    syncHistory:
+      syncHistory.length > 0
+        ? syncHistory.map((sync, index) => ({
+            id: `sync-${index}`,
+            date: sync.lastSync ?? customer?.dataSources?.lastOverallSync ?? new Date().toISOString(),
+            source: sync.source ?? sync.category ?? 'Source',
+            status: sync.status ?? 'unknown',
+            durationSeconds: null,
+          }))
+        : sources.map((source, index) => ({
+            id: source.id ?? `sync-${index}`,
+            date: source.lastSync ?? customer?.dataSources?.lastOverallSync ?? new Date().toISOString(),
+            source: source.name,
+            status: source.syncStatus ?? 'unknown',
+            durationSeconds: null,
+          })),
     jobLogs: [],
     anomalies,
   };
@@ -594,24 +750,36 @@ const buildAiInsights = (customer: CustomerDetailData | null | undefined, overvi
 
   const current = customer.churnOverview?.currentPrediction;
   const stored = customer.churnOverview?.storedPrediction;
+  const aiMeta = customer.aiInsights;
 
   const summaryParts: string[] = [];
-  summaryParts.push(`**Risk posture**: ${customer.churnOverview?.currentRiskLevel ?? customer.riskStatus ?? 'Unknown'}.`);
-  if (customer.dataQuality?.recommendedActions?.length) {
+  if (aiMeta?.summary) {
+    summaryParts.push(aiMeta.summary);
+  } else {
+    summaryParts.push(`**Risk posture**: ${customer.churnOverview?.currentRiskLevel ?? customer.riskStatus ?? 'Unknown'}.`);
+  }
+  if (aiMeta?.recommendations?.length) {
+    summaryParts.push(`**AI recommendations**: ${aiMeta.recommendations.join(' • ')}`);
+  } else if (customer.dataQuality?.recommendedActions?.length) {
     summaryParts.push(`**Data quality**: ${customer.dataQuality.recommendedActions.join(', ')}.`);
   }
 
   return {
     summaryMarkdown: summaryParts.join('\n\n'),
-    recommendations: (customer.churnOverview?.recommendations ?? []).map((label, index) => ({
+    recommendations: (aiMeta?.recommendations ?? customer.churnOverview?.recommendations ?? []).map((label, index) => ({
       id: `rec-${index}`,
       label,
     })),
-    aiScore: current?.riskScore ?? customer.churnRiskScore ?? null,
-    aiLevel: typeof current?.riskLevel === 'number' ? current.riskLevel.toString() : customer.churnOverview?.currentRiskLevel?.toString() ?? customer.churnRiskLevel.toString(),
+    aiScore: aiMeta?.aiRiskScore ?? current?.riskScore ?? customer.churnRiskScore ?? null,
+    aiLevel:
+      aiMeta?.aiRiskLevel != null
+        ? aiMeta.aiRiskLevel.toString()
+        : typeof current?.riskLevel === 'number'
+        ? current.riskLevel.toString()
+        : customer.churnOverview?.currentRiskLevel?.toString() ?? customer.churnRiskLevel.toString(),
     baselineScore: stored?.riskScore ?? customer.churnRiskScore ?? null,
-    signature: customer.churnOverview?.modelVersion ?? null,
-    lastRun: customer.churnOverview?.analyzedAt ?? customer.churnPredictionDate ?? null,
+    signature: aiMeta?.modelVersion ?? customer.churnOverview?.modelVersion ?? null,
+    lastRun: aiMeta?.generatedAt ?? customer.churnOverview?.analyzedAt ?? customer.churnPredictionDate ?? null,
   };
 };
 

@@ -1357,6 +1357,103 @@ export interface CustomerDetailData {
   primaryMarketingInfo?: unknown | null;
   primarySupportInfo?: unknown | null;
   primaryEngagementInfo?: unknown | null;
+  paymentOverview?: {
+    subscriptionStatus: number;
+    plan: number;
+    paymentStatus: number;
+    monthlyRecurringRevenue: number;
+    lifetimeValue: number;
+    currentBalance?: number | null;
+    currency?: string | null;
+    invoiceStatus?: string | null;
+    chargeStatus?: string | null;
+    discountCode?: string | null;
+    discountPercentOff?: number | null;
+    discountAmountOff?: number | null;
+    taxExempt?: string | null;
+    paymentCardBrand?: string | null;
+    paymentCardLast4?: string | null;
+    paymentCardExpMonth?: number | null;
+    paymentCardExpYear?: number | null;
+    billingInterval?: string | null;
+    billingIntervalCount?: number | null;
+    subscriptionStartDate?: string | null;
+    subscriptionEndDate?: string | null;
+    trialStartDate?: string | null;
+    trialEndDate?: string | null;
+    lastPaymentDate?: string | null;
+    nextBillingDate?: string | null;
+    paymentFailureCount?: number | null;
+  };
+  supportOverview?: {
+    totalTickets?: number;
+    openTickets?: number;
+    closedTickets?: number;
+    urgentTickets?: number;
+    customerSatisfactionScore?: number;
+    firstTicketDate?: string;
+    lastTicketDate?: string;
+    ticketsByCategory?: unknown;
+  };
+  engagementOverview?: {
+    lastLoginDate?: string;
+    weeklyLoginFrequency?: number;
+    monthlyLoginFrequency?: number;
+    totalSessions?: number;
+    averageSessionDuration?: number;
+    featureUsagePercentage?: number;
+    pageViews?: number;
+    featureFlags?: unknown[];
+    cohorts?: unknown[];
+    lastFeatureUsage?: string;
+  };
+  crmOverview?: {
+    lifecycleStage?: string;
+    leadStatus?: string;
+    salesOwnerName?: string;
+    dealCount?: number;
+    totalDealValue?: number;
+    wonDealValue?: number;
+    pipelineStage?: string;
+    annualRevenue?: number;
+    numberOfEmployees?: number;
+    domain?: string;
+    industry?: string;
+  };
+  marketingOverview?: {
+    isSubscribed?: boolean;
+    averageOpenRate?: number;
+    averageClickRate?: number;
+    campaignCount?: number;
+    lastCampaignEngagement?: string;
+    lastEmailOpenDate?: string;
+    lastEmailClickDate?: string;
+    tags?: string[];
+    lists?: string[];
+    leadSource?: string;
+    utmSource?: string | null;
+    utmCampaign?: string | null;
+    utmMedium?: string | null;
+    utmTerm?: string | null;
+    utmContent?: string | null;
+  };
+  aiInsights?: {
+    summary?: string | null;
+    recommendations?: string[];
+    aiRiskScore?: number;
+    aiRiskLevel?: number | string;
+    generatedAt?: string;
+    modelVersion?: string;
+  };
+  dataHealth?: {
+    completenessScore?: number;
+    freshness?: string;
+    lastSyncedAt?: string;
+    issues?: Array<{ field: string; description: string; severity?: string }>;
+    strengths?: Array<{ field: string; description: string; severity?: string }>;
+  };
+  supportTimeline?: Array<{ timestamp: string; type: string; summary?: string; severity?: string }>;
+  syncHistory?: Array<{ source?: string; category?: string; lastSync?: string | null; status?: string | null; error?: string | null }>;
 }
 
 
