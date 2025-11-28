@@ -1,6 +1,21 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
-import { useGetCustomerById } from '@/features/customers/api/customers';
-import { CustomerDetailData } from '@/types/api';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useGetCustomerChurnHistory,
+  useGetCustomerDataSources,
+  useGetCustomerEngagementHistory,
+  useGetCustomerOverview,
+  useGetCustomerPaymentHistory,
+  useGetCustomerSupportHistory,
+} from '@/features/customers/api/customers';
+import {
+  CustomerChurnHistoryResponse,
+  CustomerDataSourcesResponse,
+  CustomerDetailData,
+  CustomerEngagementHistoryResponse,
+  CustomerOverviewResponse,
+  CustomerPaymentHistoryResponse,
+  CustomerSupportHistoryResponse,
+} from '@/types/api';
 import { formatDate } from '@/utils/customer-helpers';
 import { useCustomerAiInsightsStore } from '@/features/customers/state/customer-ai-insights-store';
 
@@ -193,6 +208,31 @@ interface CustomerProfileContextValue extends CustomerProfileData {
   customerId: string;
   isLoading: boolean;
   error?: unknown;
+  overviewSnapshot?: CustomerOverviewResponse;
+  histories: {
+    payment?: CustomerPaymentHistoryResponse;
+    engagement?: CustomerEngagementHistoryResponse;
+    support?: CustomerSupportHistoryResponse;
+    churn?: CustomerChurnHistoryResponse;
+    dataSources?: CustomerDataSourcesResponse;
+  };
+  loadingStates: {
+    overview: boolean;
+    payment: boolean;
+    engagement: boolean;
+    support: boolean;
+    churn: boolean;
+    dataSources: boolean;
+  };
+  lastUpdated: {
+    overview?: string;
+    payment?: string;
+    engagement?: string;
+    support?: string;
+    churn?: string;
+    dataSources?: string;
+  };
+  requestSection: (section: 'payment' | 'engagement' | 'support' | 'churn' | 'dataSources') => void;
   refetch: () => Promise<unknown>;
 }
 
@@ -226,6 +266,397 @@ const collectActivities = (customer?: CustomerDetailData | null): ActivityEntry[
   }
 
   return customer.recentActivities ?? [];
+};
+
+const riskLevelToNumber = (riskLevel?: string | number | null): number | null => {
+  if (riskLevel == null) return null;
+  if (typeof riskLevel === 'number') return riskLevel;
+
+  const normalized = riskLevel.toLowerCase();
+  if (normalized.includes('critical')) return 90;
+  if (normalized.includes('high')) return 75;
+  if (normalized.includes('medium')) return 50;
+  if (normalized.includes('low')) return 25;
+  return null;
+};
+
+const composeCustomerFromSplit = ({
+  overview,
+  paymentHistory,
+  engagementHistory,
+  supportHistory,
+  churnHistory,
+  dataSources,
+}: {
+  overview?: CustomerOverviewResponse;
+  paymentHistory?: CustomerPaymentHistoryResponse;
+  engagementHistory?: CustomerEngagementHistoryResponse;
+  supportHistory?: CustomerSupportHistoryResponse;
+  churnHistory?: CustomerChurnHistoryResponse;
+  dataSources?: CustomerDataSourcesResponse;
+}): CustomerDetailData | null => {
+  if (!overview) {
+    return null;
+  }
+
+  const fullName = `${overview.firstName ?? ''} ${overview.lastName ?? ''}`.trim() || overview.email;
+  const initials =
+    `${overview.firstName?.[0] ?? ''}${overview.lastName?.[0] ?? ''}`.trim().toUpperCase() ||
+    (overview.email ? overview.email.slice(0, 2).toUpperCase() : '??');
+
+  const paymentTrend = paymentHistory?.trends ?? overview.miniPaymentTrend ?? [];
+  const engagementTrend = engagementHistory?.trends ?? overview.miniEngagementTrend ?? [];
+  const churnHistoryEntries = churnHistory?.history ?? [];
+  const latestChurn = churnHistoryEntries[churnHistoryEntries.length - 1];
+  const paymentFailures = paymentTrend.reduce((total, entry) => total + (entry.paymentFailures ?? 0), 0);
+  const supportLatest = supportHistory?.trends?.[supportHistory.trends.length - 1];
+
+  const supportTimeline =
+    supportHistory?.trends?.map((trend, index) => ({
+      timestamp: trend.lastTicketDate ?? trend.period,
+      type: 'ticket',
+      summary: `${trend.openTickets} open / ${trend.totalTickets} total`,
+      severity: trend.csat != null && trend.csat < 3 ? 'critical' : 'info',
+      id: `support-${index}`,
+    })) ?? [];
+
+  const mappedActivities =
+    overview.recentActivities?.map((activity) => ({
+      timestamp: activity.activityDate,
+      type: activity.type,
+      description: activity.description,
+      displayTime: null,
+    })) ?? [];
+
+  const riskTrend = churnHistoryEntries.map((entry) => ({
+    month: entry.predictionDate,
+    riskScore: entry.riskScore,
+  }));
+
+  const engagementTrends = engagementTrend.map((trend) => ({
+    month: trend.period,
+    engagement: trend.weeklyLogins,
+  }));
+
+  const dataSourceItems =
+    dataSources?.sources?.map((source, index) => {
+      const categories = source.categories ?? (source.category ? [source.category] : []);
+      return {
+        id: source.id ?? `source-${index}`,
+        name: source.name ?? source.source ?? `Source ${index + 1}`,
+        type: source.type ?? (categories.length ? categories.join(', ') : 'Source'),
+        recordCount: undefined,
+        syncStatus: source.syncStatus ?? source.status ?? 'unknown',
+        lastSync: source.lastSync ?? dataSources.lastOverallSync ?? overview.lastSyncedAt ?? null,
+        isPrimary: source.isPrimary ?? false,
+        category: categories[0] ?? undefined,
+        categories,
+      };
+    }) ?? [];
+
+  const dataSourceCategories = Array.from(
+    new Set([
+      ...dataSourceItems
+        .map((item) => item.category)
+        .filter((category): category is string => Boolean(category)),
+      ...((dataSources?.sources ?? []).flatMap((src) => src.categories ?? []) as string[]),
+    ]),
+  );
+
+  const customer: CustomerDetailData = {
+    id: overview.id,
+    firstName: overview.firstName,
+    lastName: overview.lastName,
+    fullName,
+    email: overview.email,
+    phone: overview.phone ?? null,
+    companyName: overview.companyName ?? null,
+    jobTitle: overview.jobTitle ?? null,
+    location: overview.location ?? overview.country ?? null,
+    country: overview.country ?? null,
+    age: overview.age ?? null,
+    gender: overview.gender ?? null,
+    timeZone: null,
+    churnRiskScore: overview.churnRiskScore,
+    churnRiskLevel: riskLevelToNumber(overview.churnRiskLevel) ?? overview.churnRiskScore,
+    churnRiskDisplay: overview.churnRiskLevel,
+    churnRiskStatus: overview.churnRiskLevel,
+    churnPredictionDate: overview.churnPredictionDate ?? undefined,
+    subscriptionStatus: 0,
+    subscriptionStatusDisplay: overview.subscriptionStatus,
+    plan: 0,
+    planDisplay: overview.plan,
+    paymentStatus: 0,
+    paymentStatusDisplay: overview.paymentStatus,
+    paymentMethodType: null,
+    monthlyRecurringRevenue: overview.monthlyRecurringRevenue ?? 0,
+    lifetimeValue: overview.lifetimeValue ?? 0,
+    currentBalance: undefined,
+    currency: 'USD',
+    formattedMRR: undefined,
+    formattedLTV: undefined,
+    formattedBalance: undefined,
+    subscriptionStartDate: overview.dateCreated,
+    subscriptionEndDate: null,
+    trialStartDate: null,
+    trialEndDate: null,
+    lastPaymentDate: overview.lastPaymentDate ?? null,
+    lastPaymentDisplay: overview.lastPaymentDate ?? undefined,
+    nextBillingDate: overview.nextBillingDate ?? null,
+    nextBillingDisplay: overview.nextBillingDate ?? undefined,
+    lastLoginDate: overview.lastLoginDate ?? null,
+    lastLoginDisplay: overview.lastLoginDate ?? undefined,
+    weeklyLoginFrequency: overview.weeklyLoginFrequency ?? undefined,
+    featureUsagePercentage: overview.featureUsagePercentage ?? undefined,
+    engagementSummary: overview.weeklyLoginFrequency != null ? `${overview.weeklyLoginFrequency} logins/wk` : undefined,
+    supportTicketCount: supportLatest?.totalTickets ?? overview.openTickets ?? 0,
+    openSupportTickets: supportLatest?.openTickets ?? overview.openTickets ?? 0,
+    paymentFailureCount: paymentFailures,
+    hasRecentActivity: (overview.recentActivities?.length ?? 0) > 0,
+    hasPaymentIssues: paymentFailures > 0,
+    isTrialCustomer: false,
+    needsAttention: paymentFailures > 0 || (overview.churnRiskScore ?? 0) >= 70,
+    activityStatus: overview.lastLoginDate ? 'Active' : 'Unknown',
+    riskStatus: overview.churnRiskLevel,
+    primaryPaymentSource: overview.primaryPaymentSource ?? null,
+    primaryCrmSource: overview.primaryCrmSource ?? null,
+    primaryMarketingSource: overview.primaryMarketingSource ?? null,
+    primarySupportSource: overview.primarySupportSource ?? null,
+    primaryEngagementSource: overview.primaryEngagementSource ?? null,
+    dateCreated: overview.dateCreated,
+    lastSyncedAt: overview.lastSyncedAt ?? overview.lastPaymentDate ?? overview.dateCreated,
+    tenureDays: undefined,
+    tenureDisplay: undefined,
+    quickMetrics: {
+      totalDataSources: dataSourceItems.length,
+      lastActivityDate: mappedActivities[0]?.timestamp ?? null,
+      lastDataSync: overview.lastSyncedAt ?? null,
+      totalActivities: mappedActivities.length,
+      totalChurnPredictions: churnHistoryEntries.length,
+      hasRecentActivity: (overview.recentActivities?.length ?? 0) > 0,
+      hasMultipleSources: dataSourceItems.length > 1,
+      dataCompletenessScore: dataSourceItems.length > 0 ? 75 : 50,
+      daysSinceLastActivity: undefined,
+      daysSinceLastSync: undefined,
+      activityStatus: overview.lastLoginDate ? 'active' : 'unknown',
+      dataFreshnessStatus: overview.lastSyncedAt ? 'fresh' : 'stale',
+      overallHealthScore: undefined,
+    },
+    qualityMetrics: {
+      completenessScore: dataSourceItems.length > 0 ? 75 : undefined,
+      missingFields: [],
+      recommendedActions: [],
+      dataFreshness: overview.lastSyncedAt ?? undefined,
+    },
+    dataQuality: {
+      qualityIssues: [],
+      recommendedActions: [],
+    },
+    dataSources: dataSourceItems.length
+      ? {
+          totalSources: dataSources?.totalSources ?? dataSourceItems.length,
+          activeSources: dataSourceItems.length,
+          lastOverallSync: dataSources?.lastOverallSync ?? overview.lastSyncedAt ?? undefined,
+          sourceNames: dataSourceItems.map((item) => item.name),
+          hasPaymentData: dataSourceItems.some(
+            (item) =>
+              item.categories?.some((cat) => cat.toLowerCase().includes('pay')) ||
+              item.type?.toLowerCase().includes('pay'),
+          ),
+          hasCrmData: dataSourceItems.some(
+            (item) =>
+              item.categories?.some((cat) => cat.toLowerCase().includes('crm')) ||
+              item.type?.toLowerCase().includes('crm'),
+          ),
+          hasMarketingData: dataSourceItems.some(
+            (item) =>
+              item.categories?.some((cat) => cat.toLowerCase().includes('market')) ||
+              item.type?.toLowerCase().includes('market'),
+          ),
+          hasSupportData: dataSourceItems.some(
+            (item) =>
+              item.categories?.some((cat) => cat.toLowerCase().includes('support')) ||
+              item.type?.toLowerCase().includes('support'),
+          ),
+          hasEngagementData: dataSourceItems.some(
+            (item) =>
+              item.categories?.some((cat) => cat.toLowerCase().includes('engage')) ||
+              item.type?.toLowerCase().includes('engage'),
+          ),
+          sources: dataSourceItems,
+          categories: dataSourceCategories,
+          quality: {
+            dataFreshnessDisplay: dataSources?.lastOverallSync ?? overview.lastSyncedAt ?? undefined,
+          },
+        }
+      : undefined,
+    display: {
+      fullName,
+      tenureDisplay: '',
+      tenureMonths: 0,
+      planName: overview.plan,
+      subscriptionStatusName: overview.subscriptionStatus,
+      paymentStatusName: overview.paymentStatus,
+      riskLevelName: overview.churnRiskLevel,
+      initials,
+    },
+    activity: mappedActivities.length ? { timeline: mappedActivities as any } : undefined,
+    analytics: {
+      churnRiskTrend: riskTrend,
+      engagementTrends,
+      keyMetrics: {
+        featureUsagePercent: overview.featureUsagePercentage ?? undefined,
+      },
+    },
+    churnHistory: churnHistoryEntries.map((entry, index) => ({
+      id: `${overview.id}-churn-${index}`,
+      predictionDate: entry.predictionDate,
+      riskScore: entry.riskScore,
+      riskLevel: riskLevelToNumber(entry.riskLevel) ?? entry.riskScore,
+      riskFactors: entry.riskFactors,
+    })),
+    churnOverview: {
+      currentPrediction: latestChurn
+        ? {
+            id: `${overview.id}-latest-churn`,
+            predictionDate: latestChurn.predictionDate,
+            riskScore: latestChurn.riskScore,
+            riskLevel: riskLevelToNumber(latestChurn.riskLevel) ?? latestChurn.riskScore,
+            riskFactors: latestChurn.riskFactors,
+            modelVersion: latestChurn.modelVersion ?? undefined,
+          }
+        : undefined,
+      storedPrediction: churnHistoryEntries[0]
+        ? {
+            id: `${overview.id}-stored-churn`,
+            predictionDate: churnHistoryEntries[0].predictionDate,
+            riskScore: churnHistoryEntries[0].riskScore,
+            riskLevel: riskLevelToNumber(churnHistoryEntries[0].riskLevel) ?? churnHistoryEntries[0].riskScore,
+            riskFactors: churnHistoryEntries[0].riskFactors,
+            modelVersion: churnHistoryEntries[0].modelVersion ?? undefined,
+          }
+        : undefined,
+      currentRiskLevel: riskLevelToNumber(latestChurn?.riskLevel ?? overview.churnRiskLevel) ?? undefined,
+      modelVersion: latestChurn?.modelVersion ?? undefined,
+      riskFactors: latestChurn?.riskFactors ?? {},
+      recommendations: latestChurn?.recommendations ?? [],
+    },
+    churnSnapshot: null,
+    recentActivities: mappedActivities as any,
+    qualitySummary: undefined,
+    completeness: undefined,
+    riskPeers: [],
+    primaryPaymentInfo: null,
+    primaryCrmInfo: null,
+    primaryMarketingInfo: null,
+    primarySupportInfo: null,
+    primaryEngagementInfo: null,
+    paymentOverview: {
+      subscriptionStatus: 0,
+      plan: 0,
+      paymentStatus: 0,
+      monthlyRecurringRevenue: overview.monthlyRecurringRevenue ?? 0,
+      lifetimeValue: overview.lifetimeValue ?? 0,
+      currentBalance: null,
+      currency: 'USD',
+      invoiceStatus: overview.paymentStatus ?? null,
+      chargeStatus: overview.paymentStatus ?? null,
+      discountCode: null,
+      discountPercentOff: null,
+      discountAmountOff: null,
+      taxExempt: null,
+      paymentCardBrand: null,
+      paymentCardLast4: null,
+      paymentCardExpMonth: null,
+      paymentCardExpYear: null,
+      billingInterval: null,
+      billingIntervalCount: null,
+      subscriptionStartDate: overview.dateCreated,
+      subscriptionEndDate: null,
+      trialStartDate: null,
+      trialEndDate: null,
+      lastPaymentDate: overview.lastPaymentDate ?? null,
+      nextBillingDate: overview.nextBillingDate ?? null,
+      paymentFailureCount: paymentFailures,
+    },
+    supportOverview: {
+      totalTickets: supportLatest?.totalTickets ?? overview.openTickets ?? 0,
+      openTickets: supportLatest?.openTickets ?? overview.openTickets ?? 0,
+      closedTickets: undefined,
+      urgentTickets: undefined,
+      customerSatisfactionScore: supportLatest?.csat ?? overview.customerSatisfactionScore ?? undefined,
+      firstTicketDate: supportHistory?.trends?.[0]?.lastTicketDate ?? undefined,
+      lastTicketDate: supportLatest?.lastTicketDate ?? undefined,
+      ticketsByCategory: undefined,
+    },
+    engagementOverview: {
+      lastLoginDate: overview.lastLoginDate ?? undefined,
+      weeklyLoginFrequency: overview.weeklyLoginFrequency ?? undefined,
+      monthlyLoginFrequency: undefined,
+      totalSessions: undefined,
+      averageSessionDuration: undefined,
+      featureUsagePercentage: overview.featureUsagePercentage ?? undefined,
+      pageViews: undefined,
+      featureFlags: [],
+      cohorts: [],
+      lastFeatureUsage: undefined,
+    },
+    crmOverview: {
+      lifecycleStage: undefined,
+      leadStatus: undefined,
+      salesOwnerName: overview.primaryCrmSource ?? undefined,
+      dealCount: undefined,
+      totalDealValue: undefined,
+      wonDealValue: undefined,
+      pipelineStage: overview.subscriptionStatus ?? undefined,
+      annualRevenue: undefined,
+      numberOfEmployees: undefined,
+      domain: undefined,
+      industry: undefined,
+    },
+    marketingOverview: {
+      isSubscribed: undefined,
+      averageOpenRate: undefined,
+      averageClickRate: undefined,
+      campaignCount: undefined,
+      lastCampaignEngagement: overview.lastSyncedAt ?? undefined,
+      lastEmailOpenDate: undefined,
+      lastEmailClickDate: undefined,
+      tags: [],
+      lists: [],
+      leadSource: overview.primaryMarketingSource ?? undefined,
+      utmSource: undefined,
+      utmCampaign: undefined,
+      utmMedium: undefined,
+      utmTerm: undefined,
+      utmContent: undefined,
+    },
+    aiInsights: {
+      summary: null,
+      recommendations: [],
+      aiRiskScore: latestChurn?.riskScore ?? overview.churnRiskScore ?? undefined,
+      aiRiskLevel: latestChurn?.riskLevel ?? overview.churnRiskLevel ?? undefined,
+      generatedAt: latestChurn?.predictionDate ?? overview.churnPredictionDate ?? undefined,
+      modelVersion: latestChurn?.modelVersion ?? undefined,
+    },
+    dataHealth: {
+      completenessScore: undefined,
+      freshness: overview.lastSyncedAt ?? undefined,
+      lastSyncedAt: overview.lastSyncedAt ?? undefined,
+      issues: [],
+      strengths: [],
+    },
+    supportTimeline,
+    syncHistory: dataSourceItems.map((item) => ({
+      source: item.name,
+      category: item.category ?? item.type,
+      lastSync: item.lastSync ?? overview.lastSyncedAt ?? null,
+      status: item.syncStatus ?? 'unknown',
+      error: null,
+    })),
+  };
+
+  return customer;
 };
 
 const buildRiskTrend = (customer?: CustomerDetailData | null): RiskTrendPoint[] => {
@@ -806,9 +1237,59 @@ const buildCustomerProfile = (customer?: CustomerDetailData | null): CustomerPro
 };
 
 export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = ({ customerId, children }) => {
-  const customerQuery = useGetCustomerById(customerId);
+  const [requestedSections, setRequestedSections] = useState({
+    overview: true,
+    payment: false,
+    engagement: false,
+    support: false,
+    churn: true, // needed for overview risk trend/drivers on initial load
+    dataSources: false,
+  });
 
-  const profile = useMemo(() => buildCustomerProfile(customerQuery.data ?? null), [customerQuery.data]);
+  const requestSection = React.useCallback((section: keyof typeof requestedSections) => {
+    setRequestedSections((prev) => (prev[section] ? prev : { ...prev, [section]: true }));
+  }, []);
+
+  const overviewQuery = useGetCustomerOverview(customerId, {
+    enabled: requestedSections.overview,
+  });
+  const paymentHistoryQuery = useGetCustomerPaymentHistory(customerId, {
+    enabled: requestedSections.payment,
+  });
+  const engagementHistoryQuery = useGetCustomerEngagementHistory(customerId, {
+    enabled: requestedSections.engagement,
+  });
+  const supportHistoryQuery = useGetCustomerSupportHistory(customerId, {
+    enabled: requestedSections.support,
+  });
+  const churnHistoryQuery = useGetCustomerChurnHistory(customerId, {
+    enabled: requestedSections.churn,
+  });
+  const dataSourcesQuery = useGetCustomerDataSources(customerId, {
+    enabled: requestedSections.dataSources,
+  });
+
+  const aggregatedCustomer = useMemo(
+    () =>
+      composeCustomerFromSplit({
+        overview: overviewQuery.data,
+        paymentHistory: paymentHistoryQuery.data,
+        engagementHistory: engagementHistoryQuery.data,
+        supportHistory: supportHistoryQuery.data,
+        churnHistory: churnHistoryQuery.data,
+        dataSources: dataSourcesQuery.data,
+      }),
+    [
+      churnHistoryQuery.data,
+      dataSourcesQuery.data,
+      engagementHistoryQuery.data,
+      overviewQuery.data,
+      paymentHistoryQuery.data,
+      supportHistoryQuery.data,
+    ],
+  );
+
+  const profile = useMemo(() => buildCustomerProfile(aggregatedCustomer ?? null), [aggregatedCustomer]);
 
   const syncInsights = useCustomerAiInsightsStore((state) => state.syncInsights);
   const status = useCustomerAiInsightsStore((state) => state.status);
@@ -816,7 +1297,7 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
   const lastSyncedRef = useRef<string>('');
 
   useEffect(() => {
-    const customer = customerQuery.data;
+    const customer = aggregatedCustomer;
     if (!customer) {
       return;
     }
@@ -851,15 +1332,61 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
     if (customer.churnOverview?.currentRiskLevel != null && status !== 'fresh') {
       setStatus('fresh');
     }
-  }, [customerQuery.data, setStatus, status, syncInsights]);
+  }, [aggregatedCustomer, setStatus, status, syncInsights]);
+
+  const loadingStates = {
+    overview: overviewQuery.isLoading || overviewQuery.isFetching,
+    payment: paymentHistoryQuery.isLoading || paymentHistoryQuery.isFetching,
+    engagement: engagementHistoryQuery.isLoading || engagementHistoryQuery.isFetching,
+    support: supportHistoryQuery.isLoading || supportHistoryQuery.isFetching,
+    churn: churnHistoryQuery.isLoading || churnHistoryQuery.isFetching,
+    dataSources: dataSourcesQuery.isLoading || dataSourcesQuery.isFetching,
+  };
+
+  const lastUpdated = {
+    overview: overviewQuery.dataUpdatedAt ? new Date(overviewQuery.dataUpdatedAt).toISOString() : undefined,
+    payment: paymentHistoryQuery.dataUpdatedAt ? new Date(paymentHistoryQuery.dataUpdatedAt).toISOString() : undefined,
+    engagement: engagementHistoryQuery.dataUpdatedAt ? new Date(engagementHistoryQuery.dataUpdatedAt).toISOString() : undefined,
+    support: supportHistoryQuery.dataUpdatedAt ? new Date(supportHistoryQuery.dataUpdatedAt).toISOString() : undefined,
+    churn: churnHistoryQuery.dataUpdatedAt ? new Date(churnHistoryQuery.dataUpdatedAt).toISOString() : undefined,
+    dataSources: dataSourcesQuery.dataUpdatedAt ? new Date(dataSourcesQuery.dataUpdatedAt).toISOString() : undefined,
+  };
+
+  const refetch = async () => {
+    const tasks: Array<Promise<unknown>> = [overviewQuery.refetch()];
+    if (requestedSections.payment) tasks.push(paymentHistoryQuery.refetch());
+    if (requestedSections.engagement) tasks.push(engagementHistoryQuery.refetch());
+    if (requestedSections.support) tasks.push(supportHistoryQuery.refetch());
+    if (requestedSections.churn) tasks.push(churnHistoryQuery.refetch());
+    if (requestedSections.dataSources) tasks.push(dataSourcesQuery.refetch());
+    const [overviewResult] = (await Promise.all(tasks)) as Array<{ data: unknown }>;
+    return overviewResult.data;
+  };
 
   const value: CustomerProfileContextValue = {
     customerId,
     ...profile,
-    rawCustomer: customerQuery.data ?? undefined,
-    isLoading: customerQuery.isLoading || customerQuery.isFetching,
-    error: customerQuery.error,
-    refetch: () => customerQuery.refetch().then((result) => result.data),
+    rawCustomer: aggregatedCustomer ?? undefined,
+    overviewSnapshot: overviewQuery.data ?? undefined,
+    histories: {
+      payment: paymentHistoryQuery.data,
+      engagement: engagementHistoryQuery.data,
+      support: supportHistoryQuery.data,
+      churn: churnHistoryQuery.data,
+      dataSources: dataSourcesQuery.data,
+    },
+    loadingStates,
+    lastUpdated,
+    requestSection,
+    isLoading: loadingStates.overview && !aggregatedCustomer,
+    error:
+      overviewQuery.error ??
+      paymentHistoryQuery.error ??
+      engagementHistoryQuery.error ??
+      supportHistoryQuery.error ??
+      churnHistoryQuery.error ??
+      dataSourcesQuery.error,
+    refetch,
   };
 
   return <CustomerProfileContext.Provider value={value}>{children}</CustomerProfileContext.Provider>;

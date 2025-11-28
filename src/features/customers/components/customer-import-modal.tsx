@@ -1,6 +1,5 @@
 // src/features/customers/components/customer-import-modal.tsx
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/components/ui/notifications';
 import { useUploadImport } from '@/features/customers/api/import';
 import { useAuthorization } from '@/lib/authorization';
@@ -16,7 +15,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
   onImportStarted 
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [importFile, setImportFile] = useState<File | null>(null);
   const [importJobId, setImportJobId] = useState<string | null>(null);
   const [skipDuplicates, setSkipDuplicates] = useState(false);
   
@@ -48,21 +47,32 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+    const allowedExtensions = ['.csv', '.xlsx', '.xls'];
+    const allowedMimeTypes = [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+
+    const fileName = file.name.toLowerCase();
+    const hasValidExtension = allowedExtensions.some((ext) => fileName.endsWith(ext));
+    const hasValidMime = allowedMimeTypes.includes(file.type);
+
+    if (!hasValidExtension && !hasValidMime) {
       addNotification({
         type: 'error',
         title: 'Invalid file type',
-        message: 'Please select a CSV file'
+        message: 'Please select a CSV or Excel (.xlsx/.xls) file'
       });
       return;
     }
 
-    setCsvFile(file);
+    setImportFile(file);
     setCurrentStep(2);
   };
 
   const handleUpload = async () => {
-    if (!csvFile) {
+    if (!importFile) {
       addNotification({
         type: 'error',
         title: 'No file selected',
@@ -73,7 +83,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
 
     try {
       const formData = new FormData();
-      formData.append('file', csvFile);
+      formData.append('file', importFile);
       formData.append('importMode', 'pulse-template');
       formData.append('skipDuplicates', skipDuplicates.toString());
 
@@ -120,25 +130,25 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-text-primary mb-2">Upload CSV File</h2>
-              <p className="text-text-muted">Select your customer export using the Pulse template</p>
+              <h2 className="text-2xl font-bold text-text-primary mb-2">Upload Customer File</h2>
+              <p className="text-text-muted">Select your customer export in CSV or Excel format using the Pulse template</p>
             </div>
 
             <div className="border-2 border-dashed border-border-primary/50 rounded-2xl p-8 text-center hover:border-accent-primary/50 transition-colors">
               <input
                 type="file"
-                accept=".csv"
+                accept=".csv,.xlsx,.xls"
                 onChange={handleFileSelect}
                 className="hidden"
-                id="csv-upload"
+                id="customer-file-upload"
               />
-              <label htmlFor="csv-upload" className="cursor-pointer">
+              <label htmlFor="customer-file-upload" className="cursor-pointer">
                 <div className="w-16 h-16 bg-gradient-to-br from-surface-secondary/50 to-surface-secondary rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-text-primary mb-2">Choose CSV file</h3>
+                <h3 className="text-lg font-semibold text-text-primary mb-2">Choose file (CSV or Excel)</h3>
                 <p className="text-text-muted mb-4">or drag and drop here</p>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-primary/10 text-accent-primary rounded-lg">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,10 +163,10 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                   onClick={downloadTemplate}
                   className="text-sm text-accent-primary hover:text-accent-secondary transition-colors"
                 >
-                  Download customer CSV template
+                  Download customer template (CSV)
                 </button>
                 <p className="text-xs text-text-muted">
-                  One template covers every import. Grab it here if you need a fresh copy.
+                  Works in Excel, Sheets, or Numbers—just keep the columns as-is.
                 </p>
               </div>
             </div>
@@ -176,7 +186,7 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
               <p className="text-text-muted">Review your file and choose upload options</p>
             </div>
 
-            {csvFile && (
+            {importFile && (
               <div className="bg-surface-secondary/30 rounded-2xl p-4 border border-border-primary/30">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-accent-primary/20 to-accent-secondary/20 rounded-full flex items-center justify-center">
@@ -185,8 +195,8 @@ export const CustomerImportModal: React.FC<CustomerImportModalProps> = ({
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-text-primary">${csvFile.name}</h3>
-                    <p className="text-sm text-text-muted">${(csvFile.size / 1024).toFixed(1)} KB</p>
+                    <h3 className="font-semibold text-text-primary">{importFile.name}</h3>
+                    <p className="text-sm text-text-muted">{(importFile.size / 1024).toFixed(1)} KB</p>
                   </div>
                 </div>
               </div>

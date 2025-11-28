@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { useCustomerProfile } from './customer-profile-context';
 import { useCustomerAiInsightsStore } from '@/features/customers/state/customer-ai-insights-store';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
@@ -124,8 +123,49 @@ export const CustomerOverviewTab: React.FC = () => {
 
   const canEditCustomers = checkCompanyPolicy('customers:write');
 
+  const renderQuickActionButtons = () => (
+    <div className="bg-surface-primary/90 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-lg">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <h3 className="text-lg font-semibold text-text-primary">Quick Actions</h3>
+        <span className="text-xs text-text-secondary">Jump straight to the common workflows.</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {quickActions.map((action) => {
+          const button = (
+            <button
+              key={action.id}
+              onClick={action.onClick}
+              className="group relative w-full px-4 py-3 rounded-xl text-left bg-gradient-to-r from-accent-primary to-accent-secondary text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="space-y-1">
+                  <div className="font-semibold">{action.title}</div>
+                  <div className="text-xs text-white/80">{action.description}</div>
+                </div>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15 text-white group-hover:bg-white/20 transition">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            </button>
+          );
+
+          if (!action.restricted) return button;
+
+          return (
+            <CompanyAuthorization key={action.id} policyCheck={canEditCustomers} forbiddenFallback={null}>
+              {button}
+            </CompanyAuthorization>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+      {renderQuickActionButtons()}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         <div className="xl:col-span-2 bg-surface-secondary/40 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 space-y-6 shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -275,39 +315,7 @@ export const CustomerOverviewTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-surface-secondary/40 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg space-y-4">
-            <h3 className="text-lg font-semibold text-text-primary">Quick Actions</h3>
-            <div className="space-y-3">
-              {quickActions.map((action) => {
-                const actionButton = (
-                  <Button
-                    key={action.id}
-                    variant="outline"
-                    className="w-full justify-between border-border-primary/50 bg-gradient-to-r from-surface-primary/85 to-surface-secondary/70 hover:from-accent-primary/10 hover:to-accent-secondary/10 hover:border-accent-primary/60 hover:text-accent-primary shadow-sm transition-colors"
-                    onClick={action.onClick}
-                  >
-                    <div className="flex flex-col text-left">
-                      <span className="font-semibold">{action.title}</span>
-                      <span className="text-xs text-text-secondary/80">{action.description}</span>
-                    </div>
-                    <svg className="w-4 h-4 text-current opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Button>
-                );
-
-                if (!action.restricted) {
-                  return actionButton;
-                }
-
-                return (
-                  <CompanyAuthorization key={action.id} policyCheck={canEditCustomers} forbiddenFallback={null}>
-                    {actionButton}
-                  </CompanyAuthorization>
-                );
-              })}
-            </div>
-          </div>
+          {/* Quick actions moved to top */}
         </div>
       </div>
 

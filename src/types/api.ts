@@ -1464,6 +1464,121 @@ export interface CustomerDetailData {
 }
 
 
+// New customer detail endpoints (split API)
+export interface CustomerMiniPaymentTrendEntry {
+  period: string;
+  mrr: number;
+  subscriptionStatus: string;
+  paymentStatus: string;
+  paymentFailures: number;
+}
+
+export interface CustomerMiniEngagementTrendEntry {
+  period: string;
+  weeklyLogins: number;
+  featureUsagePercentage: number;
+  lastLoginDate: string;
+}
+
+export interface CustomerOverviewResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  companyName?: string | null;
+  jobTitle?: string | null;
+  location?: string | null;
+  country?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  dateCreated: string;
+  lastSyncedAt?: string | null;
+  churnRiskScore: number;
+  churnRiskLevel: string;
+  churnPredictionDate?: string | null;
+  subscriptionStatus: string;
+  plan: string;
+  paymentStatus: string;
+  monthlyRecurringRevenue?: number | null;
+  lifetimeValue?: number | null;
+  nextBillingDate?: string | null;
+  lastPaymentDate?: string | null;
+  lastLoginDate?: string | null;
+  weeklyLoginFrequency?: number | null;
+  featureUsagePercentage?: number | null;
+  openTickets?: number | null;
+  customerSatisfactionScore?: number | null;
+  primaryCrmSource?: string | null;
+  primaryPaymentSource?: string | null;
+  primaryMarketingSource?: string | null;
+  primarySupportSource?: string | null;
+  primaryEngagementSource?: string | null;
+  recentActivities?: Array<{
+    id: string;
+    type: string;
+    description: string;
+    metadata?: unknown;
+    activityDate: string;
+  }>;
+  miniPaymentTrend: CustomerMiniPaymentTrendEntry[];
+  miniEngagementTrend: CustomerMiniEngagementTrendEntry[];
+}
+
+export interface CustomerPaymentTrendEntry extends CustomerMiniPaymentTrendEntry {}
+export interface CustomerPaymentHistoryResponse {
+  trends: CustomerPaymentTrendEntry[];
+}
+
+export interface CustomerEngagementTrendEntry extends CustomerMiniEngagementTrendEntry {}
+export interface CustomerEngagementHistoryResponse {
+  trends: CustomerEngagementTrendEntry[];
+}
+
+export interface CustomerSupportTrendEntry {
+  period: string;
+  openTickets: number;
+  totalTickets: number;
+  csat?: number | null;
+  lastTicketDate?: string | null;
+}
+
+export interface CustomerSupportHistoryResponse {
+  trends: CustomerSupportTrendEntry[];
+}
+
+export interface CustomerChurnHistoryEntry {
+  predictionDate: string;
+  riskScore: number;
+  riskLevel: string;
+  recommendations: string[];
+  riskFactors: Record<string, number>;
+  modelVersion?: string | null;
+}
+
+export interface CustomerChurnHistoryResponse {
+  history: CustomerChurnHistoryEntry[];
+}
+
+export interface CustomerDataSourceEntry {
+  id?: string;
+  name?: string;
+  source?: string;
+  category?: string | null;
+  categories?: string[] | null;
+  type?: string | null;
+  lastSync?: string | null;
+  isPrimary?: boolean;
+  status?: string | null;
+  syncStatus?: string | null;
+}
+
+export interface CustomerDataSourcesResponse {
+  totalSources?: number;
+  lastOverallSync?: string | null;
+  sources: CustomerDataSourceEntry[];
+}
+
 export interface CategoryScores {
   coreProfile: number;
   paymentData: number;

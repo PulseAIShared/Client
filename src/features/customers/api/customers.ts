@@ -7,7 +7,13 @@ import {
   CustomersQueryParams,
   transformCustomerData,
   CustomerDisplayData,
-  CustomerDetailData
+  CustomerDetailData,
+  CustomerOverviewResponse,
+  CustomerPaymentHistoryResponse,
+  CustomerEngagementHistoryResponse,
+  CustomerSupportHistoryResponse,
+  CustomerChurnHistoryResponse,
+  CustomerDataSourcesResponse
 } from '@/types/api';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 
@@ -91,6 +97,127 @@ export const getCustomerByIdQueryOptions = (customerId: string) => {
 export const useGetCustomerById = (customerId: string, queryConfig?: QueryConfig<typeof getCustomerByIdQueryOptions>) => {
   return useQuery({
     ...getCustomerByIdQueryOptions(customerId),
+    ...queryConfig,
+  });
+};
+
+// New split endpoints
+export const getCustomerOverview = async (customerId: string): Promise<CustomerOverviewResponse> => {
+  return api.get(`/customers/${customerId}/overview`);
+};
+
+export const getCustomerOverviewQueryOptions = (customerId: string) => ({
+  queryKey: ['customers', customerId, 'overview'],
+  queryFn: () => getCustomerOverview(customerId),
+  enabled: !!customerId,
+});
+
+export const useGetCustomerOverview = (
+  customerId: string,
+  queryConfig?: QueryConfig<typeof getCustomerOverviewQueryOptions>,
+) => {
+  return useQuery({
+    ...getCustomerOverviewQueryOptions(customerId),
+    ...queryConfig,
+  });
+};
+
+export const getCustomerPaymentHistory = async (customerId: string): Promise<CustomerPaymentHistoryResponse> => {
+  return api.get(`/customers/${customerId}/payment/history`);
+};
+
+export const getCustomerPaymentHistoryQueryOptions = (customerId: string) => ({
+  queryKey: ['customers', customerId, 'payment-history'],
+  queryFn: () => getCustomerPaymentHistory(customerId),
+  enabled: !!customerId,
+});
+
+export const useGetCustomerPaymentHistory = (
+  customerId: string,
+  queryConfig?: QueryConfig<typeof getCustomerPaymentHistoryQueryOptions>,
+) => {
+  return useQuery({
+    ...getCustomerPaymentHistoryQueryOptions(customerId),
+    ...queryConfig,
+  });
+};
+
+export const getCustomerEngagementHistory = async (customerId: string): Promise<CustomerEngagementHistoryResponse> => {
+  return api.get(`/customers/${customerId}/engagement/history`);
+};
+
+export const getCustomerEngagementHistoryQueryOptions = (customerId: string) => ({
+  queryKey: ['customers', customerId, 'engagement-history'],
+  queryFn: () => getCustomerEngagementHistory(customerId),
+  enabled: !!customerId,
+});
+
+export const useGetCustomerEngagementHistory = (
+  customerId: string,
+  queryConfig?: QueryConfig<typeof getCustomerEngagementHistoryQueryOptions>,
+) => {
+  return useQuery({
+    ...getCustomerEngagementHistoryQueryOptions(customerId),
+    ...queryConfig,
+  });
+};
+
+export const getCustomerSupportHistory = async (customerId: string): Promise<CustomerSupportHistoryResponse> => {
+  return api.get(`/customers/${customerId}/support/history`);
+};
+
+export const getCustomerSupportHistoryQueryOptions = (customerId: string) => ({
+  queryKey: ['customers', customerId, 'support-history'],
+  queryFn: () => getCustomerSupportHistory(customerId),
+  enabled: !!customerId,
+});
+
+export const useGetCustomerSupportHistory = (
+  customerId: string,
+  queryConfig?: QueryConfig<typeof getCustomerSupportHistoryQueryOptions>,
+) => {
+  return useQuery({
+    ...getCustomerSupportHistoryQueryOptions(customerId),
+    ...queryConfig,
+  });
+};
+
+export const getCustomerChurnHistory = async (customerId: string): Promise<CustomerChurnHistoryResponse> => {
+  return api.get(`/customers/${customerId}/churn/history`);
+};
+
+export const getCustomerChurnHistoryQueryOptions = (customerId: string) => ({
+  queryKey: ['customers', customerId, 'churn-history'],
+  queryFn: () => getCustomerChurnHistory(customerId),
+  enabled: !!customerId,
+});
+
+export const useGetCustomerChurnHistory = (
+  customerId: string,
+  queryConfig?: QueryConfig<typeof getCustomerChurnHistoryQueryOptions>,
+) => {
+  return useQuery({
+    ...getCustomerChurnHistoryQueryOptions(customerId),
+    ...queryConfig,
+  });
+};
+
+export const getCustomerDataSources = async (customerId: string): Promise<CustomerDataSourcesResponse> => {
+  return api.get(`/customers/${customerId}/data-sources`);
+};
+
+export const getCustomerDataSourcesQueryOptions = (customerId: string) => ({
+  queryKey: ['customers', customerId, 'data-sources'],
+  queryFn: () => getCustomerDataSources(customerId),
+  enabled: !!customerId,
+});
+
+export const useGetCustomerDataSources = (
+  customerId: string,
+  queryConfig?: QueryConfig<typeof getCustomerDataSourcesQueryOptions>,
+) => {
+  return useQuery({
+    ...getCustomerDataSourcesQueryOptions(customerId),
     ...queryConfig,
   });
 };
