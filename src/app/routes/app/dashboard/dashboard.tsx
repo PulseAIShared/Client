@@ -69,7 +69,7 @@ export const DashboardRoute = () => {
     return (
       <ContentLayout>
         <div className="space-y-8">
-          <DashboardHeader />
+          <DashboardHeader stats={dashboardData?.stats} />
           <GettingStarted />
         </div>
       </ContentLayout>

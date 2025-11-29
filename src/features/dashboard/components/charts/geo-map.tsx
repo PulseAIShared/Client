@@ -90,9 +90,9 @@ export const GeoMap: React.FC<GeoMapProps> = ({ data, isLoading, error }) => {
         <ComposableMap projectionConfig={{ scale: 180 }} style={{ width: '100%', height: 360 }}>
           <ZoomableGroup zoom={1.4} center={[10, 20]}>
             <Geographies geography={WORLD_TOPO_JSON}>
-              {({ geographies }) => (
+            {({ geographies }: { geographies: any[] }) => (
                 <>
-                  {geographies.map((geo) => {
+                  {geographies.map((geo: any) => {
                     const name = (geo.properties as { name: string }).name;
                     const countryData = dataByCountry.get(name.toLowerCase());
                     const fill = getFill(name);
@@ -121,7 +121,7 @@ export const GeoMap: React.FC<GeoMapProps> = ({ data, isLoading, error }) => {
                     );
                   })}
 
-                  {geographies.map((geo) => {
+                  {geographies.map((geo: any) => {
                     const name = (geo.properties as { name: string }).name;
                     const countryData = dataByCountry.get(name.toLowerCase());
                     if (!countryData) return null;

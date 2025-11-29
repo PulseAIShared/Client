@@ -113,6 +113,13 @@ export interface DashboardStats {
   activeUsers7?: string;
   activeUsers14?: string;
   activeUsers30?: string;
+  totalUsersChange?: string;
+  churnRiskChange?: string;
+  avgLtvChange?: string;
+  monthlyRecurringRevenueChange?: string;
+  revenueSavedChange?: string;
+  recoveredRevenueChange?: string;
+  activationRateChange?: string;
 }
 
 /**

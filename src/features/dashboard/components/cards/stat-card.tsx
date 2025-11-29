@@ -52,6 +52,7 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
       hint: 'Active customers in Pulse',
       color: 'text-text-primary',
       bgGradient: 'from-surface-primary to-surface-secondary',
+      trend: stats.totalUsersChange,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
@@ -64,6 +65,7 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
       hint: 'Total monthly recurring revenue',
       color: 'text-accent-primary',
       bgGradient: 'from-accent-primary/10 to-accent-secondary/10',
+      trend: stats.monthlyRecurringRevenueChange,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -76,6 +78,7 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
       hint: 'Recovered + prevented churn',
       color: 'text-success-muted',
       bgGradient: 'from-success-bg/30 to-success/20',
+      trend: stats.revenueSavedChange ?? stats.recoveredRevenueChange,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -88,6 +91,7 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
       hint: 'Average lifetime value',
       color: 'text-warning-muted',
       bgGradient: 'from-warning-bg/30 to-warning/20',
+      trend: stats.avgLtvChange,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -100,6 +104,7 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
       hint: 'Blended risk across customers',
       color: 'text-info-muted',
       bgGradient: 'from-info-bg/30 to-accent-primary/20',
+      trend: stats.churnRiskChange,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3v18h18" />
@@ -112,6 +117,7 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
       hint: 'Users meeting healthy usage',
       color: 'text-success-muted',
       bgGradient: 'from-success-bg/20 to-accent-primary/10',
+      trend: stats.activationRateChange,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -144,7 +150,9 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
                 <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                <span>+5.2%</span>
+                <span className="truncate max-w-[60px]">
+                  {stat.trend ?? '0%'}
+                </span>
               </div>
             </div>
             

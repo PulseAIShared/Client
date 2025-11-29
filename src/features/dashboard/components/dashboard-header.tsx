@@ -2,14 +2,21 @@
 import { useUser } from '@/lib/auth';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DashboardStats } from '@/types/api';
 
-export const DashboardHeader = () => {
+type Props = {
+  stats?: DashboardStats;
+};
+
+export const DashboardHeader: React.FC<Props> = ({ stats }) => {
   const user = useUser();
   const navigate = useNavigate();
-  
+
+  const retention = stats?.activationRate ?? '0%';
+  const churn = stats?.churnRisk ?? '0%';
+
   return (
     <div className="relative group">
-      {/* Enhanced background gradient effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/5 via-accent-secondary/5 to-accent-primary/5 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
       
       <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
@@ -24,33 +31,31 @@ export const DashboardHeader = () => {
             </p>
           </div>
           
-          {/* Enhanced Quick Stats */}
+          {/* Quick Stats from live data */}
           <div className="lg:hidden grid grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-success-bg/50 to-success/20 p-4 rounded-xl border border-success/20 text-center">
-              <div className="text-xl sm:text-2xl font-bold text-success-muted">+12.5%</div>
-              <div className="text-xs text-text-muted">vs last month</div>
+            <div className="bg-surface-secondary/60 p-4 rounded-xl border border-border-primary/30 text-center">
+              <div className="text-xl sm:text-2xl font-bold text-accent-primary">{retention}</div>
+              <div className="text-xs text-text-muted">Activation rate</div>
             </div>
-            <div className="bg-gradient-to-br from-accent-primary/20 to-accent-secondary/20 p-4 rounded-xl border border-accent-primary/20 text-center">
-              <div className="text-xl sm:text-2xl font-bold text-accent-primary">94.2%</div>
-              <div className="text-xs text-text-muted">retention rate</div>
+            <div className="bg-surface-secondary/60 p-4 rounded-xl border border-border-primary/30 text-center">
+              <div className="text-xl sm:text-2xl font-bold text-info-muted">{churn}</div>
+              <div className="text-xs text-text-muted">Churn risk</div>
             </div>
           </div>
           
-          {/* Desktop Quick Stats */}
           <div className="hidden lg:flex items-center gap-6">
             <div className="text-right">
-              <div className="text-3xl font-bold text-success-muted">+12.5%</div>
-              <div className="text-sm text-text-muted">vs last month</div>
+              <div className="text-3xl font-bold text-accent-primary">{retention}</div>
+              <div className="text-sm text-text-muted">Activation rate</div>
             </div>
             <div className="w-px h-12 bg-border-primary/50"></div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-accent-primary">94.2%</div>
-              <div className="text-sm text-text-muted">retention rate</div>
+              <div className="text-3xl font-bold text-info-muted">{churn}</div>
+              <div className="text-sm text-text-muted">Churn risk</div>
             </div>
           </div>
         </div>
         
-        {/* Enhanced Quick action buttons */}
         <div className="mt-6 sm:mt-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <button 
@@ -65,19 +70,6 @@ export const DashboardHeader = () => {
               <span className="relative sm:hidden">Analyze</span>
             </button>
             <button 
-              onClick={() => {
-                // TODO: Add export functionality
-                console.log('Export Report clicked');
-              }}
-              className="group w-full px-4 py-3 bg-surface-secondary/50 text-text-primary rounded-xl hover:bg-surface-primary/50 transition-all duration-200 font-medium text-sm border border-border-primary/50 flex items-center justify-center gap-2 hover:shadow-md hover:border-border-secondary"
-            >
-              <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="hidden sm:inline">Export Report</span>
-              <span className="sm:hidden">Export</span>
-            </button>
-            <button 
               onClick={() => navigate('/app/campaigns')}
               className="group w-full px-4 py-3 bg-surface-secondary/50 text-text-primary rounded-xl hover:bg-surface-primary/50 transition-all duration-200 font-medium text-sm border border-border-primary/50 flex items-center justify-center gap-2 hover:shadow-md hover:border-border-secondary"
             >
@@ -86,6 +78,16 @@ export const DashboardHeader = () => {
               </svg>
               <span className="hidden sm:inline">Schedule Campaign</span>
               <span className="sm:hidden">Schedule</span>
+            </button>
+            <button 
+              onClick={() => navigate('/app/customers')}
+              className="group w-full px-4 py-3 bg-surface-secondary/50 text-text-primary rounded-xl hover:bg-surface-primary/50 transition-all duration-200 font-medium text-sm border border-border-primary/50 flex items-center justify-center gap-2 hover:shadow-md hover:border-border-secondary"
+            >
+              <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="hidden sm:inline">Add Customers</span>
+              <span className="sm:hidden">Add</span>
             </button>
           </div>
         </div>

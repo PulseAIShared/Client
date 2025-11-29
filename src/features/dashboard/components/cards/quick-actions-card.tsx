@@ -40,7 +40,7 @@ export const QuickActionsCard = () => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold text-text-primary">Ready to take action?</h3>
-          <p className="text-sm text-text-muted">12 at-risk customers • 3 quick wins queued</p>
+          <p className="text-sm text-text-muted">Launch a campaign, export insights, or schedule a review.</p>
         </div>
         <div className="flex flex-wrap gap-2 sm:gap-3 justify-start lg:justify-end">
           <button
