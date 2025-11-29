@@ -1,15 +1,31 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 import { useGetImportJobDetail } from '@/features/customers/api/import';
+import { getStageRank, ImportJobResponse, ImportProcessingStage } from '@/types/api';
 
 export const ImportDetailRoute = () => {
   const { importJobId } = useParams<{ importJobId: string }>();
   const navigate = useNavigate();
   const { data: importJob, isLoading, error } = useGetImportJobDetail(importJobId!);
+  const [highestStageLocal, setHighestStageLocal] = useState<ImportProcessingStage | undefined>(undefined);
+
+  useEffect(() => {
+    if (!importJob) return;
+    const candidate = pickHighestStage([
+      importJob.stage as ImportProcessingStage | undefined,
+      importJob.highestStageReached as ImportProcessingStage | undefined,
+      statusToStage(importJob.status),
+    ]);
+    setHighestStageLocal((prev) => {
+      if (!candidate) return prev;
+      if (!prev) return candidate;
+      return getStageRank(candidate) > getStageRank(prev) ? candidate : prev;
+    });
+  }, [importJob]);
 
   if (isLoading) {
     return (
@@ -120,6 +136,33 @@ export const ImportDetailRoute = () => {
     });
   };
 
+  const statusToStage = (status: ImportJobResponse['status']): ImportProcessingStage | undefined => {
+    switch (status) {
+      case 'Pending':
+        return 'Queued';
+      case 'Validating':
+        return 'Validating';
+      case 'Processing':
+        return 'Started';
+      case 'Completed':
+        return 'Completed';
+      case 'Failed':
+        return 'Failed';
+      case 'Cancelled':
+        return 'Cancelled';
+      default:
+        return undefined;
+    }
+  };
+
+  const pickHighestStage = (stages: (ImportProcessingStage | undefined)[]) => {
+    return stages.reduce<ImportProcessingStage | undefined>((highest, candidate) => {
+      if (!candidate) return highest;
+      if (!highest) return candidate;
+      return getStageRank(candidate) > getStageRank(highest) ? candidate : highest;
+    }, undefined);
+  };
+
   const formatDuration = (startDate?: string, endDate?: string) => {
     if (!startDate || !endDate) return 'N/A';
     
@@ -135,6 +178,95 @@ export const ImportDetailRoute = () => {
     if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
     return `${seconds}s`;
   };
+
+  const stageDisplayOrder: ImportProcessingStage[] = [
+    'Queued',
+    'Started',
+    'Validating',
+    'Ingesting',
+    'Aggregating',
+    'Summary',
+    'Completed',
+    'Failed',
+    'Cancelled',
+  ];
+
+  const currentStage = pickHighestStage([
+    importJob.stage as ImportProcessingStage | undefined,
+    importJob.highestStageReached as ImportProcessingStage | undefined,
+    highestStageLocal,
+    statusToStage(importJob.status),
+  ]);
+
+  const highestStageForSteps = pickHighestStage([
+    currentStage,
+    importJob.highestStageReached as ImportProcessingStage | undefined,
+    highestStageLocal,
+    statusToStage(importJob.status),
+  ]);
+
+  const progressValue = Math.max(0, Math.min(100, Math.round(importJob.progressPercentage ?? 0)));
+  const isTerminal = ['Completed', 'Failed', 'Cancelled'].includes(importJob.status);
+
+  const getBatchInfo = (stage?: ImportProcessingStage) => {
+    if (stage !== 'Aggregating' && stage !== 'Ingesting') return undefined;
+    const batchNumber = importJob.currentBatch;
+    const totalBatches = importJob.totalBatches;
+    const processed = importJob.batchProcessed;
+    const batchSize = importJob.batchSize;
+
+    if (batchNumber && totalBatches) {
+      const counts =
+        typeof processed === 'number' && typeof batchSize === 'number'
+          ? ` (${processed}/${batchSize})`
+          : '';
+      return `Batch ${batchNumber}/${totalBatches}${counts}`;
+    }
+    return undefined;
+  };
+
+  const getStageDetail = (stage?: ImportProcessingStage) => {
+    const baseDetail = importJob.stageDetail || importJob.message;
+    const processedText =
+      importJob.totalRecords > 0
+        ? `${importJob.processedRecords.toLocaleString()}/${importJob.totalRecords.toLocaleString()}`
+        : `${importJob.processedRecords.toLocaleString()}`;
+    const batchInfo = getBatchInfo(stage);
+
+    switch (stage) {
+      case 'Queued':
+        return baseDetail || 'Waiting to start...';
+      case 'Started':
+        return baseDetail || 'Preparing import and reading file...';
+      case 'Validating':
+        return baseDetail || 'Validating file and mapping columns...';
+      case 'Ingesting': {
+        const detail = baseDetail || 'Ingesting rows from the uploaded file...';
+        return batchInfo ? `${detail} - ${batchInfo}` : detail;
+      }
+      case 'Aggregating': {
+        const detail = baseDetail || 'Aggregating customers';
+        const aggregateText = `${detail} (${processedText})`;
+        return batchInfo ? `${aggregateText} - ${batchInfo}` : aggregateText;
+      }
+      case 'Summary':
+        return baseDetail || 'Generating import summary...';
+      case 'Completed':
+        return baseDetail || 'Import completed';
+      case 'Failed':
+        return (
+          baseDetail ||
+          (importJob.errorMessage ? `Import failed: ${importJob.errorMessage}` : 'Import failed')
+        );
+      case 'Cancelled':
+        return baseDetail || 'Import was cancelled';
+      default:
+        return baseDetail || 'Processing import...';
+    }
+  };
+
+  const stageDetailText = getStageDetail(currentStage);
+  const stageLabel = currentStage ?? statusToStage(importJob.status) ?? 'Processing';
 
   return (
     <ContentLayout>
@@ -264,13 +396,30 @@ export const ImportDetailRoute = () => {
         {/* Enhanced Progress Bar */}
         <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl sm:text-2xl font-semibold text-text-primary">Progress</h3>
-            <span className="text-2xl sm:text-3xl font-bold text-accent-primary">{Math.round(importJob.progressPercentage)}%</span>
+            <div className="space-y-1">
+              <h3 className="text-xl sm:text-2xl font-semibold text-text-primary">Progress</h3>
+              <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+                <span className="inline-flex items-center rounded-full bg-accent-primary/10 text-accent-primary px-3 py-1 border border-accent-primary/20">
+                  {!isTerminal ? (
+                    <svg className="w-4 h-4 mr-1 animate-spin text-accent-primary" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                  ) : null}
+                  {stageLabel}
+                </span>
+                <span className="text-text-secondary">{stageDetailText}</span>
+              </div>
+              {(currentStage === 'Aggregating' || currentStage === 'Ingesting') && getBatchInfo(currentStage) && (
+                <div className="text-xs text-text-muted">{getBatchInfo(currentStage)}</div>
+              )}
+            </div>
+            <span className="text-2xl sm:text-3xl font-bold text-accent-primary">{progressValue}%</span>
           </div>
           <div className="w-full bg-surface-secondary/50 rounded-full h-4 sm:h-6 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-accent-primary to-accent-secondary h-4 sm:h-6 rounded-full transition-all duration-1000 ease-out shadow-lg"
-              style={{ width: `${importJob.progressPercentage}%` }}
+              style={{ width: `${progressValue}%` }}
             />
           </div>
           <div className="flex items-center justify-between mt-2 text-sm text-text-muted">
@@ -278,11 +427,60 @@ export const ImportDetailRoute = () => {
               {importJob.processedRecords.toLocaleString()} of {importJob.totalRecords.toLocaleString()} processed
             </span>
             <span>
-              {importJob.status === 'Processing' ? 'In Progress...' : 'Complete'}
+              {isTerminal ? 'Complete' : 'In Progress...'}
             </span>
           </div>
-        </div>
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            {stageDisplayOrder.map((stageKey, idx) => {
+              const currentRank = getStageRank(currentStage);
+              const highestRank = getStageRank(highestStageForSteps);
+              const thisRank = getStageRank(stageKey);
+              const isDone =
+                (highestRank > thisRank &&
+                  !((highestStageForSteps === 'Failed' || highestStageForSteps === 'Cancelled') && stageKey === 'Completed')) ||
+                currentRank > thisRank;
+              const isActive = currentStage === stageKey;
 
+              const labelMap: Record<ImportProcessingStage, string> = {
+                Queued: 'Queued',
+                Started: 'Started',
+                Validating: 'Validating',
+                Ingesting: 'Ingesting',
+                Aggregating: 'Aggregating',
+                Summary: 'Summary',
+                Completed: 'Completed',
+                Failed: 'Failed',
+                Cancelled: 'Cancelled',
+              };
+
+              return (
+                <div
+                  key={stageKey}
+                  className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs ${
+                    isActive
+                      ? 'border-accent-primary/40 bg-accent-primary/10 text-accent-primary'
+                      : isDone
+                        ? 'border-success/30 bg-success/10 text-success-muted'
+                        : 'border-border-primary/40 bg-surface-secondary/40 text-text-secondary'
+                  }`}
+                >
+                  <span
+                    className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
+                      isActive
+                        ? 'bg-accent-primary text-white'
+                        : isDone
+                          ? 'bg-success text-white'
+                          : 'bg-surface-secondary text-text-muted'
+                    }`}
+                  >
+                    {isDone ? '\u2713' : idx + 1}
+                  </span>
+                  <span>{labelMap[stageKey]}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Enhanced Import Details */}
           <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -299,6 +497,22 @@ export const ImportDetailRoute = () => {
               <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary/30 rounded-lg hover:bg-surface-secondary/50 transition-colors">
                 <span className="text-text-secondary">Created At</span>
                 <span className="text-text-primary font-medium">{formatDateTime(importJob.createdAt)}</span>
+              </div>
+              {importJob.queuedAt && (
+                <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary/30 rounded-lg hover:bg-surface-secondary/50 transition-colors">
+                  <span className="text-text-secondary">Queued At</span>
+                  <span className="text-text-primary font-medium">{formatDateTime(importJob.queuedAt)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary/30 rounded-lg hover:bg-surface-secondary/50 transition-colors">
+                <span className="text-text-secondary">Skip duplicates</span>
+                <span className="text-text-primary font-medium">
+                  {importJob.skipDuplicates === undefined
+                    ? 'Not specified'
+                    : importJob.skipDuplicates
+                      ? 'Yes'
+                      : 'No'}
+                </span>
               </div>
               {importJob.startedAt && (
                 <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary/30 rounded-lg hover:bg-surface-secondary/50 transition-colors">
@@ -505,8 +719,8 @@ export const ImportDetailRoute = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h5 className="text-warning-muted font-medium">{update.customerName}</h5>
-                        <span className="text-warning text-sm">• Row {update.rowNumber}</span>
-                        <span className="text-warning text-sm">• {update.email}</span>
+                        <span className="text-warning text-sm">- Row {update.rowNumber}</span>
+                        <span className="text-warning text-sm">- {update.email}</span>
                       </div>
                       
                       <div className="space-y-2">
@@ -598,14 +812,14 @@ export const ImportDetailRoute = () => {
                           <span className={`text-sm ${
                             importJob.status === 'Completed' ? 'text-warning' : 'text-error'
                           }`}>
-                            • {error.fieldName}
+                            - {error.fieldName}
                           </span>
                         )}
                         {error.email && (
                           <span className={`text-sm ${
                             importJob.status === 'Completed' ? 'text-warning' : 'text-error'
                           }`}>
-                            • {error.email}
+                            - {error.email}
                           </span>
                         )}
                       </div>
@@ -652,3 +866,14 @@ export const ImportDetailRoute = () => {
     </ContentLayout>
   );
 };
+
+
+
+
+
+
+
+
+
+
+

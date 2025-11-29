@@ -1,8 +1,8 @@
 // src/features/customers/api/import.ts (fixed)
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
-import { ConfirmImportResponse, ImportErrorResponse, ImportJobDetailResponse, ImportJobResponse, ImportJobSummaryResponse, UploadImportResponse } from '@/types/api';
+import { ConfirmImportResponse, ImportErrorResponse, ImportJobDetailResponse, ImportJobResponse, ImportJobSummaryResponse, UploadImportResponse, getStageRank, ImportProcessingStage } from '@/types/api';
 
 // Types matching the backend responses
 
@@ -152,8 +152,11 @@ export const getImportJobDetail = async (importJobId: string): Promise<ImportJob
 
 export const getImportJobDetailQueryOptions = (importJobId: string) => {
   return {
-    queryKey: ['imports', 'detail', importJobId],
-    queryFn: () => getImportJobDetail(importJobId),
+    queryKey: ['imports', 'detail', importJobId] as const,
+    queryFn: async () => {
+      const incoming = await getImportJobDetail(importJobId);
+      return incoming;
+    },
     enabled: !!importJobId,
     // Refresh every 5 seconds if the job is still processing
     refetchInterval: (query: { state: { data?: ImportJobDetailResponse } }) => {
@@ -169,8 +172,31 @@ export const useGetImportJobDetail = (
   importJobId: string,
   queryConfig?: QueryConfig<typeof getImportJobDetailQueryOptions>
 ) => {
+  const queryClient = useQueryClient();
+  const mergeStages = (
+    prev: ImportJobDetailResponse | undefined,
+    incoming: ImportJobDetailResponse
+  ): ImportJobDetailResponse => {
+    const highestPrev = prev?.highestStageReached || prev?.stage;
+    const highestIncoming = incoming.highestStageReached || incoming.stage;
+    const winner =
+      getStageRank(highestIncoming as ImportProcessingStage | undefined) >
+      getStageRank(highestPrev as ImportProcessingStage | undefined)
+        ? highestIncoming
+        : highestPrev;
+
+    return {
+      ...incoming,
+      highestStageReached: winner ?? incoming.highestStageReached ?? incoming.stage,
+    };
+  };
+
   return useQuery({
     ...getImportJobDetailQueryOptions(importJobId),
+    select: (data: ImportJobDetailResponse) => {
+      const prev = queryClient.getQueryData<ImportJobDetailResponse>(['imports', 'detail', importJobId]);
+      return mergeStages(prev, data);
+    },
     ...queryConfig,
   });
 };

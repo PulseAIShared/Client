@@ -31,8 +31,12 @@ export const GeoMap: React.FC<GeoMapProps> = ({ data, isLoading, error }) => {
           if (!obj) {
             throw new Error('No country topology found');
           }
-          const fc = topoToGeo(json, obj) as FeatureCollection<Geometry, any>;
-          const parsed = (fc?.features as Feature[]) ?? [];
+          const geoResult = topoToGeo(json as any, obj) as
+            | FeatureCollection<Geometry, any>
+            | Feature<Geometry, any>;
+          const parsed: Feature[] =
+            (geoResult as FeatureCollection<Geometry, any>)?.features ??
+            (geoResult ? [geoResult as Feature<Geometry, any>] : []);
           setFeatures(parsed);
         } catch (err: any) {
           setGeoError(err?.message ?? 'Unable to parse map data');

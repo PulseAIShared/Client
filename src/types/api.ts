@@ -1024,22 +1024,65 @@ export enum CompanySize {
   SMB = 1,
   Enterprise = 2
 }
+
+export type ImportProcessingStage =
+  | 'Queued'
+  | 'Started'
+  | 'Validating'
+  | 'Ingesting'
+  | 'Aggregating'
+  | 'Summary'
+  | 'Completed'
+  | 'Failed'
+  | 'Cancelled';
+
+const stageOrder: ImportProcessingStage[] = [
+  'Queued',
+  'Started',
+  'Validating',
+  'Ingesting',
+  'Aggregating',
+  'Summary',
+  'Completed',
+  'Failed',
+  'Cancelled'
+];
+
+export const getStageRank = (stage?: ImportProcessingStage) =>
+  stage ? stageOrder.indexOf(stage) : -1;
+
 export interface ImportJobResponse {
-  importJobId: string;
-  status: 'Validating' | 'Validated' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
+  id: string;
+  fileName: string;
+  status: 'Pending' | 'Validating' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
+  type: string;
+  importSource?: string;
   totalRecords: number;
   processedRecords: number;
-  validRecords: number;
-  invalidRecords: number;
-  duplicateRecords: number;
-  errorCount: number;
-  fileName: string;
-  importSource: string;
-  skipDuplicates: boolean;
+  successfulRecords: number;
+  failedRecords: number;
+  skippedRecords: number;
+  updatedRecords: number;
+  newRecords: number;
+  errorMessage?: string;
   createdAt: string;
-  updatedAt: string;
+  queuedAt?: string;
   completedAt?: string;
+  startedAt?: string;
   message?: string;
+  progressPercentage: number;
+  skipDuplicates?: boolean;
+  actionUrl?: string;
+  stage?: ImportProcessingStage;
+  stageDetail?: string;
+  highestStageReached?: ImportProcessingStage;
+  currentBatch?: number;
+  totalBatches?: number;
+  batchProcessed?: number;
+  batchSize?: number;
+  validationErrors?: ImportErrorResponse[];
+  updates?: ImportUpdateResponse[];
+  summary?: ImportSummaryResponse;
 }
 
 export interface ImportErrorResponse {
@@ -1087,7 +1130,7 @@ export interface ConfirmImportResponse {
 export interface ImportJobDetailResponse {
   id: string;
   fileName: string;
-  status: 'Validating' | 'Validated' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
+  status: 'Pending' | 'Validating' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
   type: string;
   importSource?: string;
   totalRecords: number;
@@ -1099,12 +1142,23 @@ export interface ImportJobDetailResponse {
   newRecords: number;
   errorMessage?: string;
   createdAt: string;
+  queuedAt?: string;
   startedAt?: string;
   completedAt?: string;
   progressPercentage: number;
+  skipDuplicates?: boolean;
+  actionUrl?: string;
+  stage?: ImportProcessingStage;
+  stageDetail?: string;
+  highestStageReached?: ImportProcessingStage;
+  currentBatch?: number;
+  totalBatches?: number;
+  batchProcessed?: number;
+  batchSize?: number;
   validationErrors: ImportErrorResponse[];
   updates: ImportUpdateResponse[];
   summary?: ImportSummaryResponse;
+  message?: string;
 }
 
 export interface ImportUpdateResponse {

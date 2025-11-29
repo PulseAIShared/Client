@@ -8,6 +8,7 @@ class SignalRConnection {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private isConnecting = false;
+  private reconnectedHandlers: Array<() => void> = [];
 
   async connect(): Promise<HubConnection> {
     if (this.connection?.state === 'Connected') {
@@ -99,6 +100,13 @@ class SignalRConnection {
       this.isConnecting = false;
       try {
         await this.connection!.invoke('JoinUserGroup');
+        this.reconnectedHandlers.forEach((handler) => {
+          try {
+            handler();
+          } catch (error) {
+            console.error('SignalR: Reconnected handler failed', error);
+          }
+        });
       } catch (error) {
         console.error('SignalR: Failed to rejoin user group:', error);
       }
@@ -198,6 +206,13 @@ class SignalRConnection {
 
   async getActiveSessions(): Promise<void> {
     await this.invoke('GetActiveSessions');
+  }
+
+  onReconnected(callback: () => void) {
+    this.reconnectedHandlers.push(callback);
+    return () => {
+      this.reconnectedHandlers = this.reconnectedHandlers.filter((cb) => cb !== callback);
+    };
   }
 }
 

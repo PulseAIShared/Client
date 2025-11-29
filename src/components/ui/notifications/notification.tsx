@@ -1,5 +1,4 @@
-
-import { FaInfoCircle, FaCheckCircle  } from "react-icons/fa";
+import { FaInfoCircle, FaCheckCircle } from "react-icons/fa";
 import { IoAlertCircleSharp } from "react-icons/io5";
 import { FaCircleXmark } from "react-icons/fa6";
 
@@ -18,12 +17,14 @@ export type NotificationProps = {
     type: keyof typeof icons;
     title: string;
     message?: string;
+    actionLabel?: string;
+    actionHref?: string;
   };
   onDismiss: (id: string) => void;
 };
 
 export const Notification = ({
-  notification: { id, type, title, message },
+  notification: { id, type, title, message, actionHref, actionLabel },
   onDismiss,
 }: NotificationProps) => {
   return (
@@ -38,20 +39,41 @@ export const Notification = ({
               </div>
             </div>
             <div className="ml-3 w-0 flex-1 pt-0.5">
-              <p className="text-sm sm:text-base font-semibold text-text-primary">{title}</p>
+              <p className="text-sm font-semibold text-text-primary">{title}</p>
               {message && (
-                <p className="mt-1 text-sm text-text-muted leading-relaxed">{message}</p>
+                <p className="mt-1 text-sm text-text-secondary">
+                  {message}
+                </p>
+              )}
+              {actionHref && (
+                <div className="mt-3">
+                  <a
+                    href={actionHref}
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent-primary/90 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-accent-primary"
+                  >
+                    {actionLabel ?? 'View'}
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </a>
+                </div>
               )}
             </div>
             <div className="ml-4 flex shrink-0">
               <button
-                className="inline-flex rounded-lg bg-surface-secondary/50 text-text-muted hover:text-text-primary hover:bg-surface-secondary/70 focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:ring-offset-2 transition-all duration-300 p-1"
-                onClick={() => {
-                  onDismiss(id);
-                }}
+                type="button"
+                className="inline-flex rounded-full bg-surface-secondary/60 p-1 text-text-secondary hover:bg-surface-secondary hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/70 focus:ring-offset-2"
+                onClick={() => onDismiss(id)}
+                aria-label="Dismiss notification"
               >
-                <span className="sr-only">Close</span>
-                <FaCircleXmark className="size-4 sm:size-5" aria-hidden="true" />
+                <span className="sr-only">Dismiss</span>
+                <svg className="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
               </button>
             </div>
           </div>
