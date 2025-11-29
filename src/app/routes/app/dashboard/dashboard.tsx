@@ -2,7 +2,8 @@
 import React from 'react';
 import { ContentLayout } from '@/components/layouts';
 import { DashboardHeader, GettingStarted } from '@/features/dashboard/components';
-import { WorkQueueCard, RecoverySnapshotCard, SegmentWatchlistCard, StatCard, QuickActionsCard } from '@/features/dashboard/components/cards';
+import { WorkQueueCard, RecoverySnapshotCard, SegmentWatchlistCard, StatCard, QuickActionsCard, GeoInsightsCard, ActivityCard } from '@/features/dashboard/components/cards';
+import { ChurnRiskChart, CustomerTrendChart, GeoMap } from '@/features/dashboard/components/charts';
 import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
 import { Spinner } from '@/components/ui/spinner';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
@@ -104,8 +105,43 @@ export const DashboardRoute = () => {
           {/* Top KPIs */}
           <StatCard stats={dashboardData?.stats} isLoading={isLoading} error={error} />
 
-          {/* AI Recommendations (full width) */}
-          <QuickActionsCard />
+          {/* Trends */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
+            <ChurnRiskChart
+              data={dashboardData?.churnRiskTrend}
+              currentRisk={dashboardData?.stats?.churnRisk}
+              isLoading={isLoading}
+              error={error}
+            />
+            <CustomerTrendChart
+              data={dashboardData?.customerTrends}
+              isLoading={isLoading}
+              error={error}
+            />
+          </div>
+
+          {/* Geo map + Geo list */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
+            <GeoMap
+              data={dashboardData?.geoBreakdown}
+              isLoading={isLoading}
+              error={error}
+            />
+            <GeoInsightsCard
+              data={dashboardData?.geoBreakdown}
+              isLoading={isLoading}
+              error={error}
+            />
+          </div>
+
+          {/* Activity */}
+          <div className="grid grid-cols-1 gap-5 sm:gap-6">
+            <ActivityCard
+              stats={dashboardData?.stats}
+              isLoading={isLoading}
+              error={error}
+            />
+          </div>
 
           {/* Actionable Cards - balanced heights */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
@@ -123,6 +159,9 @@ export const DashboardRoute = () => {
               </div>
             </div>
           </div>
+
+          {/* Bottom actions */}
+          <QuickActionsCard />
         </div>
       </ContentLayout>
     </CompanyAuthorization>

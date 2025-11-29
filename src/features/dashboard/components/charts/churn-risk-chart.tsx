@@ -1,15 +1,16 @@
 // src/features/dashboard/components/charts/churn-risk-chart.tsx
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import { ChurnRiskData } from '@/types/api';
 
 interface ChurnRiskChartProps {
   data?: ChurnRiskData[];
+  currentRisk?: string;
   isLoading?: boolean;
   error?: Error | null;
 }
 
-export const ChurnRiskChart: React.FC<ChurnRiskChartProps> = ({ data: churnRiskData, isLoading, error }) => {
+export const ChurnRiskChart: React.FC<ChurnRiskChartProps> = ({ data: churnRiskData, currentRisk, isLoading, error }) => {
 
   if (isLoading) {
     return (
@@ -54,6 +55,9 @@ export const ChurnRiskChart: React.FC<ChurnRiskChartProps> = ({ data: churnRiskD
     );
   }
 
+  const latestPoint = churnRiskData[churnRiskData.length - 1];
+  const displayRisk = currentRisk ?? (latestPoint ? `${latestPoint.risk.toFixed(1)}%` : '—');
+
   return (
     <div className="h-full bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col group">
       {/* Enhanced Header */}
@@ -66,7 +70,7 @@ export const ChurnRiskChart: React.FC<ChurnRiskChartProps> = ({ data: churnRiskD
           <p className="text-sm text-text-muted">AI-powered risk analysis over time</p>
         </div>
         <div className="text-right">
-          <div className="text-3xl font-bold text-accent-primary group-hover:scale-105 transition-transform duration-300">8.2%</div>
+          <div className="text-3xl font-bold text-accent-primary group-hover:scale-105 transition-transform duration-300">{displayRisk}</div>
           <div className="text-sm text-text-muted">Current risk level</div>
         </div>
       </div>
@@ -86,10 +90,15 @@ export const ChurnRiskChart: React.FC<ChurnRiskChartProps> = ({ data: churnRiskD
             <YAxis 
               stroke="rgb(var(--text-muted))"
               fontSize={12}
-              domain={[2, 12]}
+              domain={['auto', 'auto']}
               tickFormatter={(value) => `${value}%`}
               tickLine={false}
               axisLine={false}
+            />
+            <Tooltip
+              contentStyle={{ backgroundColor: 'rgb(var(--surface-primary))', border: '1px solid rgb(var(--border-primary))', borderRadius: 12 }}
+              labelStyle={{ color: 'rgb(var(--text-primary))' }}
+              formatter={(value: number) => [`${value.toFixed(1)}%`, 'Risk']}
             />
             <Line 
               type="monotone" 

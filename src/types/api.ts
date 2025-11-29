@@ -95,6 +95,8 @@ export interface DashboardResponse {
   churnRiskTrend: ChurnRiskData[];
   customerInsights: CustomerInsight[];
   atRiskCustomers: AtRiskCustomer[];
+  customerTrends?: CustomerTrendPoint[];
+  geoBreakdown?: GeoInsight[];
 }
 
 /**
@@ -105,6 +107,12 @@ export interface DashboardStats {
   churnRisk: string;
   recoveredRevenue: string;
   avgLTV: string;
+  monthlyRecurringRevenue?: string;
+  revenueSaved?: string;
+  activationRate?: string;
+  activeUsers7?: string;
+  activeUsers14?: string;
+  activeUsers30?: string;
 }
 
 /**
@@ -113,6 +121,19 @@ export interface DashboardStats {
 export interface ChurnRiskData {
   week: string;
   risk: number;
+}
+
+export interface CustomerTrendPoint {
+  period: string;
+  customers: number;
+  churned: number;
+}
+
+export interface GeoInsight {
+  country: string;
+  customerCount: number;
+  avgLtv: number;
+  avgRisk: number;
 }
 
 /**

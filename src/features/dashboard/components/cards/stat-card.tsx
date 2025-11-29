@@ -49,6 +49,7 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
     { 
       title: 'Total Users', 
       value: stats.totalUsers,
+      hint: 'Active customers in Pulse',
       color: 'text-text-primary',
       bgGradient: 'from-surface-primary to-surface-secondary',
       icon: (
@@ -58,21 +59,11 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
       )
     },
     { 
-      title: 'Churn Risk', 
-      value: stats.churnRisk,
-      color: 'text-info-muted',
-      bgGradient: 'from-info-bg/30 to-accent-primary/20',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      )
-    },
-    { 
-      title: 'Recovered Revenue', 
-      value: stats.recoveredRevenue,
-      color: 'text-success-muted',
-      bgGradient: 'from-success-bg/30 to-success/20',
+      title: 'MRR', 
+      value: stats.monthlyRecurringRevenue ?? '—',
+      hint: 'Total monthly recurring revenue',
+      color: 'text-accent-primary',
+      bgGradient: 'from-accent-primary/10 to-accent-secondary/10',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -80,8 +71,21 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
       )
     },
     { 
+      title: 'Revenue Saved', 
+      value: stats.revenueSaved ?? stats.recoveredRevenue,
+      hint: 'Recovered + prevented churn',
+      color: 'text-success-muted',
+      bgGradient: 'from-success-bg/30 to-success/20',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      )
+    },
+    { 
       title: 'Avg. LTV', 
       value: stats.avgLTV,
+      hint: 'Average lifetime value',
       color: 'text-warning-muted',
       bgGradient: 'from-warning-bg/30 to-warning/20',
       icon: (
@@ -89,30 +93,54 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
       )
+    },
+    { 
+      title: 'Churn Risk', 
+      value: stats.churnRisk,
+      hint: 'Blended risk across customers',
+      color: 'text-info-muted',
+      bgGradient: 'from-info-bg/30 to-accent-primary/20',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3v18h18" />
+        </svg>
+      )
+    },
+    { 
+      title: 'Activation Rate', 
+      value: stats.activationRate ?? '—',
+      hint: 'Users meeting healthy usage',
+      color: 'text-success-muted',
+      bgGradient: 'from-success-bg/20 to-accent-primary/10',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-5">
       {statCards.map((stat, index) => (
-        <div key={index} className={`group relative bg-gradient-to-br ${stat.bgGradient} backdrop-blur-lg p-4 sm:p-6 lg:p-8 rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-2xl hover:border-border-secondary/50 transition-all duration-300 transform hover:-translate-y-1`}>
-          {/* Enhanced glow effect on hover */}
-          <div className="absolute inset-0 bg-gradient-to-br from-accent-primary/5 to-accent-secondary/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div
+          key={index}
+          className="group relative bg-surface-primary/90 backdrop-blur-lg p-4 sm:p-5 rounded-xl border border-border-primary/40 shadow-md hover:shadow-lg hover:border-border-secondary/60 transition-all duration-200"
+        >
           
           <div className="relative">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h3 className="text-text-secondary text-xs sm:text-sm font-medium uppercase tracking-wider">{stat.title}</h3>
-              <div className="text-accent-primary/60 group-hover:text-accent-primary transition-colors duration-300">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-text-secondary text-[11px] sm:text-xs font-medium uppercase tracking-wide">{stat.title}</h3>
+              <div className="text-accent-primary/60 group-hover:text-accent-primary transition-colors duration-200">
                 {stat.icon}
               </div>
             </div>
             
-            <div className="flex items-center justify-between mb-3">
-              <p className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${stat.color} group-hover:scale-105 transition-transform duration-300`}>
+            <div className="flex items-center justify-between mb-1">
+              <p className={`text-xl sm:text-2xl font-semibold ${stat.color}`}>
                 {stat.value}
               </p>
-              {/* Enhanced trending indicator */}
-              <div className="flex items-center gap-1 text-success-muted text-xs sm:text-sm font-medium bg-success-bg/30 px-2 py-1 rounded-full border border-success/20 group-hover:bg-success-bg/50 transition-colors duration-300">
+              <div className="flex items-center gap-1 text-success-muted text-[11px] font-medium bg-success-bg/20 px-2 py-1 rounded-full border border-success/10">
                 <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
@@ -120,12 +148,8 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
               </div>
             </div>
             
-            {/* Enhanced context description */}
-            <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-              {stat.title === 'Total Users' ? 'Active customers in your system' :
-               stat.title === 'Churn Risk' ? 'Customers at risk this month' :
-               stat.title === 'Recovered Revenue' ? 'Revenue saved this quarter' :
-               'Average customer lifetime value'}
+            <p className="text-[11px] sm:text-xs text-text-muted leading-relaxed">
+              {stat.hint}
             </p>
           </div>
         </div>
