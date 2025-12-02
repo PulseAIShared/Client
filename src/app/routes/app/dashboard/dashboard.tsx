@@ -147,15 +147,26 @@ export const DashboardRoute = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
             <div className="grid gap-6 sm:gap-8 lg:gap-10 content-start" style={{ gridAutoRows: 'minmax(0, 1fr)' }}>
               <div className="min-h-[360px]">
-                <WorkQueueCard />
+                <WorkQueueCard
+                  atRiskCustomers={dashboardData?.atRiskCustomers}
+                  missedPayments={dashboardData?.recoveryAnalytics?.tables?.missedPayments}
+                  isLoading={isLoading}
+                />
               </div>
             </div>
             <div className="grid gap-6 sm:gap-8 lg:gap-10 content-start" style={{ gridAutoRows: 'minmax(0, 1fr)' }}>
               <div className="min-h-[200px]">
-                <SegmentWatchlistCard />
+                <SegmentWatchlistCard
+                  segments={dashboardData?.segmentAnalytics?.segmentDistribution}
+                  isLoading={isLoading}
+                />
               </div>
               <div className="min-h-[200px]">
-                <RecoverySnapshotCard />
+                <RecoverySnapshotCard
+                  kpis={dashboardData?.recoveryAnalytics?.kpis}
+                  isLoading={isLoading}
+                  error={error && typeof error === 'object' ? (error as Error) : null}
+                />
               </div>
             </div>
           </div>

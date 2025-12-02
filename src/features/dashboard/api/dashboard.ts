@@ -31,6 +31,8 @@ export const getDashboardData = async (): Promise<DashboardResponse> => {
   return {
     ...response,
     stats,
+    recoveryAnalytics: response.recoveryAnalytics ?? response.RecoveryAnalytics,
+    segmentAnalytics: response.segmentAnalytics ?? response.SegmentAnalytics,
   };
 };
 

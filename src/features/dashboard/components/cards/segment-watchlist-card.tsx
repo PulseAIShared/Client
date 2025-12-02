@@ -1,10 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useGetInsightsData } from '@/features/insights/api/insights';
 
-export const SegmentWatchlistCard: React.FC = () => {
-  const { data, isLoading } = useGetInsightsData();
-  const segments = data?.segmentAnalytics?.segmentDistribution || [];
+interface SegmentWatchlistCardProps {
+  segments?: Array<{ name: string; value: number; customers: number; color: string }>;
+  isLoading?: boolean;
+}
+
+export const SegmentWatchlistCard: React.FC<SegmentWatchlistCardProps> = ({
+  segments = [],
+  isLoading,
+}) => {
 
   return (
     <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg h-full flex flex-col">

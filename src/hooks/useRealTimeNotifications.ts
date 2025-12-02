@@ -481,20 +481,7 @@ export const useRealTimeNotifications = () => {
             : 1),
       });
 
-      if (!startedNotifiedJobs.current.has(jobId)) {
-        startedNotifiedJobs.current.add(jobId);
-        addNotification(
-          {
-            type: 'info',
-            title: 'Import started',
-            message: `${fileName} is now processing.`,
-            actionHref: `/app/imports/${jobId}`,
-            actionLabel: 'View progress',
-          },
-          true,
-          6000,
-        );
-      }
+      startedNotifiedJobs.current.add(jobId);
     },
     [addNotification, upsertImportJob],
   );
@@ -541,7 +528,7 @@ export const useRealTimeNotifications = () => {
       const batchProcessed = payload?.batchProcessed ?? payload?.BatchProcessed ?? undefined;
       const batchSize = payload?.batchSize ?? payload?.BatchSize ?? undefined;
 
-      upsertImportJob(jobId, {
+      const merged = upsertImportJob(jobId, {
         fileName,
         status: (status as ImportJobResponse['status']) ?? 'Processing',
         type: payload?.type ?? 'Customers',
@@ -558,8 +545,25 @@ export const useRealTimeNotifications = () => {
         createdAt: createdAt ?? undefined,
         startedAt: startedAt ?? undefined,
       });
+
+      if (!startedNotifiedJobs.current.has(jobId)) {
+        startedNotifiedJobs.current.add(jobId);
+        addNotification(
+          {
+            type: 'info',
+            title: 'Import started',
+            message: `${fileName} is now processing.`,
+            actionHref: `/app/imports/${jobId}`,
+            actionLabel: 'View progress',
+          },
+          true,
+          6000,
+        );
+      }
+
+      return merged;
     },
-    [upsertImportJob],
+    [addNotification, upsertImportJob],
   );
 
   // Support session event handlers

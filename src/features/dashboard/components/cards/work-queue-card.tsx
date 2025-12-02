@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
-import { useGetInsightsData } from '@/features/insights/api/insights';
+import { AtRiskCustomer, MissedPaymentRow } from '@/types/api';
 
 type WorkQueueItem = {
   id: string;
@@ -13,16 +12,24 @@ type WorkQueueItem = {
   actionLabel: string;
 };
 
-export const WorkQueueCard: React.FC = () => {
+interface WorkQueueCardProps {
+  atRiskCustomers?: AtRiskCustomer[];
+  missedPayments?: MissedPaymentRow[];
+  isLoading?: boolean;
+}
+
+export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
+  atRiskCustomers,
+  missedPayments,
+  isLoading,
+}) => {
   const navigate = useNavigate();
-  const { data: dashboard, isLoading: isLoadingDashboard } = useGetDashboardData();
-  const { data: insights, isLoading: isLoadingInsights } = useGetInsightsData();
 
   const items: WorkQueueItem[] = useMemo(() => {
     const queue: WorkQueueItem[] = [];
 
     // High-risk customers from dashboard
-    const highRisk = dashboard?.atRiskCustomers?.slice(0, 5) || [];
+    const highRisk = atRiskCustomers?.slice(0, 5) || [];
     for (const c of highRisk) {
       queue.push({
         id: `hr_${c.name}`,
@@ -36,7 +43,7 @@ export const WorkQueueCard: React.FC = () => {
     }
 
     // Missed payments from insights
-    const missed = insights?.recoveryAnalytics?.tables?.missedPayments?.slice(0, 5) || [];
+    const missed = missedPayments?.slice(0, 5) || [];
     for (const m of missed) {
       queue.push({
         id: `mp_${m.id}`,
@@ -50,7 +57,7 @@ export const WorkQueueCard: React.FC = () => {
     }
 
     return queue.sort((a, b) => b.priority - a.priority).slice(0, 8);
-  }, [dashboard, insights]);
+  }, [atRiskCustomers, missedPayments]);
 
   return (
     <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg h-full flex flex-col">
@@ -62,7 +69,7 @@ export const WorkQueueCard: React.FC = () => {
         <Link to="/app/notifications" className="text-sm text-accent-primary hover:underline">View all</Link>
       </div>
 
-      {(isLoadingDashboard || isLoadingInsights) && (
+      {isLoading && (
         <div className="space-y-3 flex-1">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-14 bg-surface-secondary/40 rounded-xl animate-pulse" />
@@ -70,11 +77,11 @@ export const WorkQueueCard: React.FC = () => {
         </div>
       )}
 
-      {!isLoadingDashboard && !isLoadingInsights && items.length === 0 && (
+      {!isLoading && items.length === 0 && (
         <div className="text-sm text-text-muted">No urgent items. You're all caught up! 🎉</div>
       )}
 
-      {!isLoadingDashboard && !isLoadingInsights && items.length > 0 && (
+      {!isLoading && items.length > 0 && (
         <div className="flex-1 overflow-y-auto pr-1">
           <ul className="divide-y divide-border-primary/30">
             {items.map((item) => (

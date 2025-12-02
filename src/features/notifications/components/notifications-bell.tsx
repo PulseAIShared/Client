@@ -3,14 +3,13 @@ import React, { useState, useRef, useEffect } from 'react';
 
 import { NotificationsDropdown } from './notifications-dropdown';
 import { useGetUnreadCount } from '../api/notifications';
-import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
+import { useRealTimeNotificationStatus } from '@/hooks/real-time-notification-status';
 
 export const NotificationsBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Set up real-time notifications
-  const { connectionState, isAuthenticated } = useRealTimeNotifications();
+  const { connectionState, isAuthenticated } = useRealTimeNotificationStatus();
 
   // Fetch unread count - rely primarily on SignalR with minimal fallback polling
   const { data: unreadData } = useGetUnreadCount({

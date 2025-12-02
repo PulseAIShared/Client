@@ -10,23 +10,8 @@ import { Notifications } from '@/components/ui/notifications';
 import { MantineProvider } from '@mantine/core';
 import { MainErrorFallback } from '@/components/errors/main';
 import { ModalProvider } from './modal-provider';
-import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
 import { ThemeProvider } from '@/lib/theme-context';
-
-// Component to handle real-time notifications
-const RealTimeNotificationHandler: React.FC = () => {
-  const { connectionState, isAuthenticated } = useRealTimeNotifications();
-  
-  // Optional: Show connection status in development
-  React.useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('SignalR Connection State:', connectionState);
-      console.log('User Authenticated:', isAuthenticated);
-    }
-  }, [connectionState, isAuthenticated]);
-  
-  return null;
-};
+import { RealTimeNotificationStatusProvider } from '@/hooks/real-time-notification-status';
 
 type AppProviderProps = {
   children: React.ReactNode;
@@ -54,9 +39,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             <QueryClientProvider client={queryClient}>
               <ModalProvider>
                 {import.meta.env.DEV && <ReactQueryDevtools />}
-                <Notifications />
-                <RealTimeNotificationHandler />
-                {children}
+                <RealTimeNotificationStatusProvider>
+                  <Notifications />
+                  {children}
+                </RealTimeNotificationStatusProvider>
               </ModalProvider>
             </QueryClientProvider>
           </MantineProvider>

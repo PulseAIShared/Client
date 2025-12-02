@@ -1,10 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useGetInsightsData } from '@/features/insights/api/insights';
+import { RecoveryAnalyticsKpis } from '@/types/api';
 
-export const RecoverySnapshotCard: React.FC = () => {
-  const { data, isLoading, error } = useGetInsightsData();
-  const kpis = data?.recoveryAnalytics?.kpis;
+interface RecoverySnapshotCardProps {
+  kpis?: Partial<RecoveryAnalyticsKpis>;
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
+export const RecoverySnapshotCard: React.FC<RecoverySnapshotCardProps> = ({ kpis, isLoading, error }) => {
 
   return (
     <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg">
@@ -24,7 +28,7 @@ export const RecoverySnapshotCard: React.FC = () => {
         </div>
       )}
 
-      {!isLoading && !kpis && (
+      {!isLoading && !kpis && !error && (
         <div className="text-sm text-text-muted">No recovery data available yet.</div>
       )}
 

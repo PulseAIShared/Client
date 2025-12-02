@@ -97,6 +97,26 @@ export interface DashboardResponse {
   atRiskCustomers: AtRiskCustomer[];
   customerTrends?: CustomerTrendPoint[];
   geoBreakdown?: GeoInsight[];
+  recoveryAnalytics?: {
+    kpis?: {
+      missedPaymentsCount?: number;
+      missedAmount?: number;
+      recoveredAmount?: number;
+      recoveryRate?: number;
+      averageDaysToRecover?: number;
+    };
+    tables?: {
+      missedPayments?: MissedPaymentRow[];
+    };
+  };
+  segmentAnalytics?: {
+    segmentDistribution?: Array<{
+      name: string;
+      value: number;
+      customers: number;
+      color: string;
+    }>;
+  };
 }
 
 /**
