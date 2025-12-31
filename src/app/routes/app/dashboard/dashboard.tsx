@@ -2,7 +2,20 @@
 import React from 'react';
 import { ContentLayout } from '@/components/layouts';
 import { DashboardHeader, GettingStarted } from '@/features/dashboard/components';
-import { WorkQueueCard, RecoverySnapshotCard, SegmentWatchlistCard, StatCard, QuickActionsCard, GeoInsightsCard, ActivityCard } from '@/features/dashboard/components/cards';
+import {
+  WorkQueueCard,
+  RecoverySnapshotCard,
+  SegmentWatchlistCard,
+  StatCard,
+  QuickActionsCard,
+  GeoInsightsCard,
+  ActivityCard,
+  ActiveUserMetricsCard,
+  ActivationMetricsCard,
+  DemographicInsightsCard,
+  SegmentSuggestionsCard,
+  AlertsAndAutomationCard,
+} from '@/features/dashboard/components/cards';
 import { ChurnRiskChart, CustomerTrendChart, GeoMap } from '@/features/dashboard/components/charts';
 import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
 import { Spinner } from '@/components/ui/spinner';
@@ -138,6 +151,43 @@ export const DashboardRoute = () => {
           <div className="grid grid-cols-1 gap-5 sm:gap-6">
             <ActivityCard
               stats={dashboardData?.stats}
+              isLoading={isLoading}
+              error={error}
+            />
+          </div>
+
+          {/* Enhanced Metrics Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            <ActiveUserMetricsCard
+              data={dashboardData?.activeUserMetrics}
+              isLoading={isLoading}
+              error={error}
+            />
+            <ActivationMetricsCard
+              data={dashboardData?.activationMetrics}
+              isLoading={isLoading}
+              error={error}
+            />
+          </div>
+
+          {/* Demographic Insights */}
+          <div className="grid grid-cols-1 gap-6 sm:gap-8">
+            <DemographicInsightsCard
+              data={dashboardData?.demographicInsights}
+              isLoading={isLoading}
+              error={error}
+            />
+          </div>
+
+          {/* Segment Suggestions & Alerts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            <SegmentSuggestionsCard
+              data={dashboardData?.segmentSuggestions}
+              isLoading={isLoading}
+              error={error}
+            />
+            <AlertsAndAutomationCard
+              data={dashboardData?.dashboardAlerts}
               isLoading={isLoading}
               error={error}
             />

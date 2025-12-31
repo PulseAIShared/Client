@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
-import { createSegment, usePreviewSegment } from '../api/segments';
-import { SegmentType, CriteriaOperator } from '@/types/api';
+import { createSegment, usePreviewSegment, useGenerateSegmentFromPrompt } from '../api/segments';
+import { SegmentType, CriteriaOperator, GeneratedSegmentDto } from '@/types/api';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/components/ui/notifications';
@@ -87,11 +87,59 @@ export const SegmentCreator = () => {
   const [criteria, setCriteria] = useState<Criteria[]>([]);
   const [isAIMode, setIsAIMode] = useState(false);
   const [aiPrompt, setAIPrompt] = useState('');
+  const [error, setError] = useState('');
+  const [previewError, setPreviewError] = useState('');
   const [previewData, setPreviewData] = useState<{ estimatedCustomerCount: number; averageChurnRate: number; averageLifetimeValue: number; averageRevenue: number; matchingSampleCustomers: string[] } | null>(null);
-  
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
+
+  const generateAIMutation = useGenerateSegmentFromPrompt({
+    mutationConfig: {
+      onSuccess: (generated: GeneratedSegmentDto) => {
+        // Set name and description from AI response
+        setSegmentName(generated.name);
+        setSegmentDescription(generated.description);
+        setSegmentType(generated.type);
+
+        // Transform AI criteria to our format
+        const transformedCriteria = generated.criteria.map((c, idx) => ({
+          id: `ai-${idx}`,
+          field: c.field as CriteriaField,
+          operator: c.operator,
+          value: c.value,
+          label: c.label
+        }));
+
+        setCriteria(transformedCriteria);
+        setAIPrompt('');
+        setIsAIMode(false);
+        setError('');
+
+        addNotification({
+          type: 'success',
+          title: 'AI Segment Generated',
+          message: `Successfully generated segment: "${generated.name}"`
+        });
+
+        // Auto-preview the generated segment
+        previewSegmentMutation.mutate({
+          criteria: transformedCriteria,
+          type: generated.type
+        });
+      },
+      onError: (error: any) => {
+        const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to generate segment with AI. Please try again.';
+        setError(errorMessage);
+        addNotification({
+          type: 'error',
+          title: 'AI Generation Failed',
+          message: errorMessage
+        });
+      }
+    }
+  });
   
   const createSegmentMutation = useMutation({
     mutationFn: createSegment,
@@ -121,6 +169,7 @@ export const SegmentCreator = () => {
     mutationConfig: {
       onSuccess: (data: any) => {
         setPreviewData(data);
+        setPreviewError('');
         addNotification({
           type: 'info',
           title: 'Preview Generated',
@@ -129,10 +178,12 @@ export const SegmentCreator = () => {
       },
       onError: (error: any) => {
         console.error('Preview failed:', error);
+        const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to generate preview. Please check your criteria.';
+        setPreviewError(errorMessage);
         addNotification({
           type: 'error',
           title: 'Preview Failed',
-          message: 'Failed to generate preview. Please check your criteria.'
+          message: errorMessage
         });
       }
     }
@@ -186,26 +237,13 @@ export const SegmentCreator = () => {
   };
 
   const generateAISegment = () => {
-    if (!aiPrompt.trim()) return;
-    
-    // Simulate AI generation
-    setCriteria([
-      {
-        id: '1',
-        field: 'churn_risk',
-        operator: CriteriaOperator.GreaterThan,
-        value: '50',
-        label: 'Churn Risk > 50%'
-      },
-      {
-        id: '2',
-        field: 'ltv',
-        operator: CriteriaOperator.LessThan,
-        value: '200',
-        label: 'LTV < $200'
-      }
-    ]);
-    setPreviewData(null);
+    if (!aiPrompt.trim()) {
+      setError('Please describe the segment you want to create');
+      return;
+    }
+
+    setError('');
+    generateAIMutation.mutate({ prompt: aiPrompt });
   };
 
   const estimateSegmentSize = () => {
@@ -293,6 +331,13 @@ export const SegmentCreator = () => {
           </div>
 
           <div className="max-w-2xl mx-auto space-y-6">
+            {error && (
+              <div className="p-4 bg-error/10 border border-error/30 rounded-lg text-error">
+                <p className="font-medium">Error</p>
+                <p className="text-sm mt-1">{error}</p>
+              </div>
+            )}
+
             <div>
               <label className="block text-text-primary font-medium mb-2">Describe Your Target Segment</label>
               <textarea
@@ -306,10 +351,10 @@ export const SegmentCreator = () => {
             <div className="flex gap-4">
               <Button
                 onClick={generateAISegment}
-                disabled={!aiPrompt.trim()}
+                disabled={!aiPrompt.trim() || generateAIMutation.isPending}
                 className="flex-1 bg-gradient-to-r from-accent-secondary to-accent-secondary hover:from-accent-secondary hover:to-accent-secondary"
               >
-                Generate AI Segment
+                {generateAIMutation.isPending ? 'Generating...' : 'Generate AI Segment'}
               </Button>
             </div>
           </div>
@@ -459,6 +504,17 @@ export const SegmentCreator = () => {
               </div>
             )}
           </div>
+
+          {/* Enhanced Preview Error Display */}
+          {previewError && (
+            <div className="p-4 bg-error/10 border border-error/30 rounded-lg text-error mb-4">
+              <p className="font-medium">Validation Error</p>
+              <p className="text-sm mt-1">{previewError}</p>
+              <p className="text-xs mt-2 text-error-muted">
+                Supported fields: fullname, email, company, age, mrr, ltv, churn_risk, login_frequency, feature_usage, lifecycle_stage, country, and more.
+              </p>
+            </div>
+          )}
 
           {/* Enhanced Preview */}
           {previewData && (

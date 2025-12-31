@@ -117,6 +117,11 @@ export interface DashboardResponse {
       color: string;
     }>;
   };
+  activeUserMetrics?: ActiveUserMetrics;
+  activationMetrics?: ActivationMetrics;
+  demographicInsights?: DemographicInsight[];
+  segmentSuggestions?: SegmentSuggestion[];
+  dashboardAlerts?: DashboardAlert[];
 }
 
 /**
@@ -685,6 +690,25 @@ export const transformSegmentResponse = (segment: SegmentResponse): CustomerSegm
     color: segment.color
   };
 };
+
+// AI Segment Generation Types
+export interface GeneratedSegmentDto {
+  name: string;
+  description: string;
+  type: SegmentType;
+  criteria: SegmentCriteriaDto[];
+}
+
+export interface SegmentInsight {
+  title: string;
+  description: string;
+  recommendation: string;
+  priority: 'High' | 'Medium' | 'Low';
+}
+
+export interface AISegmentPromptRequest {
+  prompt: string;
+}
 
 // Types for insights data
 export interface ChurnPredictionData {
@@ -2091,6 +2115,94 @@ export const hasCompanyEditAccess = (companyRole: CompanyRole): boolean => {
 export const canAccessPlatformAdmin = (platformRole: PlatformRole): boolean => {
   return platformRole === PlatformRole.Admin || platformRole === PlatformRole.Moderator;
 };
+
+// Enhanced Dashboard Types
+
+/**
+ * Active user metrics for dashboard
+ */
+export interface ActiveUserMetrics {
+  last7Days: number;
+  last14Days: number;
+  last30Days: number;
+  percentage7Days: number;
+  percentage14Days: number;
+  percentage30Days: number;
+}
+
+/**
+ * Activation metrics showing user engagement frequency
+ */
+export interface ActivationMetrics {
+  frequentUserPercentage: number;     // 4+ logins per week
+  regularUserPercentage: number;      // 2-3 logins per week
+  inactiveUserPercentage: number;     // < 1 login per week
+  avgFeatureUsagePercentage: number;
+  avgSessionDuration: number;
+  totalActiveUsers: number;
+}
+
+/**
+ * Demographic insight with trend analysis
+ */
+export interface DemographicInsight {
+  segment: string;                    // e.g., "Women 35-50", "Tech Industry"
+  customerCount: number;
+  avgLtv: number;
+  avgChurnRisk: number;
+  ltvChange: number;                  // % change from previous period
+  churnRiskChange: number;            // % change from previous period
+  topMetrics: string[];               // e.g., ["High Engagement", "Growth"]
+}
+
+/**
+ * Suggested segment for customer targeting
+ */
+export interface SegmentSuggestion {
+  name: string;                       // "High-Value At-Risk"
+  description: string;                // "High LTV with elevated churn risk"
+  customerCount: number;
+  potentialValue: number;             // Estimated revenue impact
+  reasoning: string;                  // Why this segment matters
+  characteristics: string[];
+}
+
+/**
+ * Dashboard alert configuration
+ */
+export interface DashboardAlert {
+  id: string;
+  name: string;
+  alertType: string;                  // "ChurnRisk", "RevenueThreshold", etc
+  condition: string;                  // "ChurnRisk > 50%"
+  action: string;                     // "Email", "Slack", "Tag", "AutomatedRecovery"
+  triggeredCount: number;
+  lastTriggered?: string;
+}
+
+/**
+ * Recovery opportunity
+ */
+export interface RecoveryOpportunity {
+  customerId: string;
+  customerName: string;
+  missedAmount: number;
+  daysSinceFailure: number;
+  retryAttempts: number;
+  successProbability: number;
+  recommendedActions: string[];
+}
+
+/**
+ * Enhanced DashboardResponse with additional metrics
+ */
+export interface EnhancedDashboardResponse extends DashboardResponse {
+  activeUserMetrics?: ActiveUserMetrics;
+  activationMetrics?: ActivationMetrics;
+  demographicInsights?: DemographicInsight[];
+  segmentSuggestions?: SegmentSuggestion[];
+  dashboardAlerts?: DashboardAlert[];
+}
 
 
 

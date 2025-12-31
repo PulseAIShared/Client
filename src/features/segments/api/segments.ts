@@ -1,17 +1,19 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { 
-  CustomerSegment, 
-  SegmentPerformanceMetrics, 
-  SegmentResponse, 
-  CreateSegmentRequest, 
-  UpdateSegmentRequest, 
-  SegmentPreviewRequest, 
-  SegmentPreviewResponse, 
-  SegmentType, 
-  SegmentStatus, 
-  CriteriaOperator, 
-  transformSegmentResponse 
+import {
+  CustomerSegment,
+  SegmentPerformanceMetrics,
+  SegmentResponse,
+  CreateSegmentRequest,
+  UpdateSegmentRequest,
+  SegmentPreviewRequest,
+  SegmentPreviewResponse,
+  SegmentType,
+  SegmentStatus,
+  CriteriaOperator,
+  transformSegmentResponse,
+  GeneratedSegmentDto,
+  AISegmentPromptRequest
 } from '@/types/api';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 
@@ -279,6 +281,29 @@ type UsePreviewSegmentOptions = {
 export const usePreviewSegment = ({ mutationConfig }: UsePreviewSegmentOptions = {}) => {
   return useMutation({
     mutationFn: previewSegment,
+    ...mutationConfig,
+  });
+};
+
+// Generate segment from AI prompt
+export const generateSegmentFromPrompt = async (data: {
+  prompt: string;
+}): Promise<GeneratedSegmentDto> => {
+  const request: AISegmentPromptRequest = {
+    prompt: data.prompt
+  };
+
+  const response = await api.post('/segments/ai/generate', request);
+  return response as GeneratedSegmentDto;
+};
+
+type UseGenerateSegmentFromPromptOptions = {
+  mutationConfig?: MutationConfig<typeof generateSegmentFromPrompt>;
+};
+
+export const useGenerateSegmentFromPrompt = ({ mutationConfig }: UseGenerateSegmentFromPromptOptions = {}) => {
+  return useMutation({
+    mutationFn: generateSegmentFromPrompt,
     ...mutationConfig,
   });
 };
