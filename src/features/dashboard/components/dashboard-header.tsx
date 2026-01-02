@@ -45,14 +45,6 @@ export const DashboardHeader: React.FC<Props> = ({ stats }) => {
       <div className="mt-6 pt-6 border-t border-border-primary/20">
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => navigate('/app/analytics/run-churn-analysis')}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-accent-primary hover:bg-accent-secondary text-white rounded-lg transition-colors font-medium text-sm"
-          >
-            <BarChart3 className="w-4 h-4" />
-            <span className="hidden sm:inline">Run Churn Analysis</span>
-            <span className="sm:hidden">Analyze</span>
-          </button>
-          <button
             onClick={() => navigate('/app/campaigns')}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary transition-colors font-medium text-sm border border-border-primary/50"
           >

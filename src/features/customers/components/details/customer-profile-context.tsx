@@ -1448,13 +1448,8 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
     lastUpdated,
     requestSection,
     isLoading: loadingStates.overview && !aggregatedCustomer,
-    error:
-      overviewQuery.error ??
-      paymentHistoryQuery.error ??
-      engagementHistoryQuery.error ??
-      supportHistoryQuery.error ??
-      churnHistoryQuery.error ??
-      dataSourcesQuery.error,
+    // Only block page load if overview fails - other sections can fail gracefully
+    error: overviewQuery.error,
     refetch,
   };
 
