@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { useDeleteCustomers, type DeleteCustomersResponse } from '@/features/customers/api/customers';
 import { useAuthorization } from '@/lib/authorization';
 import { useNotifications } from '@/components/ui/notifications';
-import { CustomerDisplayData } from '@/types/api';
+import { CustomerListItem } from '@/types/api';
 
 interface DeleteCustomersModalProps {
-  customers: CustomerDisplayData[];
+  customers: CustomerListItem[];
   onClose: () => void;
   onSuccess: (response: DeleteCustomersResponse) => void;
 }
@@ -284,7 +284,7 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
                       <div className="text-sm text-text-muted truncate">{customer.email}</div>
                     </div>
                     <div className="text-sm text-text-muted">
-                      {customer.plan}
+                      {customer.planDisplay}
                     </div>
                   </div>
                 ))}

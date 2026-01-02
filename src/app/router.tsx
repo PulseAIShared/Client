@@ -255,6 +255,13 @@ export const createAppRouter = () =>
         },
       },
       {
+        path: 'admin/data-generator',
+        lazy: async () => {
+          const { DataGeneratorRoute } = await import('./routes/app/admin/data-generator');
+          return { Component: DataGeneratorRoute };
+        },
+      },
+      {
         path: 'docs/getting-started',
         lazy: async () => {
           const { GettingStartedDocsRoute } = await import('./routes/app/docs/getting-started');

@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Area, AreaChart, PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useCustomerProfile } from './customer-profile-context';
 import { useCustomerAiInsightsStore } from '@/features/customers/state/customer-ai-insights-store';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
 import { formatDate } from '@/utils/customer-helpers';
 import { formatCurrency } from '@/types/api';
+import { OverviewTabSkeleton } from './skeletons';
 
 const formatScore = (value?: number | null) => {
   if (value == null || Number.isNaN(value)) {
@@ -14,11 +15,51 @@ const formatScore = (value?: number | null) => {
   return `${value.toFixed(1)}`;
 };
 
+// Risk factor colors for the donut chart
+const RISK_COLORS = [
+  'rgb(239, 68, 68)',   // red
+  'rgb(249, 115, 22)',  // orange
+  'rgb(234, 179, 8)',   // yellow
+  'rgb(34, 197, 94)',   // green
+  'rgb(59, 130, 246)',  // blue
+  'rgb(168, 85, 247)',  // purple
+  'rgb(236, 72, 153)',  // pink
+  'rgb(20, 184, 166)',  // teal
+];
+
+// Priority icon component
+const PriorityIcon = ({ priority }: { priority?: 'low' | 'medium' | 'high' }) => {
+  if (priority === 'high') {
+    return <span className="text-error text-lg">!</span>;
+  }
+  if (priority === 'medium') {
+    return <span className="text-warning text-lg">!</span>;
+  }
+  return <span className="text-info text-lg">i</span>;
+};
+
 export const CustomerOverviewTab: React.FC = () => {
   const navigate = useNavigate();
   const { checkCompanyPolicy } = useAuthorization();
-  const { overview, header, churnAnalysis, customerId, refetch, rawCustomer } = useCustomerProfile();
+  const {
+    overview,
+    header,
+    churnAnalysis,
+    customerId,
+    refetch,
+    rawCustomer,
+    completenessScores,
+    backendRecommendations,
+    loadingStates,
+    aiInsights,
+    dataHealth,
+  } = useCustomerProfile();
   const aiStoreStatus = useCustomerAiInsightsStore((state) => state.status);
+
+  // Show skeleton while loading overview
+  if (loadingStates.overview && !rawCustomer) {
+    return <OverviewTabSkeleton />;
+  }
 
   const riskTrendData = useMemo(
     () =>
@@ -43,6 +84,44 @@ export const CustomerOverviewTab: React.FC = () => {
   }, [overview.riskTrend]);
 
   const topRiskFactors = useMemo(() => overview.riskFactors.slice(0, 6), [overview.riskFactors]);
+
+  // Data for risk factors pie chart
+  const riskFactorsPieData = useMemo(() => {
+    if (overview.riskFactors.length === 0) return [];
+    return overview.riskFactors.slice(0, 6).map((factor) => ({
+      name: factor.key.replace(/[_-]/g, ' '),
+      value: Math.abs(factor.weight > 1 ? factor.weight : factor.weight * 100),
+    }));
+  }, [overview.riskFactors]);
+
+  // Completeness data for progress bars
+  const completenessData = useMemo(() => {
+    if (completenessScores) {
+      return [
+        { domain: 'Core Profile', score: completenessScores.coreProfile },
+        { domain: 'Payment', score: completenessScores.paymentData },
+        { domain: 'Engagement', score: completenessScores.engagementData },
+        { domain: 'Support', score: completenessScores.supportData },
+        { domain: 'CRM', score: completenessScores.crmData },
+        { domain: 'Marketing', score: completenessScores.marketingData },
+        { domain: 'Historical', score: completenessScores.historicalData },
+      ];
+    }
+    return dataHealth.completenessByDomain;
+  }, [completenessScores, dataHealth.completenessByDomain]);
+
+  // Recommendations from backend or aiInsights
+  const recommendations = useMemo(() => {
+    if (backendRecommendations && backendRecommendations.length > 0) {
+      return backendRecommendations;
+    }
+    return aiInsights.recommendations.map((rec) => ({
+      ...rec,
+      priority: rec.priority ?? 'medium' as const,
+    }));
+  }, [backendRecommendations, aiInsights.recommendations]);
+
+  const overallCompleteness = completenessScores?.overall ?? header.completenessScore ?? 0;
 
   const signalCards = useMemo(
     () => [
@@ -163,9 +242,124 @@ export const CustomerOverviewTab: React.FC = () => {
     </div>
   );
 
+  // Render data completeness section
+  const renderDataCompleteness = () => (
+    <div className="bg-surface-primary/90 border border-border-primary/30 rounded-2xl p-5 shadow-lg">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-text-primary">Data Completeness</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-bold text-accent-primary">{overallCompleteness}%</span>
+          {completenessScores?.isEligibleForChurnAnalysis && (
+            <span className="px-2 py-0.5 text-xs font-semibold bg-success/20 text-success rounded-full">
+              Analysis Ready
+            </span>
+          )}
+        </div>
+      </div>
+      {completenessData.length > 0 ? (
+        <div className="space-y-3">
+          {completenessData.map((item) => (
+            <div key={item.domain} className="flex items-center gap-3">
+              <span className="text-sm text-text-secondary w-24 flex-shrink-0">{item.domain}</span>
+              <div className="flex-1 h-2 bg-surface-secondary rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    item.score >= 70
+                      ? 'bg-success'
+                      : item.score >= 40
+                      ? 'bg-warning'
+                      : 'bg-error/70'
+                  }`}
+                  style={{ width: `${item.score}%` }}
+                />
+              </div>
+              <span className="text-sm font-semibold text-text-primary w-10 text-right">{item.score}%</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-4 bg-surface-secondary/40 rounded-xl text-sm text-text-muted">
+          No completeness data available. Connect data sources to see coverage.
+        </div>
+      )}
+      {completenessScores?.missingCategories && completenessScores.missingCategories.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-border-primary/30">
+          <p className="text-xs text-text-muted mb-2">Missing data categories:</p>
+          <div className="flex flex-wrap gap-2">
+            {completenessScores.missingCategories.map((cat) => (
+              <span
+                key={cat}
+                className="px-2 py-1 text-xs bg-warning/10 text-warning border border-warning/30 rounded-full"
+              >
+                {cat}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Render AI recommendations section
+  const renderAiRecommendations = () => (
+    <div className="bg-surface-primary/90 border border-border-primary/30 rounded-2xl p-5 shadow-lg">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-text-primary">AI Recommendations</h3>
+        <span className="px-2 py-1 text-xs font-semibold bg-accent-primary/20 text-accent-primary rounded-full">
+          {recommendations.length} actions
+        </span>
+      </div>
+      {recommendations.length > 0 ? (
+        <div className="space-y-3">
+          {recommendations.slice(0, 5).map((rec) => (
+            <div
+              key={rec.id}
+              className={`flex items-start gap-3 p-3 rounded-xl border ${
+                rec.priority === 'high'
+                  ? 'bg-error/5 border-error/30'
+                  : rec.priority === 'medium'
+                  ? 'bg-warning/5 border-warning/30'
+                  : 'bg-info/5 border-info/30'
+              }`}
+            >
+              <div
+                className={`flex items-center justify-center w-7 h-7 rounded-full flex-shrink-0 ${
+                  rec.priority === 'high'
+                    ? 'bg-error/20'
+                    : rec.priority === 'medium'
+                    ? 'bg-warning/20'
+                    : 'bg-info/20'
+                }`}
+              >
+                <PriorityIcon priority={rec.priority} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-text-primary">{rec.label}</p>
+                {rec.category && (
+                  <span className="text-xs text-text-muted capitalize">{rec.category}</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-4 bg-surface-secondary/40 rounded-xl text-sm text-text-muted">
+          No recommendations available. Run churn analysis to generate insights.
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
       {renderQuickActionButtons()}
+
+      {/* New: Data Completeness and AI Recommendations row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {renderDataCompleteness()}
+        {renderAiRecommendations()}
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         <div className="xl:col-span-2 bg-surface-secondary/40 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 space-y-6 shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -326,22 +520,83 @@ export const CustomerOverviewTab: React.FC = () => {
             AI analysis has not surfaced factor weights yet. Ensure product usage, support, and billing sources are connected.
           </div>
         ) : (
-          <div className="space-y-3">
-            {topRiskFactors.map((factor) => {
-              const weightLabel = formatFactorWeight(factor.weight);
-              const width = Math.min(100, Math.abs(factor.weight > 1 ? factor.weight : factor.weight * 100));
-              return (
-                <div key={factor.key} className="p-4 bg-surface-secondary/40 border border-border-primary/20 rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-text-primary capitalize">{factor.key.replace(/[_-]/g, ' ')}</span>
-                    <span className="text-sm font-semibold text-accent-primary">{weightLabel}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Pie chart visualization */}
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-48 h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={riskFactorsPieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={70}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {riskFactorsPieData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={RISK_COLORS[index % RISK_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number) => [`${value.toFixed(1)}%`, 'Weight']}
+                      contentStyle={{
+                        backgroundColor: 'rgb(var(--surface-primary))',
+                        borderRadius: '12px',
+                        border: '1px solid rgb(var(--border-primary))',
+                        color: 'rgb(var(--text-primary))',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Legend */}
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                {riskFactorsPieData.slice(0, 6).map((factor, index) => (
+                  <div key={factor.name} className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: RISK_COLORS[index % RISK_COLORS.length] }}
+                    />
+                    <span className="text-xs text-text-secondary capitalize truncate">{factor.name}</span>
                   </div>
-                  <div className="mt-2 h-2 bg-border-primary/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent-primary" style={{ width: `${width}%` }}></div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bar chart breakdown */}
+            <div className="space-y-3">
+              {topRiskFactors.map((factor, index) => {
+                const weightLabel = formatFactorWeight(factor.weight);
+                const width = Math.min(100, Math.abs(factor.weight > 1 ? factor.weight : factor.weight * 100));
+                return (
+                  <div key={factor.key} className="p-3 bg-surface-secondary/40 border border-border-primary/20 rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: RISK_COLORS[index % RISK_COLORS.length] }}
+                        />
+                        <span className="text-sm font-semibold text-text-primary capitalize">
+                          {factor.key.replace(/[_-]/g, ' ')}
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-accent-primary">{weightLabel}</span>
+                    </div>
+                    <div className="h-2 bg-border-primary/30 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${width}%`,
+                          backgroundColor: RISK_COLORS[index % RISK_COLORS.length],
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

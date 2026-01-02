@@ -323,23 +323,96 @@ export interface CustomerData {
   dataSources: DataSources;
 }
 
-// Helper interface for display purposes (computed from CustomerData)
-export interface CustomerDisplayData {
+/**
+ * CustomerListItem - matches backend CustomerListResponse exactly.
+ * All display strings are pre-computed by the server for reliable rendering.
+ */
+export interface CustomerListItem {
   id: string;
-  fullName: string; // from API
+  firstName: string;
+  lastName: string;
   email: string;
-  lifetimeValue: number; // raw number for sorting and display
-  churnRiskScore: number; // percentage from API
-  tenureDisplay: string; // pre-formatted from API
-  activityStatus: string; // from API ("Active" | "Inactive")
-  lastActivityDate: string; // ISO date from API
-  hasRecentActivity: boolean; // from API
-  plan: SubscriptionPlan; // converted from number
-  subscriptionStatus: SubscriptionStatus; // converted from status number
-  churnRiskLevel: ChurnRiskLevel; // converted from churnRisk number
+  companyName?: string | null;
+
+  // Pre-computed display strings from backend
+  fullName: string;
+  tenureDisplay: string;
+  activityStatus: 'Active' | 'Inactive';
+  lastActivityDisplay: string;
+  planDisplay: string;
+  statusDisplay: string;
+  churnRiskDisplay: string;
+  formattedMrr: string;
+  formattedLtv: string;
+
+  // Raw enum values for filtering/sorting
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  paymentStatus: PaymentStatus;
+  churnRisk: ChurnRiskLevel;
+  churnRiskScore: number;
+  monthlyRecurringRevenue: number;
+  lifetimeValue: number;
+  nextBillingDate?: string | null;
+  hasPaymentIssues: boolean;
+  paymentFailureCount: number;
+
+  // Tenure (raw)
+  tenureDays: number;
+
+  // Activity
+  lastActivityDate?: string | null;
+  hasRecentActivity: boolean;
+  lastSyncedAt: string;
+
+  // Additional fields
+  leadSource?: string | null;
+  industry?: string | null;
+  isSubscribed: boolean;
+  openSupportTickets: number;
 }
 
-// API response wrapper
+// Legacy interface - keep for backwards compatibility but prefer CustomerListItem
+export interface CustomerDisplayData {
+  id: string;
+  fullName: string;
+  email: string;
+  lifetimeValue: number;
+  churnRiskScore: number;
+  tenureDisplay: string;
+  activityStatus: string;
+  lastActivityDate: string;
+  hasRecentActivity: boolean;
+  plan: SubscriptionPlan;
+  subscriptionStatus: SubscriptionStatus;
+  churnRiskLevel: ChurnRiskLevel;
+  // Extended fields from CustomerListItem
+  companyName?: string | null;
+  monthlyRecurringRevenue?: number;
+  hasPaymentIssues?: boolean;
+  paymentFailureCount?: number;
+  formattedMrr?: string;
+  formattedLtv?: string;
+  statusDisplay?: string;
+  planDisplay?: string;
+  lastActivityDisplay?: string;
+  industry?: string | null;
+  leadSource?: string | null;
+  tenureDays?: number;
+}
+
+// API response wrapper for customer list
+export interface CustomersListApiResponse {
+  items: CustomerListItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+// Legacy response wrapper - keep for backwards compatibility
 export interface CustomersApiResponse {
   items: CustomerData[];
   totalCount: number;
@@ -1606,6 +1679,28 @@ export interface CustomerMiniEngagementTrendEntry {
   lastLoginDate: string;
 }
 
+// Data completeness scores per domain (0-100)
+export interface DataCompletenessScores {
+  coreProfile: number;
+  paymentData: number;
+  engagementData: number;
+  supportData: number;
+  crmData: number;
+  marketingData: number;
+  historicalData: number;
+  overall: number;
+  isEligibleForChurnAnalysis: boolean;
+  missingCategories: string[];
+}
+
+// AI-generated recommendation
+export interface CustomerAiRecommendation {
+  id: string;
+  label: string;
+  priority: 'low' | 'medium' | 'high';
+  category?: string;
+}
+
 export interface CustomerOverviewResponse {
   id: string;
   firstName: string;
@@ -1649,6 +1744,11 @@ export interface CustomerOverviewResponse {
   }>;
   miniPaymentTrend: CustomerMiniPaymentTrendEntry[];
   miniEngagementTrend: CustomerMiniEngagementTrendEntry[];
+
+  // New fields for enhanced overview
+  completeness?: DataCompletenessScores;
+  aiRecommendations?: CustomerAiRecommendation[];
+  riskFactors?: Record<string, number>;
 }
 
 export interface CustomerPaymentTrendEntry extends CustomerMiniPaymentTrendEntry {}

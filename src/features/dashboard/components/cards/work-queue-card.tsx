@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { CheckCircle } from 'lucide-react';
 import { AtRiskCustomer, MissedPaymentRow } from '@/types/api';
 
 type WorkQueueItem = {
@@ -78,7 +79,10 @@ export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
       )}
 
       {!isLoading && items.length === 0 && (
-        <div className="text-sm text-text-muted">No urgent items. You're all caught up! 🎉</div>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <CheckCircle className="w-8 h-8 text-success mb-2" />
+          <p className="text-sm text-text-muted">No urgent items. You're all caught up!</p>
+        </div>
       )}
 
       {!isLoading && items.length > 0 && (

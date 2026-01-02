@@ -14,14 +14,14 @@ import { DeleteCustomersModal } from '@/features/customers/components/customers-
 import { getActivityColor, getSubscriptionStatusColor } from '@/utils/customer-helpers';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAuthorization, CompanyAuthorization } from '@/lib/authorization';
-import { 
-  SubscriptionStatus, 
-  SubscriptionPlan, 
-  PaymentStatus, 
+import {
+  SubscriptionStatus,
+  SubscriptionPlan,
+  PaymentStatus,
   ChurnRiskLevel,
   CustomersQueryParams,
   formatSubscriptionStatus,
-  CustomerDisplayData,
+  CustomerListItem,
   formatPlanName,
   formatPaymentStatus
 } from '@/types/api';
@@ -89,7 +89,7 @@ export const CustomersRoute = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [customersToDelete, setCustomersToDelete] = useState<CustomerDisplayData[]>([]);
+  const [customersToDelete, setCustomersToDelete] = useState<CustomerListItem[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [mrrRange, setMrrRange] = useState<{ min?: string; max?: string }>({});
   const [industryFilter, setIndustryFilter] = useState<string | undefined>();
@@ -185,7 +185,7 @@ export const CustomersRoute = () => {
     setShowDeleteModal(true);
   };
 
-  const handleSingleDelete = (customer: CustomerDisplayData, event: React.MouseEvent) => {
+  const handleSingleDelete = (customer: CustomerListItem, event: React.MouseEvent) => {
     event.stopPropagation();
     setCustomersToDelete([customer]);
     setShowDeleteModal(true);
@@ -307,11 +307,11 @@ export const CustomersRoute = () => {
 
   const filterCounts = useMemo(() => ({
     all: pagination?.totalCount || 0,
-    active: customers.filter(c => c.subscriptionStatus === SubscriptionStatus.Active).length,
-    'high-risk': customers.filter(c => c.churnRiskLevel === ChurnRiskLevel.High || c.churnRiskLevel === ChurnRiskLevel.Critical).length,
+    active: customers.filter(c => c.status === SubscriptionStatus.Active).length,
+    'high-risk': customers.filter(c => c.churnRisk === ChurnRiskLevel.High || c.churnRisk === ChurnRiskLevel.Critical).length,
     recent: customers.filter(c => c.hasRecentActivity).length,
-    'payment-issues': customers.filter(c => (c as any).hasPaymentIssues || c.subscriptionStatus === SubscriptionStatus.PastDue).length,
-    cancelled: customers.filter(c => c.subscriptionStatus === SubscriptionStatus.Cancelled).length,
+    'payment-issues': customers.filter(c => c.hasPaymentIssues || c.status === SubscriptionStatus.PastDue).length,
+    cancelled: customers.filter(c => c.status === SubscriptionStatus.Cancelled).length,
   }), [customers, pagination?.totalCount]);
 
   const toggleCustomerSelection = (customerId: string, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -336,7 +336,7 @@ export const CustomersRoute = () => {
   const industryOptions = useMemo(() => {
     const set = new Set<string>();
     customers.forEach((c) => {
-      if ((c as any).industry) set.add((c as any).industry);
+      if (c.industry) set.add(c.industry);
     });
     return Array.from(set);
   }, [customers]);
@@ -344,7 +344,7 @@ export const CustomersRoute = () => {
   const leadSourceOptions = useMemo(() => {
     const set = new Set<string>();
     customers.forEach((c) => {
-      if ((c as any).leadSource) set.add((c as any).leadSource);
+      if (c.leadSource) set.add(c.leadSource);
     });
     return Array.from(set);
   }, [customers]);
@@ -384,7 +384,7 @@ export const CustomersRoute = () => {
   };
 
   const totalMRR = useMemo(() => {
-    return customers.reduce((acc, c) => acc + ((c as any).monthlyRecurringRevenue ?? 0), 0);
+    return customers.reduce((acc, c) => acc + (c.monthlyRecurringRevenue ?? 0), 0);
   }, [customers]);
 
   const avgChurn = useMemo(
@@ -973,21 +973,25 @@ export const CustomersRoute = () => {
                         <td className="py-4 px-6 whitespace-normal break-words align-top">
                           <div className="flex flex-col gap-1">
                             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-secondary/70 border border-border-primary/30 text-text-primary w-max">
-                              {formatPlanName(customer.plan)}
+                              {customer.planDisplay}
                             </span>
-                            <span className={`px-3 py-1 rounded-full text-[11px] font-semibold w-max ${getSubscriptionStatusColor(customer.subscriptionStatus)}`}>
-                              {formatSubscriptionStatus(customer.subscriptionStatus)}
-                            </span>
-                            <span className="text-xs text-text-secondary">
-                              {formatPaymentStatus((customer as any).paymentStatus ?? PaymentStatus.Current)}
-                            </span>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <span className={customer.hasPaymentIssues ? 'text-error font-medium' : 'text-text-secondary'}>
+                                {customer.statusDisplay}
+                              </span>
+                              {customer.hasPaymentIssues ? (
+                                <span className="text-error">· {customer.paymentFailureCount} failures</span>
+                              ) : (
+                                <span className="text-text-muted">· {customer.formattedMrr}</span>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="py-4 px-6 whitespace-normal break-words align-top">
                           <div className="text-text-primary font-medium">{customer.tenureDisplay}</div>
                         </td>
                         <td className="py-4 px-6 whitespace-normal break-words align-top">
-                          <div className="text-text-primary font-semibold">{formatCurrency(customer.lifetimeValue, 'USD')}</div>
+                          <div className="text-text-primary font-semibold">{customer.formattedLtv}</div>
                         </td>
                         <td className="py-4 px-6 whitespace-normal break-words align-top">
                           <ChurnRiskBadge score={Math.round(customer.churnRiskScore)} />

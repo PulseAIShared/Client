@@ -12,7 +12,7 @@ import { LinksGroup } from './links';
 
 import { PlatformAuthorization } from '@/lib/authorization';
 import { PlatformRole } from '@/types/api';
-import { FaUsersCog, FaNetworkWired, FaListUl, FaHeadset } from 'react-icons/fa';
+import { FaUsersCog, FaNetworkWired, FaListUl, FaHeadset, FaDatabase } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { useTheme } from '@/lib/theme-context';
 
@@ -99,6 +99,13 @@ export const Sidebar = ({ sections }: SidebarProps) => {
             link="/app/admin/connection-diagnostics"
             onClick={handleLinkClick}
             key="admin-connection-diagnostics"
+          />
+          <LinksGroup
+            name="Data Generator"
+            icon={FaDatabase}
+            link="/app/admin/data-generator"
+            onClick={handleLinkClick}
+            key="admin-data-generator"
           />
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PieChart } from 'lucide-react';
 import { DemographicInsight } from '@/types/api';
 
 interface DemographicInsightsCardProps {
@@ -54,7 +55,7 @@ export const DemographicInsightsCard: React.FC<DemographicInsightsCardProps> = (
       <div className="bg-gradient-to-r from-surface-primary to-surface-secondary p-6 border-b border-border-primary/20">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl flex items-center justify-center">
-            <span className="text-lg">🎯</span>
+            <PieChart className="w-5 h-5 text-indigo-400" />
           </div>
           <h3 className="text-lg font-semibold text-text-primary">Demographic Insights</h3>
         </div>

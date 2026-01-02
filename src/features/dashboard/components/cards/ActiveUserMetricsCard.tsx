@@ -1,4 +1,5 @@
 import React from 'react';
+import { Users, Calendar, BarChart2, TrendingUp } from 'lucide-react';
 import { ActiveUserMetrics } from '@/types/api';
 
 interface ActiveUserMetricsCardProps {
@@ -41,21 +42,21 @@ export const ActiveUserMetricsCard: React.FC<ActiveUserMetricsCardProps> = ({
       value: data.last7Days,
       percentage: Math.round(data.percentage7Days),
       color: 'from-blue-500 to-cyan-500',
-      icon: '📅',
+      icon: <Calendar className="w-5 h-5 text-blue-400" />,
     },
     {
       label: 'Last 14 Days',
       value: data.last14Days,
       percentage: Math.round(data.percentage14Days),
       color: 'from-purple-500 to-pink-500',
-      icon: '📊',
+      icon: <BarChart2 className="w-5 h-5 text-purple-400" />,
     },
     {
       label: 'Last 30 Days',
       value: data.last30Days,
       percentage: Math.round(data.percentage30Days),
       color: 'from-green-500 to-emerald-500',
-      icon: '📈',
+      icon: <TrendingUp className="w-5 h-5 text-green-400" />,
     },
   ];
 
@@ -64,7 +65,7 @@ export const ActiveUserMetricsCard: React.FC<ActiveUserMetricsCardProps> = ({
       <div className="bg-gradient-to-r from-surface-primary to-surface-secondary p-6 border-b border-border-primary/20">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center">
-            <span className="text-lg">👥</span>
+            <Users className="w-5 h-5 text-blue-400" />
           </div>
           <h3 className="text-lg font-semibold text-text-primary">Active Users</h3>
         </div>
@@ -76,7 +77,7 @@ export const ActiveUserMetricsCard: React.FC<ActiveUserMetricsCardProps> = ({
           <div key={idx} className="group">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xl">{metric.icon}</span>
+                {metric.icon}
                 <label className="text-sm font-medium text-text-primary">
                   {metric.label}
                 </label>

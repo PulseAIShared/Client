@@ -1,12 +1,11 @@
 // src/features/customers/api/customers.ts - Updated to work with your real API
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { 
-  CustomerData, 
-  CustomersApiResponse, 
+import {
+  CustomerData,
   CustomersQueryParams,
-  transformCustomerData,
-  CustomerDisplayData,
+  CustomerListItem,
+  CustomersListApiResponse,
   CustomerDetailData,
   CustomerOverviewResponse,
   CustomerPaymentHistoryResponse,
@@ -18,8 +17,9 @@ import {
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 
 // Get all customers with proper query params
+// Backend now returns display-ready data - no transformation needed
 export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
-  customers: CustomerDisplayData[];
+  customers: CustomerListItem[];
   pagination: {
     page: number;
     pageSize: number;
@@ -31,7 +31,7 @@ export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
 }> => {
   // Build query string from parameters
   const queryParams = new URLSearchParams();
-  
+
   if (params.page) queryParams.append('page', params.page.toString());
   if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
   if (params.search) queryParams.append('search', params.search);
@@ -43,14 +43,11 @@ export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
   if (params.sortDescending !== undefined) queryParams.append('sortDescending', params.sortDescending.toString());
 
   const url = `/customers?${queryParams.toString()}`;
-  console.log('API Call URL:', url);
-  const response = await api.get(url) as CustomersApiResponse;
-  
-  // Transform API data to display format
-  const customers = response.items.map(transformCustomerData);
-  
+  const response = await api.get(url) as CustomersListApiResponse;
+
+  // Backend provides display-ready data - use directly
   return {
-    customers,
+    customers: response.items,
     pagination: {
       page: response.page,
       pageSize: response.pageSize,

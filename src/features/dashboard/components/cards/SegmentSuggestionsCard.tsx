@@ -1,4 +1,5 @@
 import React from 'react';
+import { Lightbulb, Gem, TrendingUp, Target, LayoutGrid } from 'lucide-react';
 import { SegmentSuggestion } from '@/types/api';
 
 
@@ -38,19 +39,13 @@ export const SegmentSuggestionsCard: React.FC<SegmentSuggestionsCardProps> = ({
     );
   }
 
-  const segmentIcons: Record<string, string> = {
-    'high-value': '💎',
-    'expansion': '📈',
-    'winback': '🎯',
-    default: '🎯',
-  };
-
   const getIcon = (name: string) => {
     const lower = name.toLowerCase();
-    if (lower.includes('high')) return '💎';
-    if (lower.includes('expansion')) return '📈';
-    if (lower.includes('win')) return '🎯';
-    return '🎪';
+    const iconClass = "w-5 h-5";
+    if (lower.includes('high') || lower.includes('value')) return <Gem className={`${iconClass} text-purple-400`} />;
+    if (lower.includes('expansion') || lower.includes('growth')) return <TrendingUp className={`${iconClass} text-green-400`} />;
+    if (lower.includes('win') || lower.includes('risk')) return <Target className={`${iconClass} text-orange-400`} />;
+    return <LayoutGrid className={`${iconClass} text-blue-400`} />;
   };
 
   const getPriorityColor = (index: number) => {
@@ -83,8 +78,8 @@ export const SegmentSuggestionsCard: React.FC<SegmentSuggestionsCardProps> = ({
     <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 shadow-lg overflow-hidden">
       <div className="bg-gradient-to-r from-surface-primary to-surface-secondary p-6 border-b border-border-primary/20">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl flex items-center justify-center">
-            <span className="text-lg">✨</span>
+          <div className="w-10 h-10 bg-gradient-to-br from-accent-primary/20 to-accent-secondary/20 rounded-xl flex items-center justify-center">
+            <Lightbulb className="w-5 h-5 text-accent-primary" />
           </div>
           <h3 className="text-lg font-semibold text-text-primary">Segment Suggestions</h3>
         </div>
@@ -101,7 +96,9 @@ export const SegmentSuggestionsCard: React.FC<SegmentSuggestionsCardProps> = ({
             <div key={idx} className={`bg-gradient-to-r ${colors.bg} border-l-4 ${colors.border} p-4`}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div className="text-2xl flex-shrink-0">{getIcon(suggestion.name)}</div>
+                  <div className="w-8 h-8 rounded-lg bg-surface-secondary/50 flex items-center justify-center flex-shrink-0">
+                    {getIcon(suggestion.name)}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-bold text-text-primary truncate">{suggestion.name}</h4>

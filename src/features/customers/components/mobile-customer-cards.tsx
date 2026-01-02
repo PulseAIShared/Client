@@ -1,15 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CustomerDisplayData } from '@/types/api';
+import { CustomerListItem } from '@/types/api';
 import { getActivityColor, getRiskColor, getSubscriptionStatusColor } from '@/utils/customer-helpers';
 import { CompanyAuthorization } from '@/lib/authorization';
 
 interface MobileCustomerCardsProps {
-  customers: CustomerDisplayData[];
+  customers: CustomerListItem[];
   onCustomerClick?: (customerId: string) => void;
   selectedCustomers: Set<string>;
   onToggleSelection: (customerId: string, event: React.ChangeEvent<HTMLInputElement>) => void;
-  onSingleDelete: (customer: CustomerDisplayData, event: React.MouseEvent<HTMLButtonElement>) => void;
+  onSingleDelete: (customer: CustomerListItem, event: React.MouseEvent<HTMLButtonElement>) => void;
   canEditCustomers: boolean;
 }
 
@@ -69,14 +69,10 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
             </div>
             <div className="ml-3 flex flex-col items-end gap-1.5">
               <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${getRiskColor(customer.churnRiskScore)}`}>
-                {customer.churnRiskScore}%
+                {customer.churnRiskDisplay}
               </div>
-              <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${getSubscriptionStatusColor(customer.subscriptionStatus)}`}>
-                {customer.subscriptionStatus === 0 ? 'Active' : 
-                 customer.subscriptionStatus === 1 ? 'Inactive' :
-                 customer.subscriptionStatus === 2 ? 'Cancelled' :
-                 customer.subscriptionStatus === 3 ? 'Past Due' :
-                 customer.subscriptionStatus === 4 ? 'Paused' : 'Unknown'}
+              <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${getSubscriptionStatusColor(customer.status)}`}>
+                {customer.statusDisplay}
               </div>
             </div>
           </div>
@@ -85,11 +81,11 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="space-y-1">
               <span className="text-text-muted text-xs">Plan</span>
-              <p className="text-text-primary font-medium">{customer.plan}</p>
+              <p className="text-text-primary font-medium">{customer.planDisplay}</p>
             </div>
             <div className="space-y-1">
               <span className="text-text-muted text-xs">LTV</span>
-              <p className="text-text-primary font-medium">${customer.lifetimeValue}</p>
+              <p className="text-text-primary font-medium">{customer.formattedLtv}</p>
             </div>
             <div className="space-y-1">
               <span className="text-text-muted text-xs">Tenure</span>
@@ -98,7 +94,7 @@ export const MobileCustomerCards: React.FC<MobileCustomerCardsProps> = ({
             <div className="space-y-1">
               <span className="text-text-muted text-xs">Activity</span>
               <p className={`font-medium text-xs ${getActivityColor(customer.activityStatus)}`}>
-                {customer.activityStatus}
+                {customer.lastActivityDisplay}
               </p>
             </div>
           </div>

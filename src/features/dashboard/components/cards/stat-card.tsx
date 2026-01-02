@@ -146,14 +146,24 @@ export const StatCard: React.FC<StatCardProps> = ({ stats, isLoading, error }) =
               <p className={`text-xl sm:text-2xl font-semibold ${stat.color}`}>
                 {stat.value}
               </p>
-              <div className="flex items-center gap-1 text-success-muted text-[11px] font-medium bg-success-bg/20 px-2 py-1 rounded-full border border-success/10">
-                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                <span className="truncate max-w-[60px]">
-                  {stat.trend ?? '0%'}
-                </span>
-              </div>
+              {stat.trend && stat.trend !== '—' && (
+                <div className={`flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border ${
+                  stat.trend.startsWith('-')
+                    ? 'text-error-muted bg-error-bg/20 border-error/10'
+                    : 'text-success-muted bg-success-bg/20 border-success/10'
+                }`}>
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {stat.trend.startsWith('-') ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    )}
+                  </svg>
+                  <span className="truncate max-w-[60px]">
+                    {stat.trend}
+                  </span>
+                </div>
+              )}
             </div>
             
             <p className="text-[11px] sm:text-xs text-text-muted leading-relaxed">

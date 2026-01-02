@@ -1,4 +1,5 @@
 import React from 'react';
+import { Zap, Rocket, Star, Moon } from 'lucide-react';
 import { ActivationMetrics } from '@/types/api';
 
 interface ActivationMetricsCardProps {
@@ -41,7 +42,7 @@ export const ActivationMetricsCard: React.FC<ActivationMetricsCardProps> = ({
       description: '4+ logins per week',
       percentage: Math.round(data.frequentUserPercentage),
       color: 'from-green-500 to-emerald-500',
-      icon: '🚀',
+      icon: <Rocket className="w-5 h-5 text-green-400" />,
       bg: 'bg-green-500/10',
     },
     {
@@ -49,7 +50,7 @@ export const ActivationMetricsCard: React.FC<ActivationMetricsCardProps> = ({
       description: '2-3 logins per week',
       percentage: Math.round(data.regularUserPercentage),
       color: 'from-blue-500 to-cyan-500',
-      icon: '⭐',
+      icon: <Star className="w-5 h-5 text-blue-400" />,
       bg: 'bg-blue-500/10',
     },
     {
@@ -57,7 +58,7 @@ export const ActivationMetricsCard: React.FC<ActivationMetricsCardProps> = ({
       description: '< 1 login per week',
       percentage: Math.round(data.inactiveUserPercentage),
       color: 'from-orange-500 to-red-500',
-      icon: '😴',
+      icon: <Moon className="w-5 h-5 text-orange-400" />,
       bg: 'bg-orange-500/10',
     },
   ];
@@ -70,7 +71,7 @@ export const ActivationMetricsCard: React.FC<ActivationMetricsCardProps> = ({
       <div className="bg-gradient-to-r from-surface-primary to-surface-secondary p-6 border-b border-border-primary/20">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center">
-            <span className="text-lg">⚡</span>
+            <Zap className="w-5 h-5 text-purple-400" />
           </div>
           <h3 className="text-lg font-semibold text-text-primary">Activation Metrics</h3>
         </div>
@@ -85,7 +86,7 @@ export const ActivationMetricsCard: React.FC<ActivationMetricsCardProps> = ({
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xl">{type.icon}</span>
+                    {type.icon}
                     <h4 className="font-semibold text-text-primary">{type.label}</h4>
                   </div>
                   <p className="text-xs text-text-muted">{type.description}</p>

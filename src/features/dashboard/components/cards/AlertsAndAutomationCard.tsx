@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Bell, AlertTriangle, DollarSign, BarChart3, Target, Circle } from 'lucide-react';
 import { DashboardAlert } from '@/types/api';
 
 
@@ -46,12 +47,24 @@ export const AlertsAndAutomationCard: React.FC<AlertsAndAutomationCardProps> = (
     : alerts;
 
   const alertTypes = [
-    { type: 'ChurnRisk', label: '⚠️ Churn Risk', count: alerts.filter(a => a.alertType === 'ChurnRisk').length },
-    { type: 'RevenueThreshold', label: '💰 Revenue', count: alerts.filter(a => a.alertType === 'RevenueThreshold').length },
-    { type: 'Engagement', label: '📊 Engagement', count: alerts.filter(a => a.alertType === 'Engagement').length },
+    { type: 'ChurnRisk', label: 'Churn Risk', count: alerts.filter(a => a.alertType === 'ChurnRisk').length },
+    { type: 'RevenueThreshold', label: 'Revenue', count: alerts.filter(a => a.alertType === 'RevenueThreshold').length },
+    { type: 'Engagement', label: 'Engagement', count: alerts.filter(a => a.alertType === 'Engagement').length },
   ];
 
   const activeAlertCount = alerts.filter(a => a.triggeredCount > 0).length;
+
+  const getAlertIcon = (alertType: string) => {
+    const iconClass = "w-5 h-5";
+    switch (alertType) {
+      case 'ChurnRisk':
+        return <AlertTriangle className={`${iconClass} text-red-400`} />;
+      case 'RevenueThreshold':
+        return <DollarSign className={`${iconClass} text-yellow-400`} />;
+      default:
+        return <BarChart3 className={`${iconClass} text-blue-400`} />;
+    }
+  };
 
   const getAlertColor = (alertType: string) => {
     switch (alertType) {
@@ -59,21 +72,18 @@ export const AlertsAndAutomationCard: React.FC<AlertsAndAutomationCardProps> = (
         return {
           bg: 'from-red-500/10 to-red-500/5',
           border: 'border-red-500/20',
-          icon: '⚠️',
           text: 'text-red-300',
         };
       case 'RevenueThreshold':
         return {
           bg: 'from-yellow-500/10 to-yellow-500/5',
           border: 'border-yellow-500/20',
-          icon: '💰',
           text: 'text-yellow-300',
         };
       default:
         return {
           bg: 'from-blue-500/10 to-blue-500/5',
           border: 'border-blue-500/20',
-          icon: '📊',
           text: 'text-blue-300',
         };
     }
@@ -100,7 +110,7 @@ export const AlertsAndAutomationCard: React.FC<AlertsAndAutomationCardProps> = (
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-xl flex items-center justify-center">
-              <span className="text-lg">🔔</span>
+              <Bell className="w-5 h-5 text-orange-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-text-primary">Alerts & Automation</h3>
@@ -118,7 +128,9 @@ export const AlertsAndAutomationCard: React.FC<AlertsAndAutomationCardProps> = (
 
       {alerts.length === 0 ? (
         <div className="p-8 text-center">
-          <div className="text-4xl mb-2">🎯</div>
+          <div className="w-12 h-12 mx-auto mb-3 bg-surface-secondary/50 rounded-full flex items-center justify-center">
+            <Target className="w-6 h-6 text-text-muted" />
+          </div>
           <p className="text-text-muted mb-2">No alerts configured yet</p>
           <p className="text-text-muted text-sm mb-4">Create alerts to get notified of important customer events</p>
           <button className="px-4 py-2 text-sm font-semibold bg-accent-primary hover:bg-accent-secondary text-white rounded-lg transition-colors">
@@ -174,13 +186,15 @@ export const AlertsAndAutomationCard: React.FC<AlertsAndAutomationCardProps> = (
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="text-xl flex-shrink-0 mt-0.5">{colors.icon}</div>
+                        <div className="w-8 h-8 rounded-lg bg-surface-secondary/50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          {getAlertIcon(alert.alertType)}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-bold text-text-primary truncate">{alert.name}</h4>
                             {isActive && (
-                              <span className="inline-flex items-center px-2 py-0.5 text-xs font-bold bg-red-500/20 text-red-300 rounded-full">
-                                🔴 Active
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-red-500/20 text-red-300 rounded-full">
+                                <Circle className="w-2 h-2 fill-current" /> Active
                               </span>
                             )}
                           </div>

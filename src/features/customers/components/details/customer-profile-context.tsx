@@ -15,6 +15,8 @@ import {
   CustomerOverviewResponse,
   CustomerPaymentHistoryResponse,
   CustomerSupportHistoryResponse,
+  DataCompletenessScores,
+  CustomerAiRecommendation,
 } from '@/types/api';
 import { formatDate } from '@/utils/customer-helpers';
 import { useCustomerAiInsightsStore } from '@/features/customers/state/customer-ai-insights-store';
@@ -154,7 +156,7 @@ export interface MarketingData {
 
 export interface AiInsightsData {
   summaryMarkdown?: string | null;
-  recommendations: Array<{ id: string; label: string; priority?: 'low' | 'medium' | 'high' }>;
+  recommendations: Array<{ id: string; label: string; priority?: 'low' | 'medium' | 'high'; category?: string }>;
   aiScore?: number | null;
   aiLevel?: string | null;
   baselineScore?: number | null;
@@ -209,6 +211,10 @@ interface CustomerProfileContextValue extends CustomerProfileData {
   isLoading: boolean;
   error?: unknown;
   overviewSnapshot?: CustomerOverviewResponse;
+  // Direct access to enhanced overview data (no transformation needed)
+  completenessScores?: DataCompletenessScores;
+  backendRecommendations?: CustomerAiRecommendation[];
+  backendRiskFactors?: Record<string, number>;
   histories: {
     payment?: CustomerPaymentHistoryResponse;
     engagement?: CustomerEngagementHistoryResponse;
@@ -1062,12 +1068,22 @@ const buildMarketing = (customer?: CustomerDetailData | null): MarketingData => 
   };
 };
 
-const buildDataHealth = (customer?: CustomerDetailData | null): DataHealthData => {
+const buildDataHealth = (customer?: CustomerDetailData | null, overviewCompleteness?: DataCompletenessScores): DataHealthData => {
   const completenessByDomain: Array<{ domain: string; score: number }> = [];
   const syncHistory =
     (customer as unknown as { syncHistory?: Array<{ source?: string; category?: string; lastSync?: string | null; status?: string | null }> } | null | undefined)
       ?.syncHistory ?? [];
-  if (customer?.completeness) {
+
+  // Prefer backend completeness scores from overview endpoint
+  if (overviewCompleteness) {
+    completenessByDomain.push({ domain: 'Core Profile', score: overviewCompleteness.coreProfile });
+    completenessByDomain.push({ domain: 'Payment', score: overviewCompleteness.paymentData });
+    completenessByDomain.push({ domain: 'Engagement', score: overviewCompleteness.engagementData });
+    completenessByDomain.push({ domain: 'Support', score: overviewCompleteness.supportData });
+    completenessByDomain.push({ domain: 'CRM', score: overviewCompleteness.crmData });
+    completenessByDomain.push({ domain: 'Marketing', score: overviewCompleteness.marketingData });
+    completenessByDomain.push({ domain: 'Historical', score: overviewCompleteness.historicalData });
+  } else if (customer?.completeness) {
     completenessByDomain.push({ domain: 'CRM', score: customer.completeness.crmDataScore });
     completenessByDomain.push({ domain: 'Payment', score: customer.completeness.paymentDataScore });
     completenessByDomain.push({ domain: 'Marketing', score: customer.completeness.marketingDataScore });
@@ -1166,11 +1182,20 @@ const buildSourcesLogs = (customer?: CustomerDetailData | null): SourcesLogsData
   };
 };
 
-const buildAiInsights = (customer: CustomerDetailData | null | undefined, overview: OverviewWidgetsSheet): AiInsightsData => {
+const buildAiInsights = (
+  customer: CustomerDetailData | null | undefined,
+  overview: OverviewWidgetsSheet,
+  backendRecommendations?: CustomerAiRecommendation[]
+): AiInsightsData => {
   if (!customer) {
     return {
       summaryMarkdown: null,
-      recommendations: [],
+      recommendations: backendRecommendations?.map((rec) => ({
+        id: rec.id,
+        label: rec.label,
+        priority: rec.priority,
+        category: rec.category,
+      })) ?? [],
       aiScore: overview.aiScore ?? null,
       aiLevel: 'Unknown',
       baselineScore: overview.baselineScore ?? null,
@@ -1189,18 +1214,35 @@ const buildAiInsights = (customer: CustomerDetailData | null | undefined, overvi
   } else {
     summaryParts.push(`**Risk posture**: ${customer.churnOverview?.currentRiskLevel ?? customer.riskStatus ?? 'Unknown'}.`);
   }
-  if (aiMeta?.recommendations?.length) {
+
+  // Use backend recommendations if available
+  if (backendRecommendations?.length) {
+    const highPriority = backendRecommendations.filter((r) => r.priority === 'high');
+    if (highPriority.length > 0) {
+      summaryParts.push(`**Priority actions**: ${highPriority.map((r) => r.label).join(' • ')}`);
+    }
+  } else if (aiMeta?.recommendations?.length) {
     summaryParts.push(`**AI recommendations**: ${aiMeta.recommendations.join(' • ')}`);
   } else if (customer.dataQuality?.recommendedActions?.length) {
     summaryParts.push(`**Data quality**: ${customer.dataQuality.recommendedActions.join(', ')}.`);
   }
 
+  // Prefer backend recommendations, then fall back to existing sources
+  const recommendations = backendRecommendations?.length
+    ? backendRecommendations.map((rec) => ({
+        id: rec.id,
+        label: rec.label,
+        priority: rec.priority,
+        category: rec.category,
+      }))
+    : (aiMeta?.recommendations ?? customer.churnOverview?.recommendations ?? []).map((label, index) => ({
+        id: `rec-${index}`,
+        label,
+      }));
+
   return {
     summaryMarkdown: summaryParts.join('\n\n'),
-    recommendations: (aiMeta?.recommendations ?? customer.churnOverview?.recommendations ?? []).map((label, index) => ({
-      id: `rec-${index}`,
-      label,
-    })),
+    recommendations,
     aiScore: aiMeta?.aiRiskScore ?? current?.riskScore ?? customer.churnRiskScore ?? null,
     aiLevel:
       aiMeta?.aiRiskLevel != null
@@ -1214,8 +1256,22 @@ const buildAiInsights = (customer: CustomerDetailData | null | undefined, overvi
   };
 };
 
-const buildCustomerProfile = (customer?: CustomerDetailData | null): CustomerProfileData => {
+const buildCustomerProfile = (
+  customer?: CustomerDetailData | null,
+  overviewCompleteness?: DataCompletenessScores,
+  backendRecommendations?: CustomerAiRecommendation[],
+  backendRiskFactors?: Record<string, number>
+): CustomerProfileData => {
   const overview = buildOverview(customer);
+
+  // If we have backend risk factors, merge them with any existing ones
+  if (backendRiskFactors && Object.keys(backendRiskFactors).length > 0) {
+    overview.riskFactors = Object.entries(backendRiskFactors)
+      .map(([key, weight]) => ({ key, weight }))
+      .sort((a, b) => b.weight - a.weight)
+      .slice(0, 8);
+  }
+
   return {
     header: buildHeader(customer),
     overview,
@@ -1223,8 +1279,8 @@ const buildCustomerProfile = (customer?: CustomerDetailData | null): CustomerPro
     engagement: buildEngagement(customer),
     support: buildSupport(customer),
     marketing: buildMarketing(customer),
-    aiInsights: buildAiInsights(customer, overview),
-    dataHealth: buildDataHealth(customer),
+    aiInsights: buildAiInsights(customer, overview, backendRecommendations),
+    dataHealth: buildDataHealth(customer, overviewCompleteness),
     sourcesLogs: buildSourcesLogs(customer),
     churnAnalysis: {
       baselineScore: overview.baselineScore,
@@ -1289,7 +1345,16 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
     ],
   );
 
-  const profile = useMemo(() => buildCustomerProfile(aggregatedCustomer ?? null), [aggregatedCustomer]);
+  const profile = useMemo(
+    () =>
+      buildCustomerProfile(
+        aggregatedCustomer ?? null,
+        overviewQuery.data?.completeness,
+        overviewQuery.data?.aiRecommendations,
+        overviewQuery.data?.riskFactors
+      ),
+    [aggregatedCustomer, overviewQuery.data?.completeness, overviewQuery.data?.aiRecommendations, overviewQuery.data?.riskFactors]
+  );
 
   const syncInsights = useCustomerAiInsightsStore((state) => state.syncInsights);
   const status = useCustomerAiInsightsStore((state) => state.status);
@@ -1368,6 +1433,10 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
     ...profile,
     rawCustomer: aggregatedCustomer ?? undefined,
     overviewSnapshot: overviewQuery.data ?? undefined,
+    // Direct access to enhanced overview data from backend
+    completenessScores: overviewQuery.data?.completeness,
+    backendRecommendations: overviewQuery.data?.aiRecommendations,
+    backendRiskFactors: overviewQuery.data?.riskFactors,
     histories: {
       payment: paymentHistoryQuery.data,
       engagement: engagementHistoryQuery.data,

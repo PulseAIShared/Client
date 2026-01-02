@@ -293,8 +293,8 @@ export const generateSegmentFromPrompt = async (data: {
     prompt: data.prompt
   };
 
-  const response = await api.post('/segments/ai/generate', request);
-  return response as GeneratedSegmentDto;
+  const response = await api.post<GeneratedSegmentDto>('/segments/ai/generate', request);
+  return response.data;
 };
 
 type UseGenerateSegmentFromPromptOptions = {
