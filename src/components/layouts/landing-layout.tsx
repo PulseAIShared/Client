@@ -21,9 +21,10 @@ export function LandingLayout({ children }: { children: React.ReactNode }) {
   }, [user.data, navigate]);
 
   return (
-    <div className="min-h-screen bg-white font-inter" id="hero" >
+    <div className="min-h-screen bg-white font-inter flex flex-col" id="hero" >
       <LandingNavbar />
-      <main className="pt-16">{children}</main>
+      <main className="pt-16 flex-1">{children}</main>
+      <Footer />
     </div>
   );
 };

@@ -1,110 +1,141 @@
-
-import { FaXTwitter } from 'react-icons/fa6';
+import { Link } from 'react-router-dom';
 
 export const Footer = () => {
-  return (
-    <footer className="relative bg-purple-900 pb-6 pt-8 text-white">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-wrap text-left lg:text-left">
-          <div className="w-full px-4 lg:w-6/12">
-            <h4 className="text-3xl font-semibold">Lets keep in touch!</h4>
-            <h5 className="mb-2 mt-0 text-lg">
-              Find us on any of these platforms, we will respond as quick as we
-              can!
-            </h5>
-            <div className="my-6 lg:mb-0">
+  const currentYear = new Date().getFullYear();
 
+  return (
+    <footer className="bg-slate-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand */}
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 bg-white/10 rounded-lg flex items-center justify-center p-1">
+                <img
+                  src="/pulse-logo.png"
+                  alt="PulseLTV"
+                  className="h-6 w-6"
+                />
+              </div>
+              <span className="text-xl font-bold">PulseLTV</span>
+              <span className="text-xs px-2 py-0.5 bg-sky-500 rounded text-white font-medium">
+                BETA
+              </span>
             </div>
+            <p className="text-slate-400 text-sm max-w-md">
+              The churn decision platform that detects risk, explains why, and
+              triggers action through your existing tools. Measure revenue saved
+              — not just churn prevented.
+            </p>
           </div>
-          <div className="w-full px-4 lg:w-6/12">
-            <div className=" mb-6 flex flex-wrap">
-              <div className="ml-auto w-full px-4 lg:w-4/12">
-                <span className=" mb-2 block text-sm font-semibold uppercase">
-                  Useful Links
-                </span>
-                <ul className="">
-                  <li>
-                    <a
-                      className=" block pb-2 text-sm font-semibold hover:text-blue-600"
-                      href="https://www.creative-tim.com/presentation?ref=njs-profile"
-                    >
-                      About Us
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className="block pb-2 text-sm font-semibold hover:text-blue-600"
-                      href="https://blog.creative-tim.com?ref=njs-profile"
-                    >
-                      Blog
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className=" block pb-2 text-sm font-semibold hover:text-blue-600"
-                      href="https://www.github.com/creativetimofficial?ref=njs-profile"
-                    >
-                      Github
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className=" block pb-2 text-sm font-semibold hover:text-blue-600"
-                      href="https://www.creative-tim.com/bootstrap-themes/free?ref=njs-profile"
-                    >
-                      Free Products
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div className="w-full px-4 lg:w-4/12">
-                <span className="mb-2 block  text-sm font-semibold uppercase">
-                  Other Resources
-                </span>
-                <ul className="">
-                  <li>
-                    <a
-                      className=" block pb-2 text-sm font-semibold hover:text-blue-600"
-                      href="https://github.com/creativetimofficial/notus-js/blob/main/LICENSE.md?ref=njs-profile"
-                    >
-                      MIT License
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className=" block pb-2 text-sm font-semibold hover:text-blue-600"
-                      href="https://creative-tim.com/terms?ref=njs-profile"
-                    >
-                      Terms &amp; Conditions
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className="block pb-2 text-sm font-semibold hover:text-blue-600"
-                      href="https://creative-tim.com/privacy?ref=njs-profile"
-                    >
-                      Privacy Policy
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className=" block pb-2 text-sm font-semibold hover:text-blue-600"
-                      href="https://creative-tim.com/contact-us?ref=njs-profile"
-                    >
-                      Contact Us
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
+
+          {/* Product */}
+          <div>
+            <h3 className="font-semibold text-white mb-4">Product</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  to="/how-it-works"
+                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  How It Works
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/use-cases"
+                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  Use Cases
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/integrations"
+                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  Integrations
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/pricing"
+                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  Pricing
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h3 className="font-semibold text-white mb-4">Company</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  to="/book-demo"
+                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  Book a Demo
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:hello@pulseltv.com"
+                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  Contact
+                </a>
+              </li>
+              <li>
+                <Link
+                  to="/privacy"
+                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms"
+                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  Terms of Service
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
-        <hr className="my-6 " />
-        <div className="flex flex-wrap items-center justify-center md:justify-between">
-          <div className="mx-auto w-full px-4 text-center md:w-4/12">
-            <div className="py-1 text-sm font-semibold">
-              Copyright © <span id="get-current-year">2024</span> Trackspace
-            </div>
+
+        {/* Bottom bar */}
+        <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-slate-500 text-sm">
+            &copy; {currentYear} PulseLTV. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            <a
+              href="https://twitter.com/pulseltv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-500 hover:text-white transition-colors"
+              aria-label="Twitter"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </a>
+            <a
+              href="https://linkedin.com/company/pulseltv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-500 hover:text-white transition-colors"
+              aria-label="LinkedIn"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>
+            </a>
           </div>
         </div>
       </div>

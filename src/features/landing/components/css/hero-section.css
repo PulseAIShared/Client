@@ -257,3 +257,40 @@
           transform: scale(1);
           transition: opacity 0.8s ease-out, transform 0.8s ease-out;
         }
+
+        /* Prefers reduced motion - disable all animations */
+        @media (prefers-reduced-motion: reduce) {
+          *,
+          *::before,
+          *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+
+          .animate-fade-in-up,
+          .animate-fade-in-left,
+          .animate-fade-in-right,
+          .animate-fade-in-scale,
+          .animate-slide-in-bottom,
+          .animate-slide-in-grid,
+          .animate-float-gentle,
+          .animate-flow-bg,
+          .animate-slide-up,
+          .animate-gradient,
+          .animate-scroll,
+          .animate-scroll-mobile,
+          .animate-scroll-desktop {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
+
+          .scroll-animate,
+          .scroll-animate-left,
+          .scroll-animate-right,
+          .scroll-animate-scale {
+            opacity: 1 !important;
+            transform: none !important;
+          }
+        }

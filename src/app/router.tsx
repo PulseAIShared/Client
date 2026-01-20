@@ -51,6 +51,48 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'how-it-works',
+          lazy: async () => {
+            const HowItWorksPage = await import('./routes/how-it-works');
+            return { Component: HowItWorksPage.default };
+          },
+        },
+        {
+          path: 'use-cases',
+          lazy: async () => {
+            const UseCasesPage = await import('./routes/use-cases');
+            return { Component: UseCasesPage.default };
+          },
+        },
+        {
+          path: 'integrations',
+          lazy: async () => {
+            const IntegrationsPage = await import('./routes/integrations');
+            return { Component: IntegrationsPage.default };
+          },
+        },
+        {
+          path: 'pricing',
+          lazy: async () => {
+            const PricingPage = await import('./routes/pricing');
+            return { Component: PricingPage.default };
+          },
+        },
+        {
+          path: 'privacy',
+          lazy: async () => {
+            const PrivacyPage = await import('./routes/privacy');
+            return { Component: PrivacyPage.default };
+          },
+        },
+        {
+          path: 'terms',
+          lazy: async () => {
+            const TermsPage = await import('./routes/terms');
+            return { Component: TermsPage.default };
+          },
+        },
+        {
           path: 'accept-invite',
           lazy: async () => {
             const { AcceptInviteRoute } = await import('./routes/accept-invite');
