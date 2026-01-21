@@ -50,7 +50,6 @@ export const LandingNavbar = () => {
     { name: 'Use Cases', href: '/use-cases' },
     { name: 'Integrations', href: '/integrations' },
     { name: 'Pricing', href: '/pricing' },
-    { name: 'Calculator', sectionId: '#calculator' },
   ];
 
   const handleNavClick = (link: { href?: string; sectionId?: string }) => {
