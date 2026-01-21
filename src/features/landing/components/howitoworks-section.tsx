@@ -13,7 +13,7 @@ export const HowItWorksSection = () => {
     {
       number: "01",
       title: "Connect Your Tools",
-      description: "Link your payment processor, CRM, or support tools. Start with just one integration — accuracy improves as you add more data sources.",
+      description: "Link your payment processor, CRM, or support tools. Start with just one integration. Accuracy improves as you add more data sources.",
       icon: "M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 011 1v1z",
       color: "from-sky-500 to-sky-600"
     },
@@ -27,7 +27,7 @@ export const HowItWorksSection = () => {
     {
       number: "03",
       title: "Choose Action via Playbooks",
-      description: "Select from pre-built playbooks or create your own rules. Each playbook maps a root cause to the right intervention — no guessing required.",
+      description: "Select from pre-built playbooks or create your own rules. Each playbook maps a root cause to the right intervention, so there's no guessing required.",
       icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
       color: "from-indigo-500 to-indigo-600"
     },
@@ -68,7 +68,7 @@ export const HowItWorksSection = () => {
             From risk signal to revenue saved in four steps
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            PulseLTV closes the loop on churn: detect, decide, act, measure. No marketing automation suite — just precise intervention through your existing tools.
+            PulseLTV closes the loop on churn: detect, decide, act, measure. No marketing automation suite, just precise intervention through your existing tools.
           </p>
         </div>
 
@@ -166,7 +166,7 @@ export const HowItWorksSection = () => {
                 Ready to close the loop on churn?
               </h3>
               <p className="text-blue-200 mb-6 max-w-2xl mx-auto">
-                See how PulseLTV connects detection to action — and measures real revenue impact.
+                See how PulseLTV connects detection to action and measures real revenue impact.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a

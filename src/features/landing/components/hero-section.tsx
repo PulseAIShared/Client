@@ -140,7 +140,7 @@ export const HeroSection = () => {
                 <span className="relative z-10 text-slate-800 font-bold">Measure revenue saved</span>
                 <span className="absolute bottom-0 left-0 w-full h-2 bg-sky-400/30 -rotate-1"></span>
               </span>{' '}
-              — not just churn prevented.
+              instead of just churn prevented.
             </p>
           </div>
 
@@ -224,7 +224,7 @@ export const HeroSection = () => {
             Works with your existing tools
           </p>
           <p className="text-center text-xs text-slate-400 mb-6">
-            Start with one integration — confidence increases with more data sources
+            Start with one integration. Confidence increases with more data sources.
           </p>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 md:gap-x-12">
             {[

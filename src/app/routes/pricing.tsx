@@ -56,7 +56,7 @@ const PricingRoute = () => {
                     {
                       title: 'Direct Roadmap Input',
                       description:
-                        'Your feedback directly shapes what we build. Request integrations, playbooks, and features — and see them prioritized.',
+                        'Your feedback directly shapes what we build. Request integrations, playbooks, and features, and see them prioritized.',
                     },
                     {
                       title: 'Priority Support',
@@ -85,7 +85,7 @@ const PricingRoute = () => {
                       </svg>
                       <div>
                         <span className="font-medium text-slate-900">{item.title}</span>
-                        <span className="text-slate-600"> — {item.description}</span>
+                        <span className="text-slate-600">: {item.description}</span>
                       </div>
                     </li>
                   ))}
@@ -148,7 +148,7 @@ const PricingRoute = () => {
               <div>
                 <h3 className="font-semibold text-slate-900 mb-2">Aligned with Outcomes</h3>
                 <p className="text-sm text-slate-600">
-                  We're exploring pricing models that tie our success to your revenue saved — not just
+                  We're exploring pricing models that tie our success to your revenue saved, not just
                   seats or usage.
                 </p>
               </div>
@@ -215,7 +215,7 @@ const PricingRoute = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to join?</h2>
           <p className="text-blue-200 mb-8 max-w-2xl mx-auto">
-            Book a demo to see if PulseLTV is a fit for your churn challenges — and to learn about
+            Book a demo to see if PulseLTV is a fit for your churn challenges and to learn about
             design partner availability.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

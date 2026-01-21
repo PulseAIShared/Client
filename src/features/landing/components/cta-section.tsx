@@ -39,7 +39,7 @@ export const CTASection = () => {
             </h2>
 
             <p className="text-xl text-blue-200 max-w-3xl mx-auto leading-relaxed">
-              We're onboarding a small group of design partners who want to close the loop on churn — detect, decide, act, and measure real revenue outcomes.
+              We're onboarding a small group of design partners who want to close the loop on churn: detect, decide, act, and measure real revenue outcomes.
             </p>
           </div>
 
@@ -89,7 +89,7 @@ export const CTASection = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Early Partner Pricing</h3>
-              <p className="text-blue-300">Lock in discounted rates as a design partner — before general availability.</p>
+              <p className="text-blue-300">Lock in discounted rates as a design partner, before general availability.</p>
             </div>
 
             <div className="text-center">

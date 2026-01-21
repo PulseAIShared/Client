@@ -43,7 +43,7 @@ export const ChurnRiskCalculatorSection = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Enter your metrics to see what revenue could be at stake — and what a churn reduction strategy might recover.
+            Enter your metrics to see what revenue could be at stake and what a churn reduction strategy might recover.
           </p>
         </div>
 

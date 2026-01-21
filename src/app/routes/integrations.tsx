@@ -91,7 +91,7 @@ const IntegrationsRoute = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">Integrations</h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            Connect your existing tools to build a unified churn signal. Start with one integration — accuracy improves as you add more.
+            Connect your existing tools to build a unified churn signal. Start with one integration. Accuracy improves as you add more.
           </p>
         </div>
       </section>
@@ -212,7 +212,7 @@ const IntegrationsRoute = () => {
                 </div>
                 <h3 className="font-semibold text-slate-900 mb-2">Actions Out</h3>
                 <p className="text-sm text-slate-600">
-                  Playbook-driven actions trigger through your existing tools — not a separate system.
+                  Playbook-driven actions trigger through your existing tools, not a separate system.
                 </p>
               </div>
             </div>

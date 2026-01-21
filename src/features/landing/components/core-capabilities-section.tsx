@@ -91,7 +91,7 @@ export const CoreCapabilitiesSection = () => {
                     {/* Pillar 1: Unified Churn Signal */}
                     <CapabilityCard
                         title="Unified Churn Signal"
-                        description="Combine signals from payments, support, and engagement into one clear risk score — with the reason behind every change."
+                        description="Combine signals from payments, support, and engagement into one clear risk score, with the reason behind every change."
                         icon={Activity}
                         delay={0.1}
                         gradient="from-sky-500 to-blue-600"
@@ -106,7 +106,7 @@ export const CoreCapabilitiesSection = () => {
                     {/* Pillar 2: Decision Engine */}
                     <CapabilityCard
                         title="Playbook Engine"
-                        description="Stop guessing what to do. Pre-built and custom playbooks map each churn reason to the right intervention — driven by rules and models you can inspect."
+                        description="Stop guessing what to do. Pre-built and custom playbooks map each churn reason to the right intervention, driven by rules and models you can inspect."
                         icon={BrainCircuit}
                         delay={0.2}
                         gradient="from-indigo-500 to-purple-600"
@@ -114,14 +114,14 @@ export const CoreCapabilitiesSection = () => {
                             "Segments customers by root cause of churn",
                             "Pre-built playbooks for common scenarios",
                             "Custom rules you can configure and audit",
-                            "Transparent logic — no black-box decisions"
+                            "Transparent logic with no black-box decisions"
                         ]}
                     />
 
                     {/* Pillar 3: Execution */}
                     <CapabilityCard
                         title="Execute & Measure"
-                        description="Actions trigger through your existing tools — not a separate email system. Track revenue saved, not just 'churn reduced'."
+                        description="Actions trigger through your existing tools, not a separate email system. Track revenue saved, not just 'churn reduced'."
                         icon={Zap}
                         delay={0.3}
                         gradient="from-emerald-500 to-teal-600"

@@ -11,9 +11,9 @@ const HowItWorksRoute = () => {
       number: '01',
       title: 'Connect Your Tools',
       description:
-        'Link your payment processor (Stripe), CRM (HubSpot, Salesforce), or support tools (Intercom, Zendesk). Start with just one integration — accuracy improves as you add more data sources.',
+        'Link your payment processor (Stripe), CRM (HubSpot, Salesforce), or support tools (Intercom, Zendesk). Start with just one integration. Accuracy improves as you add more data sources.',
       details: [
-        'OAuth or API key connection — no engineering required',
+        'OAuth or API key connection, no engineering required',
         'Data syncs automatically in real-time',
         'Works with just one integration to start',
         'Add more sources over time for deeper signals',
@@ -24,7 +24,7 @@ const HowItWorksRoute = () => {
       number: '02',
       title: 'Build Churn Signal',
       description:
-        'Pulse analyzes customer behavior across all connected tools to build a unified risk score. More importantly, it explains WHY each customer is at risk — not just that they are.',
+        'Pulse analyzes customer behavior across all connected tools to build a unified risk score. More importantly, it explains WHY each customer is at risk, not just that they are.',
       details: [
         'One risk score per customer, updated continuously',
         'Root cause attribution (payment issue, low engagement, support friction)',
@@ -37,11 +37,11 @@ const HowItWorksRoute = () => {
       number: '03',
       title: 'Choose Action via Playbooks',
       description:
-        'Select from pre-built playbooks or create custom rules. Each playbook maps a churn reason to the right intervention — no guessing, no one-size-fits-all campaigns.',
+        'Select from pre-built playbooks or create custom rules. Each playbook maps a churn reason to the right intervention. No guessing, no one-size-fits-all campaigns.',
       details: [
         'Pre-built playbooks for payment failures, low engagement, support issues',
         'Custom rules you can configure and audit',
-        'Transparent logic — see exactly why an action was chosen',
+        'Transparent logic: see exactly why an action was chosen',
         'Override capability for manual review',
       ],
       color: 'indigo',
@@ -50,7 +50,7 @@ const HowItWorksRoute = () => {
       number: '04',
       title: 'Execute & Track Results',
       description:
-        'Actions trigger through your existing tools — Stripe for payment retries, HubSpot for outreach, Slack for team alerts. Track revenue saved, not just "churn reduced".',
+        'Actions trigger through your existing tools: Stripe for payment retries, HubSpot for outreach, Slack for team alerts. Track revenue saved, not just "churn reduced".',
       details: [
         'Payment retries via Stripe with optimized timing',
         'Outreach via HubSpot, Intercom, or email',
@@ -77,7 +77,7 @@ const HowItWorksRoute = () => {
             How PulseLTV Works
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            From risk signal to revenue saved in four steps. Detect, decide, act, measure — through your existing tools.
+            From risk signal to revenue saved in four steps. Detect, decide, act, measure. All through your existing tools.
           </p>
         </div>
       </section>
@@ -195,7 +195,7 @@ const HowItWorksRoute = () => {
             Ready to close the loop on churn?
           </h2>
           <p className="text-blue-200 mb-8 max-w-2xl mx-auto">
-            See how PulseLTV connects detection to action — and measures real revenue impact.
+            See how PulseLTV connects detection to action and measures real revenue impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

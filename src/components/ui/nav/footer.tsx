@@ -17,8 +17,8 @@ export const Footer = () => {
             </div>
             <p className="text-slate-400 text-sm max-w-md">
               The churn decision platform that detects risk, explains why, and
-              triggers action through your existing tools. Measure revenue saved
-              — not just churn prevented.
+              triggers action through your existing tools. Measure revenue saved,
+              not just churn prevented.
             </p>
           </div>
 

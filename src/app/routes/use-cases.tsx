@@ -102,7 +102,7 @@ const UseCasesRoute = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">Use Cases</h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            PulseLTV addresses the most common churn scenarios with targeted playbooks — not generic campaigns.
+            PulseLTV addresses the most common churn scenarios with targeted playbooks, not generic campaigns.
           </p>
         </div>
       </section>
@@ -195,25 +195,25 @@ const UseCasesRoute = () => {
               <div>
                 <h3 className="font-semibold text-slate-700 mb-3">Not a CRM</h3>
                 <p className="text-slate-600 text-sm">
-                  We integrate with your CRM (HubSpot, Salesforce) — we don't replace it.
+                  We integrate with your CRM (HubSpot, Salesforce). We don't replace it.
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold text-slate-700 mb-3">Not a CDP</h3>
                 <p className="text-slate-600 text-sm">
-                  We pull signals from your existing tools — we don't try to be your data warehouse.
+                  We pull signals from your existing tools. We don't try to be your data warehouse.
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold text-slate-700 mb-3">Not Marketing Automation</h3>
                 <p className="text-slate-600 text-sm">
-                  We trigger actions through your existing tools — we don't send emails ourselves.
+                  We trigger actions through your existing tools. We don't send emails ourselves.
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold text-slate-700 mb-3">Not Product Analytics</h3>
                 <p className="text-slate-600 text-sm">
-                  We focus on churn outcomes — not general product usage analytics.
+                  We focus on churn outcomes, not general product usage analytics.
                 </p>
               </div>
             </div>
