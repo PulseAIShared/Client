@@ -115,17 +115,11 @@ export const HeroSection = () => {
 
         {/* Content with enhanced animations */}
         <div className="relative z-10 text-center text-blue-900 px-4 max-w-7xl mx-auto">
-          {/* Brand lockup - Logo + Text together */}
+          {/* Brand name */}
           <div className="mb-6 animate-fade-in-up">
-            <div className="inline-flex items-center justify-center gap-3 md:gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-sky-500/20 rounded-full blur-xl animate-pulse"></div>
-                <img src="/pulse-logo.png" alt="Pulse Logo" className="relative w-14 h-14 md:w-20 md:h-20 mix-blend-multiply" />
-              </div>
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900">
-                PulseLTV
-              </h1>
-            </div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900">
+              PulseLTV
+            </h1>
           </div>
 
           {/* Tagline */}

@@ -10,13 +10,6 @@ export const Footer = () => {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 bg-white/10 rounded-lg flex items-center justify-center p-1">
-                <img
-                  src="/pulse-logo.png"
-                  alt="PulseLTV"
-                  className="h-6 w-6"
-                />
-              </div>
               <span className="text-xl font-bold">PulseLTV</span>
               <span className="text-xs px-2 py-0.5 bg-sky-500 rounded text-white font-medium">
                 BETA
