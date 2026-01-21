@@ -121,7 +121,7 @@ const TermsRoute = () => {
             <section className="mb-10">
               <h2 className="text-2xl font-semibold text-slate-900 mb-4">7. Fees and Payment</h2>
               <p className="text-slate-600 mb-4">
-                During the beta/design partner phase, pricing will be agreed upon individually. For
+                During the beta/early adopter phase, pricing will be agreed upon individually. For
                 general availability:
               </p>
               <ul className="list-disc pl-6 text-slate-600 space-y-2">

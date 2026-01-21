@@ -31,7 +31,7 @@ export const CTASection = () => {
           >
 
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Become a design partner.
+              Become an early adopter.
               <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-300">
                 Shape the future of churn prevention.
@@ -39,7 +39,7 @@ export const CTASection = () => {
             </h2>
 
             <p className="text-xl text-blue-200 max-w-3xl mx-auto leading-relaxed">
-              We're onboarding a small group of design partners who want to close the loop on churn: detect, decide, act, and measure real revenue outcomes.
+              We're onboarding a small group of early adopters who want to close the loop on churn: detect, decide, act, and measure real revenue outcomes.
             </p>
           </div>
 
@@ -66,7 +66,7 @@ export const CTASection = () => {
             </button>
           </div>
 
-          {/* Design Partner Benefits */}
+          {/* Early Adopter Benefits */}
           <div
             ref={featuresRef}
             className={`grid md:grid-cols-3 gap-8 mb-16 transition-all duration-800 ${featuresVisible ? 'scroll-animate animate' : 'scroll-animate'
@@ -89,7 +89,7 @@ export const CTASection = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Early Partner Pricing</h3>
-              <p className="text-blue-300">Lock in discounted rates as a design partner, before general availability.</p>
+              <p className="text-blue-300">Lock in discounted rates as an early adopter, before general availability.</p>
             </div>
 
             <div className="text-center">

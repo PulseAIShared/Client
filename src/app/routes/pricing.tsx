@@ -13,12 +13,12 @@ const PricingRoute = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">Pricing</h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            PulseLTV is currently in beta. We're onboarding design partners who want to shape the product.
+            PulseLTV is currently in beta. We're onboarding early adopters who want to shape the product.
           </p>
         </div>
       </section>
 
-      {/* Design Partner Offering */}
+      {/* Early Adopter Offering */}
       <section className="py-16 bg-slate-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -29,7 +29,7 @@ const PricingRoute = () => {
                   Limited Availability
                 </span>
               </div>
-              <h2 className="text-2xl font-bold">Design Partner Program</h2>
+              <h2 className="text-2xl font-bold">Early Adopter Program</h2>
               <p className="text-sky-100 mt-1">
                 Early access for subscription businesses serious about reducing churn
               </p>
@@ -39,7 +39,7 @@ const PricingRoute = () => {
             <div className="p-8">
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                  What You Get as a Design Partner
+                  What You Get as an Early Adopter
                 </h3>
                 <ul className="space-y-3">
                   {[
@@ -66,7 +66,7 @@ const PricingRoute = () => {
                     {
                       title: 'Full Platform Access',
                       description:
-                        'All current and future features included during the design partner period.',
+                        'All current and future features included during the early adopter period.',
                     },
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start gap-3">
@@ -120,7 +120,7 @@ const PricingRoute = () => {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-slate-600">
                   <span className="font-semibold text-slate-900">Limited spots available.</span> We're
-                  only onboarding a small number of design partners.
+                  only onboarding a small number of early adopters.
                 </p>
                 <Link
                   to="/book-demo"
@@ -166,9 +166,9 @@ const PricingRoute = () => {
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900 mb-2">Design Partner Lock-In</h3>
+                <h3 className="font-semibold text-slate-900 mb-2">Early Adopter Lock-In</h3>
                 <p className="text-sm text-slate-600">
-                  Design partners will get grandfathered rates when public pricing launches.
+                  Early adopters will get grandfathered rates when public pricing launches.
                 </p>
               </div>
             </div>
@@ -186,10 +186,10 @@ const PricingRoute = () => {
             {[
               {
                 q: 'Is there a free tier or trial?',
-                a: "Not currently. During the design partner phase, we're working closely with a small group of businesses. As we launch publicly, we'll introduce options for smaller teams to try the platform.",
+                a: "Not currently. During the early adopter phase, we're working closely with a small group of businesses. As we launch publicly, we'll introduce options for smaller teams to try the platform.",
               },
               {
-                q: 'How long is the design partner commitment?',
+                q: 'How long is the early adopter commitment?',
                 a: "We ask for a 3-month commitment to give the platform time to demonstrate value. You can cancel anytime, but the most value comes from iterating together.",
               },
               {
@@ -197,8 +197,8 @@ const PricingRoute = () => {
                 a: 'No. You can start with just one integration (like Stripe) and add more over time. Each additional data source increases the accuracy of your churn predictions.',
               },
               {
-                q: 'What happens after the design partner phase?',
-                a: "You'll transition to our standard pricing, but at the discounted rate you locked in as a design partner. No sudden price increases.",
+                q: 'What happens after the early adopter phase?',
+                a: "You'll transition to our standard pricing, but at the discounted rate you locked in as an early adopter. No sudden price increases.",
               },
             ].map((faq, idx) => (
               <div key={idx} className="bg-white rounded-xl p-6 border border-slate-200">
@@ -216,7 +216,7 @@ const PricingRoute = () => {
           <h2 className="text-3xl font-bold text-white mb-4">Ready to join?</h2>
           <p className="text-blue-200 mb-8 max-w-2xl mx-auto">
             Book a demo to see if PulseLTV is a fit for your churn challenges and to learn about
-            design partner availability.
+            early adopter availability.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
