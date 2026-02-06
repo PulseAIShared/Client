@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  type CustomerDetailQueryResponse,
   useGetCustomerChurnHistory,
   useGetCustomerDataSources,
   useGetCustomerEngagementHistory,
@@ -1142,7 +1143,7 @@ const buildDataHealth = (customer?: CustomerDetailData | null, overviewCompleten
   if (completenessByDomain.length === 0 && customer) {
     const push = (domain: string, present: boolean) => completenessByDomain.push({ domain, score: present ? 60 : 0 });
     push('Payment', Boolean(customer.paymentOverview?.monthlyRecurringRevenue || customer.lifetimeValue));
-    push('Engagement', Boolean(customer.engagementOverview?.weeklyLogins || customer.lastLoginDate));
+    push('Engagement', Boolean(customer.engagementOverview?.weeklyLoginFrequency || customer.lastLoginDate));
     push('Support', Boolean(customer.supportOverview?.openTickets || customer.supportOverview?.totalTickets));
     push('CRM', Boolean(customer.crmOverview?.lifecycleStage));
     push('Marketing', Boolean(customer.marketingOverview?.campaignCount));
@@ -1337,18 +1338,19 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
   }), [requestedSections.dataSources]);
 
   const detailQuery = useCustomerDetailQuery(customerId, detailSections, { enabled: !!customerId });
+  const detailData = detailQuery.data as CustomerDetailQueryResponse | undefined;
 
   const overviewQuery = useGetCustomerOverview(customerId, {
-    enabled: requestedSections.overview && !detailQuery.data?.overview,
+    enabled: requestedSections.overview && !detailData?.overview,
   });
   const paymentHistoryQuery = useGetCustomerPaymentHistory(customerId, {
-    enabled: requestedSections.payment && !detailQuery.data?.history?.payment,
+    enabled: requestedSections.payment && !detailData?.history?.payment,
   });
   const engagementHistoryQuery = useGetCustomerEngagementHistory(customerId, {
-    enabled: requestedSections.engagement && !detailQuery.data?.history?.engagement,
+    enabled: requestedSections.engagement && !detailData?.history?.engagement,
   });
   const supportHistoryQuery = useGetCustomerSupportHistory(customerId, {
-    enabled: requestedSections.support && !detailQuery.data?.history?.support,
+    enabled: requestedSections.support && !detailData?.history?.support,
   });
   const engagementSessionsQuery = useGetCustomerEngagementSessions(customerId, 3, {
     enabled: requestedSections.engagement,
@@ -1363,18 +1365,18 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
     enabled: requestedSections.churn,
   });
   const dataSourcesQuery = useGetCustomerDataSources(customerId, {
-    enabled: requestedSections.dataSources && !detailQuery.data?.dataSources,
+    enabled: requestedSections.dataSources && !detailData?.dataSources,
   });
 
   const aggregatedCustomer = useMemo(
     () =>
       composeCustomerFromSplit({
-        overview: (detailQuery.data?.overview ?? overviewQuery.data) as CustomerOverviewResponse | undefined,
-        paymentHistory: detailQuery.data?.history?.payment ?? paymentHistoryQuery.data,
-        engagementHistory: detailQuery.data?.history?.engagement ?? engagementHistoryQuery.data,
-        supportHistory: detailQuery.data?.history?.support ?? supportHistoryQuery.data,
+        overview: (detailData?.overview ?? overviewQuery.data) as CustomerOverviewResponse | undefined,
+        paymentHistory: detailData?.history?.payment ?? paymentHistoryQuery.data,
+        engagementHistory: detailData?.history?.engagement ?? engagementHistoryQuery.data,
+        supportHistory: detailData?.history?.support ?? supportHistoryQuery.data,
         churnHistory: churnHistoryQuery.data,
-        dataSources: detailQuery.data?.dataSources ?? dataSourcesQuery.data,
+        dataSources: detailData?.dataSources ?? dataSourcesQuery.data,
       }),
     [
       churnHistoryQuery.data,
@@ -1383,7 +1385,7 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
       overviewQuery.data,
       paymentHistoryQuery.data,
       supportHistoryQuery.data,
-      detailQuery.data,
+      detailData,
     ],
   );
 
@@ -1483,21 +1485,21 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
   }, [aggregatedCustomer, setStatus, status, syncInsights]);
 
   const loadingStates = {
-    overview: (detailQuery.isLoading && !detailQuery.data?.overview) || overviewQuery.isLoading || overviewQuery.isFetching,
-    payment: (detailQuery.isLoading && !detailQuery.data?.history?.payment) || paymentHistoryQuery.isLoading || paymentHistoryQuery.isFetching,
+    overview: (detailQuery.isLoading && !detailData?.overview) || overviewQuery.isLoading || overviewQuery.isFetching,
+    payment: (detailQuery.isLoading && !detailData?.history?.payment) || paymentHistoryQuery.isLoading || paymentHistoryQuery.isFetching,
     engagement:
-      (detailQuery.isLoading && !detailQuery.data?.history?.engagement) ||
+      (detailQuery.isLoading && !detailData?.history?.engagement) ||
       engagementHistoryQuery.isLoading ||
       engagementHistoryQuery.isFetching ||
       engagementSessionsQuery.isLoading ||
       engagementFeaturesQuery.isLoading,
     support:
-      (detailQuery.isLoading && !detailQuery.data?.history?.support) ||
+      (detailQuery.isLoading && !detailData?.history?.support) ||
       supportHistoryQuery.isLoading ||
       supportHistoryQuery.isFetching ||
       supportTicketsQuery.isLoading,
     churn: churnHistoryQuery.isLoading || churnHistoryQuery.isFetching,
-    dataSources: (detailQuery.isLoading && !detailQuery.data?.dataSources) || dataSourcesQuery.isLoading || dataSourcesQuery.isFetching,
+    dataSources: (detailQuery.isLoading && !detailData?.dataSources) || dataSourcesQuery.isLoading || dataSourcesQuery.isFetching,
   };
 
   const lastUpdated = {
@@ -1524,13 +1526,13 @@ export const CustomerProfileProvider: React.FC<CustomerProfileProviderProps> = (
     customerId,
     ...profile,
     rawCustomer: aggregatedCustomer ?? undefined,
-    overviewSnapshot: (detailQuery.data?.overview ?? overviewQuery.data) ?? undefined,
+    overviewSnapshot: (detailData?.overview ?? overviewQuery.data) ?? undefined,
     // Direct access to enhanced overview data from backend
-    completenessScores: (detailQuery.data?.overview?.completeness ?? overviewQuery.data?.completeness) ?? undefined,
+    completenessScores: (detailData?.overview?.completeness ?? overviewQuery.data?.completeness) ?? undefined,
     backendRecommendations:
-      (detailQuery.data?.aiInsights?.recommendations?.map((r: any) => ({ id: r.id, label: r.label, priority: r.priority, category: r.category })) ??
+      (detailData?.aiInsights?.recommendations?.map((r: any) => ({ id: r.id, label: r.label, priority: r.priority, category: r.category })) ??
         overviewQuery.data?.aiRecommendations) ?? undefined,
-    backendRiskFactors: (detailQuery.data?.aiInsights?.riskFactors ?? overviewQuery.data?.riskFactors) ?? undefined,
+    backendRiskFactors: (detailData?.aiInsights?.riskFactors ?? overviewQuery.data?.riskFactors) ?? undefined,
     histories: {
       payment: paymentHistoryQuery.data,
       engagement: engagementHistoryQuery.data,

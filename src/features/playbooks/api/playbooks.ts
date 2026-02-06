@@ -169,7 +169,7 @@ const mapWorkQueueResponse = (raw: any): WorkQueueResponse => ({
 
 export const getPlaybooks = async (params?: PlaybookListParams): Promise<PlaybookSummary[]> => {
   const response = await api.get('/playbooks', { params });
-  return (response ?? []).map(mapPlaybookSummary);
+  return ((response as unknown as any[]) ?? []).map(mapPlaybookSummary);
 };
 
 export const getPlaybooksQueryOptions = (params?: PlaybookListParams) => ({
@@ -332,7 +332,7 @@ export const useUnarchivePlaybook = (mutationConfig?: MutationConfig<typeof unar
 
 export const getPlaybookRuns = async (playbookId: string): Promise<PlaybookRun[]> => {
   const response = await api.get(`/playbooks/${playbookId}/runs`);
-  return (response ?? []).map(mapPlaybookRun);
+  return ((response as unknown as any[]) ?? []).map(mapPlaybookRun);
 };
 
 export const getPlaybookRunsQueryOptions = (playbookId?: string) => ({
@@ -436,10 +436,30 @@ export const dismissWorkQueueRun = async (runId: string, dismissalNotes?: string
   await api.post(`/work-queue/runs/${runId}/dismiss`, { dismissalNotes });
 };
 
+type DismissWorkQueueRunInput = {
+  runId: string;
+  dismissalNotes?: string;
+};
+
+const dismissWorkQueueRunInput = async ({
+  runId,
+  dismissalNotes,
+}: DismissWorkQueueRunInput): Promise<void> => dismissWorkQueueRun(runId, dismissalNotes);
+
 export const snoozeWorkQueueRun = async (runId: string, snoozeHours: number): Promise<PlaybookRun> => {
   const response = await api.post(`/work-queue/runs/${runId}/snooze`, { snoozeHours });
   return mapPlaybookRun(response);
 };
+
+type SnoozeWorkQueueRunInput = {
+  runId: string;
+  snoozeHours: number;
+};
+
+const snoozeWorkQueueRunInput = async ({
+  runId,
+  snoozeHours,
+}: SnoozeWorkQueueRunInput): Promise<PlaybookRun> => snoozeWorkQueueRun(runId, snoozeHours);
 
 export const useApproveWorkQueueRun = (mutationConfig?: MutationConfig<typeof approveWorkQueueRun>) => {
   const queryClient = useQueryClient();
@@ -452,11 +472,12 @@ export const useApproveWorkQueueRun = (mutationConfig?: MutationConfig<typeof ap
   });
 };
 
-export const useDismissWorkQueueRun = (mutationConfig?: MutationConfig<typeof dismissWorkQueueRun>) => {
+export const useDismissWorkQueueRun = (
+  mutationConfig?: MutationConfig<typeof dismissWorkQueueRunInput>
+) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ runId, dismissalNotes }: { runId: string; dismissalNotes?: string }) =>
-      dismissWorkQueueRun(runId, dismissalNotes),
+    mutationFn: dismissWorkQueueRunInput,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-queue'] });
     },
@@ -464,11 +485,12 @@ export const useDismissWorkQueueRun = (mutationConfig?: MutationConfig<typeof di
   });
 };
 
-export const useSnoozeWorkQueueRun = (mutationConfig?: MutationConfig<typeof snoozeWorkQueueRun>) => {
+export const useSnoozeWorkQueueRun = (
+  mutationConfig?: MutationConfig<typeof snoozeWorkQueueRunInput>
+) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ runId, snoozeHours }: { runId: string; snoozeHours: number }) =>
-      snoozeWorkQueueRun(runId, snoozeHours),
+    mutationFn: snoozeWorkQueueRunInput,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-queue'] });
     },

@@ -276,11 +276,92 @@ export type CustomerDetailSectionsSpec = {
   dataSources?: boolean;
 };
 
+export type CustomerDetailQueryResponse = {
+  overview?: CustomerOverviewResponse;
+  history?: {
+    payment?: CustomerPaymentHistoryResponse;
+    engagement?: CustomerEngagementHistoryResponse;
+    support?: CustomerSupportHistoryResponse;
+  };
+  aiInsights?: {
+    aiScore?: number;
+    aiLevel?: string;
+    baselineScore?: number;
+    riskFactors?: Record<string, number>;
+    recommendations?: Array<{
+      id: string;
+      label: string;
+      priority?: string;
+      category?: string;
+    }>;
+    lastRun?: string;
+    modelVersion?: string;
+    signature?: string;
+  };
+  playbooks?: {
+    summary?: {
+      totalRuns?: number;
+      successRate?: number;
+      lastRunAt?: string;
+      pendingApprovals?: number;
+      recoveredRevenue?: number;
+    };
+    runs?: {
+      items?: Array<{
+        runId?: string;
+        playbookId?: string;
+        playbookName?: string;
+        status?: string;
+        outcome?: string;
+        confidence?: number;
+        potentialValue?: number;
+        reasonShort?: string;
+        startedAt?: string;
+        completedAt?: string | null;
+      }>;
+      page?: number;
+      pageSize?: number;
+      totalPages?: number;
+      totalCount?: number;
+    };
+  };
+  dataSources?: CustomerDataSourcesResponse;
+  errors?: Record<string, string>;
+};
+
+type CustomerEngagementSessionsResponse = {
+  sessions: Array<{
+    id: string;
+    startedAt: string;
+    durationMinutes?: number | null;
+    feature?: string | null;
+  }>;
+};
+
+type CustomerEngagementFeaturesResponse = {
+  topFeatures: Array<{
+    name: string;
+    usageCount: number;
+  }>;
+};
+
+type CustomerSupportTicketsResponse = {
+  tickets: Array<{
+    id: string;
+    subject: string;
+    severity: 'low' | 'medium' | 'high';
+    status: string;
+    openedAt: string;
+    lastUpdatedAt?: string | null;
+    owner?: string | null;
+  }>;
+};
+
 export const postCustomerDetailQuery = async (
   customerId: string,
   sections: CustomerDetailSectionsSpec
-) => {
-  return api.post('/customers/detail-query', {
+) : Promise<CustomerDetailQueryResponse> => {
+  const response = await api.post('/customers/detail-query', {
     customerId,
     sections: {
       overview: sections.overview ?? true,
@@ -290,71 +371,108 @@ export const postCustomerDetailQuery = async (
       dataSources: sections.dataSources ?? true,
     },
   });
+  return response as CustomerDetailQueryResponse;
 };
+
+export const getCustomerDetailQueryOptions = (
+  customerId: string,
+  sections: CustomerDetailSectionsSpec
+) => ({
+  queryKey: ['customers', customerId, 'detail', sections],
+  queryFn: () => postCustomerDetailQuery(customerId, sections),
+  enabled: !!customerId,
+});
 
 export const useCustomerDetailQuery = (
   customerId: string,
   sections: CustomerDetailSectionsSpec,
-  queryConfig?: QueryConfig<any>
+  queryConfig?: QueryConfig<typeof getCustomerDetailQueryOptions>
 ) => {
   return useQuery({
-    queryKey: ['customers', customerId, 'detail', sections],
-    queryFn: () => postCustomerDetailQuery(customerId, sections),
-    enabled: !!customerId,
+    ...getCustomerDetailQueryOptions(customerId, sections),
     ...queryConfig,
   });
 };
 
 // Engagement sessions/features
-export const getCustomerEngagementSessions = async (customerId: string, months = 3) => {
-  return api.get(`/customers/${customerId}/engagement/sessions?months=${months}`);
+export const getCustomerEngagementSessions = async (
+  customerId: string,
+  months = 3
+): Promise<CustomerEngagementSessionsResponse> => {
+  const response = await api.get(`/customers/${customerId}/engagement/sessions?months=${months}`);
+  return response as unknown as CustomerEngagementSessionsResponse;
 };
+
+export const getCustomerEngagementSessionsQueryOptions = (customerId: string, months = 3) => ({
+  queryKey: ['customers', customerId, 'engagement-sessions', months],
+  queryFn: () => getCustomerEngagementSessions(customerId, months),
+  enabled: !!customerId,
+});
 
 export const useGetCustomerEngagementSessions = (
   customerId: string,
   months = 3,
-  queryConfig?: QueryConfig<any>
+  queryConfig?: QueryConfig<typeof getCustomerEngagementSessionsQueryOptions>
 ) => {
   return useQuery({
-    queryKey: ['customers', customerId, 'engagement-sessions', months],
-    queryFn: () => getCustomerEngagementSessions(customerId, months),
-    enabled: !!customerId,
+    ...getCustomerEngagementSessionsQueryOptions(customerId, months),
     ...queryConfig,
   });
 };
 
-export const getCustomerEngagementFeaturesTop = async (customerId: string, months = 3) => {
-  return api.get(`/customers/${customerId}/engagement/features?months=${months}`);
+export const getCustomerEngagementFeaturesTop = async (
+  customerId: string,
+  months = 3
+): Promise<CustomerEngagementFeaturesResponse> => {
+  const response = await api.get(`/customers/${customerId}/engagement/features?months=${months}`);
+  return response as unknown as CustomerEngagementFeaturesResponse;
 };
+
+export const getCustomerEngagementFeaturesTopQueryOptions = (customerId: string, months = 3) => ({
+  queryKey: ['customers', customerId, 'engagement-features', months],
+  queryFn: () => getCustomerEngagementFeaturesTop(customerId, months),
+  enabled: !!customerId,
+});
 
 export const useGetCustomerEngagementFeaturesTop = (
   customerId: string,
   months = 3,
-  queryConfig?: QueryConfig<any>
+  queryConfig?: QueryConfig<typeof getCustomerEngagementFeaturesTopQueryOptions>
 ) => {
   return useQuery({
-    queryKey: ['customers', customerId, 'engagement-features', months],
-    queryFn: () => getCustomerEngagementFeaturesTop(customerId, months),
-    enabled: !!customerId,
+    ...getCustomerEngagementFeaturesTopQueryOptions(customerId, months),
     ...queryConfig,
   });
 };
 
 // Support tickets
-export const getCustomerSupportTickets = async (customerId: string, openOnly = true, limit = 50) => {
-  return api.get(`/customers/${customerId}/support/tickets?openOnly=${openOnly}&limit=${limit}`);
+export const getCustomerSupportTickets = async (
+  customerId: string,
+  openOnly = true,
+  limit = 50
+): Promise<CustomerSupportTicketsResponse> => {
+  const response = await api.get(`/customers/${customerId}/support/tickets?openOnly=${openOnly}&limit=${limit}`);
+  return response as unknown as CustomerSupportTicketsResponse;
 };
+
+export const getCustomerSupportTicketsQueryOptions = (
+  customerId: string,
+  openOnly = true,
+  limit = 50
+) => ({
+  queryKey: ['customers', customerId, 'support-tickets', { openOnly, limit }],
+  queryFn: () => getCustomerSupportTickets(customerId, openOnly, limit),
+  enabled: !!customerId,
+});
 
 export const useGetCustomerSupportTickets = (
   customerId: string,
   openOnly = true,
   limit = 50,
-  queryConfig?: QueryConfig<any>
+  queryConfig?: QueryConfig<typeof getCustomerSupportTicketsQueryOptions>
 ) => {
   return useQuery({
-    queryKey: ['customers', customerId, 'support-tickets', { openOnly, limit }],
-    queryFn: () => getCustomerSupportTickets(customerId, openOnly, limit),
-    enabled: !!customerId,
+    ...getCustomerSupportTicketsQueryOptions(customerId, openOnly, limit),
     ...queryConfig,
   });
 };

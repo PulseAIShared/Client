@@ -4,7 +4,7 @@ import { useCustomerProfile } from './customer-profile-context';
 import { useCustomerAiInsightsStore } from '@/features/customers/state/customer-ai-insights-store';
 
 export const CustomerAiInsightsTab: React.FC = () => {
-  const { aiInsights, customerId } = useCustomerProfile();
+  const { aiInsights, customerId, refetch } = useCustomerProfile();
   const aiStatus = useCustomerAiInsightsStore((state) => state.status);
   const setAiStatus = useCustomerAiInsightsStore((state) => state.setStatus);
   const markRecommendation = useCustomerAiInsightsStore((state) => state.markRecommendation);
