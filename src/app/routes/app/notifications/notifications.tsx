@@ -213,7 +213,17 @@ export const NotificationsRoute = () => {
     }
     
     if (notification.actionUrl) {
-      navigate(`/app${notification.actionUrl}`);
+      const actionUrl = notification.actionUrl.trim();
+
+      if (actionUrl.startsWith('/app')) {
+        navigate(actionUrl);
+      } else if (actionUrl.startsWith('app/')) {
+        navigate(`/${actionUrl}`);
+      } else if (actionUrl.startsWith('/')) {
+        navigate(`/app${actionUrl}`);
+      } else {
+        navigate(`/app/${actionUrl}`);
+      }
     }
   };
 
@@ -248,7 +258,7 @@ export const NotificationsRoute = () => {
                   Notifications
                 </h1>
                 <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-2xl">
-                  Stay updated with real-time notifications and system alerts
+                  Stay updated on signals, playbooks, and system alerts
                 </p>
               </div>
               

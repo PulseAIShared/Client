@@ -13,6 +13,7 @@ type CustomerProfileTab =
   | 'support'
   | 'marketing'
   | 'ai-insights'
+  | 'playbooks'
   | 'data-health';
 
 const OverviewTab = lazy(() => import('./overview-tab').then((module) => ({ default: module.CustomerOverviewTab })));
@@ -21,6 +22,7 @@ const EngagementTab = lazy(() => import('./engagement-tab').then((module) => ({ 
 const SupportTab = lazy(() => import('./support-tab').then((module) => ({ default: module.CustomerSupportTab })));
 const MarketingTab = lazy(() => import('./marketing-tab').then((module) => ({ default: module.CustomerMarketingTab })));
 const AiInsightsTab = lazy(() => import('./ai-insights-tab').then((module) => ({ default: module.CustomerAiInsightsTab })));
+const PlaybooksTab = lazy(() => import('./playbooks-tab').then((module) => ({ default: module.CustomerPlaybooksTab })));
 const DataHealthTab = lazy(() => import('./data-health-tab').then((module) => ({ default: module.CustomerDataHealthTab })));
 const SourcesLogsTab = lazy(() => import('./sources-logs-tab').then((module) => ({ default: module.CustomerSourcesLogsTab })));
 
@@ -93,6 +95,16 @@ const tabConfig: Array<{
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'playbooks',
+    label: 'Playbooks',
+    lastUpdatedKey: 'overview',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
       </svg>
     ),
   },
@@ -370,6 +382,7 @@ export const CustomerDetailView: React.FC = () => {
             {activeTab === 'support' && <SupportTab />}
             {activeTab === 'marketing' && <MarketingTab />}
             {activeTab === 'ai-insights' && <AiInsightsTab />}
+            {activeTab === 'playbooks' && <PlaybooksTab />}
             {activeTab === 'data-health' && (
               <div className="space-y-10">
                 <DataHealthTab />

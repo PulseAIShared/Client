@@ -107,8 +107,8 @@ export const RecoveryFlows = () => {
     <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Recovery Flows</h2>
-          <p className="text-sm sm:text-base text-text-muted">Automated campaigns to re-engage and recover customers</p>
+          <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Recovery Playbooks</h2>
+          <p className="text-sm sm:text-base text-text-muted">Automated playbooks to re-engage and recover customers</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex gap-2">
@@ -120,7 +120,7 @@ export const RecoveryFlows = () => {
                   : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/80 border border-border-primary/30'
               }`}
             >
-              Active Flows
+              Active Playbooks
             </button>
             <button
               onClick={() => setSelectedTab('templates')}

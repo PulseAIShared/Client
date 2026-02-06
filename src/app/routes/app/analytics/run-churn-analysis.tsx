@@ -121,7 +121,7 @@ export const RunChurnAnalysisRoute = () => {
                 <ul className="text-text-muted text-sm space-y-1 mb-6">
                   <li>• Run AI-powered churn risk analysis</li>
                   <li>• Generate customer intervention recommendations</li>
-                  <li>• Create targeted recovery campaigns</li>
+                  <li>• Create targeted recovery playbooks</li>
                   <li>• Export detailed analytics reports</li>
                 </ul>
                 <p className="text-text-muted text-sm">

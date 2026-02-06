@@ -24,7 +24,12 @@
       "Bash(kill:*)",
       "Bash(lsof:*)",
       "Bash(export:*)",
-      "Bash(mkcert:*)"
+      "Bash(mkcert:*)",
+      "Bash(ls -la \"E:\\\\Projects\\\\PulseLTV\\\\Server\\\\docs\\\\phases\"\" 2>/dev/null || echo \"Directory not found \")",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dir:*)",
+      "Bash(Select-Object -Last 10)"
     ],
     "deny": []
   }

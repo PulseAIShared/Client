@@ -62,21 +62,6 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
     };
   }
 
-  if (pathname.includes('/imports/') && params.importJobId) {
-    return {
-      context: {
-        type: ChatContextType.Import,
-        importJobId: params.importJobId,
-        routePath: pathname,
-      },
-      quickActions: [
-        { id: 'import_status', label: 'Import Status', action: 'check_import_status' },
-        { id: 'fix_errors', label: 'Fix Import Errors', action: 'help_fix_import_errors' },
-        { id: 'data_mapping', label: 'Data Mapping Help', action: 'data_mapping_help' },
-      ],
-    };
-  }
-
   if (pathname.includes('/dashboard') || pathname === '/app' || pathname === '/app/') {
     return {
       context: {
@@ -99,7 +84,6 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
         routePath: pathname,
       },
       quickActions: [
-        { id: 'import_customers', label: 'Import Customers', action: 'help_import_customers' },
         { id: 'segment_customers', label: 'Create Segments', action: 'help_create_customer_segments' },
         { id: 'export_customers', label: 'Export Customer Data', action: 'export_customer_list' },
         { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
@@ -107,16 +91,16 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
     };
   }
 
-  if (pathname.includes('/campaigns')) {
+  if (pathname.includes('/playbooks') || pathname.includes('/campaigns')) {
     return {
       context: {
         type: ChatContextType.Campaigns,
         routePath: pathname,
       },
       quickActions: [
-        { id: 'create_campaign', label: 'Create Campaign', action: 'help_create_campaign' },
-        { id: 'campaign_analytics', label: 'Campaign Analytics', action: 'analyze_campaign_performance' },
-        { id: 'target_audience', label: 'Target Audience', action: 'help_target_audience' },
+        { id: 'create_playbook', label: 'Create Playbook', action: 'help_create_playbook' },
+        { id: 'playbook_analytics', label: 'Playbook Analytics', action: 'analyze_playbook_performance' },
+        { id: 'target_audience', label: 'Target Segments', action: 'help_target_segments' },
         { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
       ],
     };

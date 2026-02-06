@@ -16,7 +16,7 @@ const generateConversationTitle = (message: string, context: ChatbotContext): st
     case ChatContextType.Customers:
       return 'Customers';
     case ChatContextType.Campaigns:
-      return 'Campaigns';
+      return 'Playbooks';
     case ChatContextType.Analytics:
       return 'Analytics';
     case ChatContextType.Segments:
@@ -286,8 +286,8 @@ export const PageHelpInterface: React.FC = () => {
         return 'Dashboard Assistance';
       case ChatContextType.Customers:
         return 'Customer Management Help';
-      case ChatContextType.Campaigns:
-        return 'Campaign Management Help';
+    case ChatContextType.Campaigns:
+        return 'Playbook Management Help';
       case ChatContextType.Segments:
         return 'Segmentation Help';
       case ChatContextType.Analytics:
@@ -312,8 +312,8 @@ export const PageHelpInterface: React.FC = () => {
         return 'Dashboard Assistant';
       case ChatContextType.Customers:
         return 'Customer Management Assistant';
-      case ChatContextType.Campaigns:
-        return 'Campaign Management Assistant';
+    case ChatContextType.Campaigns:
+        return 'Playbook Management Assistant';
       case ChatContextType.Segments:
         return 'Segmentation Assistant';
       case ChatContextType.Analytics:
@@ -363,8 +363,8 @@ export const PageHelpInterface: React.FC = () => {
             ? 'Ask about your metrics...'
             : pageContext.type === ChatContextType.Customers
             ? 'Ask about customer management...'
-            : pageContext.type === ChatContextType.Campaigns
-            ? 'Ask about campaigns...'
+          : pageContext.type === ChatContextType.Campaigns
+            ? 'Ask about playbooks...'
             : 'How can I help you?'
         }
       />

@@ -63,7 +63,7 @@ export const GettingStartedDocsRoute = () => {
                 Churn Prediction
               </span>
               <span className="px-4 py-2 bg-accent-secondary/20 border border-accent-secondary/30 rounded-full text-accent-secondary text-sm font-semibold hover:bg-accent-secondary/30 transition-all duration-300">
-                Automated Campaigns
+                Automated Playbooks
               </span>
             </div>
           </div>
@@ -220,7 +220,7 @@ export const GettingStartedDocsRoute = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-10">
             <div className="bg-surface-secondary/50 p-4 sm:p-6 rounded-2xl border border-border-primary/30 hover:bg-surface-secondary/70 transition-all duration-300">
               <h5 className="font-semibold text-text-primary text-sm sm:text-base mb-2">High-Risk Customers</h5>
-              <p className="text-text-secondary text-xs sm:text-sm">Target with immediate intervention campaigns</p>
+              <p className="text-text-secondary text-xs sm:text-sm">Target with immediate intervention playbooks</p>
             </div>
             <div className="bg-surface-secondary/50 p-4 sm:p-6 rounded-2xl border border-border-primary/30 hover:bg-surface-secondary/70 transition-all duration-300">
               <h5 className="font-semibold text-text-primary text-sm sm:text-base mb-2">Low-Engagement Users</h5>
@@ -247,7 +247,7 @@ export const GettingStartedDocsRoute = () => {
           </Link>
         </div>
 
-        {/* Enhanced Step 4: Launch Campaigns */}
+        {/* Enhanced Step 4: Activate Playbooks */}
         <div className="bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
           <div className="flex items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="p-3 sm:p-4 bg-gradient-to-r from-success to-success-muted rounded-xl shadow-lg">
@@ -257,15 +257,15 @@ export const GettingStartedDocsRoute = () => {
             </div>
             <div>
               <h3 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-success to-success-muted mb-2">
-                Step 4: Launch Retention Campaigns
+                Step 4: Activate Retention Playbooks
               </h3>
-              <p className="text-text-secondary text-lg">Take action with targeted customer outreach</p>
+              <p className="text-text-secondary text-lg">Take action with playbook-driven intervention</p>
             </div>
           </div>
 
           <p className="text-text-secondary mb-6 sm:mb-8 text-lg leading-relaxed">
-            With your customer segments defined, create targeted campaigns to improve retention. 
-            PulseLTV helps you identify the right message for the right customer at the right time.
+            With your customer segments defined, create targeted playbooks to improve retention. 
+            PulseLTV surfaces the right action for the right customer at the right time.
           </p>
 
           <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
@@ -276,7 +276,7 @@ export const GettingStartedDocsRoute = () => {
                 </svg>
               </div>
               <div>
-                <h5 className="font-semibold text-text-primary text-sm sm:text-base mb-1">Win-Back Campaigns</h5>
+                <h5 className="font-semibold text-text-primary text-sm sm:text-base mb-1">Win-Back Playbooks</h5>
                 <p className="text-text-secondary text-xs sm:text-sm">Re-engage churned or at-risk customers</p>
               </div>
             </div>
@@ -288,7 +288,7 @@ export const GettingStartedDocsRoute = () => {
               </div>
               <div>
                 <h5 className="font-semibold text-text-primary text-sm sm:text-base mb-1">Upsell Opportunities</h5>
-                <p className="text-text-secondary text-xs sm:text-sm">Identify customers ready for plan upgrades</p>
+                <p className="text-text-secondary text-xs sm:text-sm">Trigger playbooks for customers ready to expand</p>
               </div>
             </div>
             <div className="flex items-start gap-4 sm:gap-6 p-4 sm:p-6 bg-surface-secondary/30 rounded-2xl border border-border-primary/30 hover:bg-surface-secondary/50 transition-all duration-300">
@@ -306,8 +306,8 @@ export const GettingStartedDocsRoute = () => {
 
           <div className="bg-warning/10 border border-warning/30 p-4 sm:p-6 rounded-2xl mb-6 sm:mb-8">
             <p className="text-warning text-sm sm:text-base">
-              <strong>Coming Soon:</strong> Campaign management features will be available in the next release. 
-              For now, use the insights from PulseLTV to inform your manual outreach efforts.
+              <strong>Tip:</strong> Review playbook runs weekly to understand what actions worked and where
+              to iterate.
             </p>
           </div>
         </div>

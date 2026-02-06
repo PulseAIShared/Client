@@ -6,13 +6,22 @@ import {
   CustomersQueryParams,
   CustomerListItem,
   CustomersListApiResponse,
+  CustomersPageApiResponse,
+  CustomerSummaryStats,
   CustomerDetailData,
   CustomerOverviewResponse,
   CustomerPaymentHistoryResponse,
   CustomerEngagementHistoryResponse,
   CustomerSupportHistoryResponse,
   CustomerChurnHistoryResponse,
-  CustomerDataSourcesResponse
+  CustomerDataSourcesResponse,
+  SegmentListItem,
+  PlaybookListItem,
+  BulkActionResult,
+  BulkAddToSegmentPayload,
+  BulkTriggerPlaybookPayload,
+  BulkAddToWorkQueuePayload,
+  BulkExportCustomersPayload
 } from '@/types/api';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
 
@@ -20,6 +29,7 @@ import { MutationConfig, QueryConfig } from '@/lib/react-query';
 // Backend now returns display-ready data - no transformation needed
 export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
   customers: CustomerListItem[];
+  summary: CustomerSummaryStats;
   pagination: {
     page: number;
     pageSize: number;
@@ -34,6 +44,8 @@ export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
 
   if (params.page) queryParams.append('page', params.page.toString());
   if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+  if (params.segmentId) queryParams.append('segmentId', params.segmentId);
+  if (params.filter) queryParams.append('filter', params.filter);
   if (params.search) queryParams.append('search', params.search);
   if (params.subscriptionStatus !== undefined) queryParams.append('subscriptionStatus', params.subscriptionStatus.toString());
   if (params.plan !== undefined) queryParams.append('plan', params.plan.toString());
@@ -43,18 +55,20 @@ export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
   if (params.sortDescending !== undefined) queryParams.append('sortDescending', params.sortDescending.toString());
 
   const url = `/customers?${queryParams.toString()}`;
-  const response = await api.get(url) as CustomersListApiResponse;
+  const response = await api.get(url) as CustomersPageApiResponse;
+  const customersPage = response.customers as CustomersListApiResponse;
 
   // Backend provides display-ready data - use directly
   return {
-    customers: response.items,
+    customers: customersPage.items,
+    summary: response.summary,
     pagination: {
-      page: response.page,
-      pageSize: response.pageSize,
-      totalPages: response.totalPages,
-      totalCount: response.totalCount,
-      hasNextPage: response.hasNextPage,
-      hasPreviousPage: response.hasPreviousPage,
+      page: customersPage.page,
+      pageSize: customersPage.pageSize,
+      totalPages: customersPage.totalPages,
+      totalCount: customersPage.totalCount,
+      hasNextPage: customersPage.hasNextPage,
+      hasPreviousPage: customersPage.hasPreviousPage,
     }
   };
 };
@@ -219,6 +233,132 @@ export const useGetCustomerDataSources = (
   });
 };
 
+export const getSegmentsList = async (): Promise<SegmentListItem[]> => {
+  const segments = await api.get('/segments') as Array<{ id: string; name: string; customerCount?: number }>;
+  return (segments ?? []).map((segment) => ({
+    id: segment.id,
+    name: segment.name,
+    customerCount: segment.customerCount,
+  }));
+};
+
+export const useGetSegmentsList = (queryConfig?: QueryConfig<any>) => {
+  return useQuery({
+    queryKey: ['customers', 'segment-list'],
+    queryFn: getSegmentsList,
+    ...queryConfig,
+  });
+};
+
+export const getPlaybooksList = async (): Promise<PlaybookListItem[]> => {
+  const playbooks = await api.get('/playbooks') as Array<{ id: string; name: string; status?: string }>;
+  return (playbooks ?? []).map((playbook) => ({
+    id: playbook.id,
+    name: playbook.name,
+    status: playbook.status,
+  }));
+};
+
+export const useGetPlaybooksList = (queryConfig?: QueryConfig<any>) => {
+  return useQuery({
+    queryKey: ['customers', 'playbook-list'],
+    queryFn: getPlaybooksList,
+    ...queryConfig,
+  });
+};
+
+// Aggregator: Customer Detail Query
+export type CustomerDetailSectionsSpec = {
+  overview?: boolean;
+  history?: { months?: number; domains?: string[] };
+  aiInsights?: boolean;
+  playbooks?: { summary?: boolean; runs?: { page?: number; pageSize?: number; status?: string; since?: string } };
+  dataSources?: boolean;
+};
+
+export const postCustomerDetailQuery = async (
+  customerId: string,
+  sections: CustomerDetailSectionsSpec
+) => {
+  return api.post('/customers/detail-query', {
+    customerId,
+    sections: {
+      overview: sections.overview ?? true,
+      history: sections.history ?? { months: 12, domains: ['payment','engagement','support'] },
+      aiInsights: sections.aiInsights ?? true,
+      playbooks: sections.playbooks ?? { summary: true, runs: { page: 1, pageSize: 50 } },
+      dataSources: sections.dataSources ?? true,
+    },
+  });
+};
+
+export const useCustomerDetailQuery = (
+  customerId: string,
+  sections: CustomerDetailSectionsSpec,
+  queryConfig?: QueryConfig<any>
+) => {
+  return useQuery({
+    queryKey: ['customers', customerId, 'detail', sections],
+    queryFn: () => postCustomerDetailQuery(customerId, sections),
+    enabled: !!customerId,
+    ...queryConfig,
+  });
+};
+
+// Engagement sessions/features
+export const getCustomerEngagementSessions = async (customerId: string, months = 3) => {
+  return api.get(`/customers/${customerId}/engagement/sessions?months=${months}`);
+};
+
+export const useGetCustomerEngagementSessions = (
+  customerId: string,
+  months = 3,
+  queryConfig?: QueryConfig<any>
+) => {
+  return useQuery({
+    queryKey: ['customers', customerId, 'engagement-sessions', months],
+    queryFn: () => getCustomerEngagementSessions(customerId, months),
+    enabled: !!customerId,
+    ...queryConfig,
+  });
+};
+
+export const getCustomerEngagementFeaturesTop = async (customerId: string, months = 3) => {
+  return api.get(`/customers/${customerId}/engagement/features?months=${months}`);
+};
+
+export const useGetCustomerEngagementFeaturesTop = (
+  customerId: string,
+  months = 3,
+  queryConfig?: QueryConfig<any>
+) => {
+  return useQuery({
+    queryKey: ['customers', customerId, 'engagement-features', months],
+    queryFn: () => getCustomerEngagementFeaturesTop(customerId, months),
+    enabled: !!customerId,
+    ...queryConfig,
+  });
+};
+
+// Support tickets
+export const getCustomerSupportTickets = async (customerId: string, openOnly = true, limit = 50) => {
+  return api.get(`/customers/${customerId}/support/tickets?openOnly=${openOnly}&limit=${limit}`);
+};
+
+export const useGetCustomerSupportTickets = (
+  customerId: string,
+  openOnly = true,
+  limit = 50,
+  queryConfig?: QueryConfig<any>
+) => {
+  return useQuery({
+    queryKey: ['customers', customerId, 'support-tickets', { openOnly, limit }],
+    queryFn: () => getCustomerSupportTickets(customerId, openOnly, limit),
+    enabled: !!customerId,
+    ...queryConfig,
+  });
+};
+
 // Create customer
 export const createCustomer = async (data: {
   firstName: string;
@@ -307,51 +447,72 @@ export const useDeleteCustomers = ({ mutationConfig }: UseDeleteCustomersOptions
     ...mutationConfig,
   });
 };
-// Bulk operations
-export const bulkUpdateCustomers = async (data: {
-  customerIds: string[];
-  updates: Partial<{
-    plan: number;
-    subscriptionStatus: number;
-    paymentStatus: number;
-  }>;
-}): Promise<{ updated: number; errors: string[] }> => {
-  return api.post('/customers/bulk-update', data);
+
+export const bulkAddToSegment = async (
+  payload: BulkAddToSegmentPayload
+): Promise<BulkActionResult> => {
+  return api.post('/customers/bulk/add-to-segment', payload);
 };
 
-type UseBulkUpdateCustomersOptions = {
-  mutationConfig?: MutationConfig<typeof bulkUpdateCustomers>;
-};
-
-export const useBulkUpdateCustomers = ({ mutationConfig }: UseBulkUpdateCustomersOptions = {}) => {
+export const useBulkAddToSegment = (
+  mutationConfig?: MutationConfig<typeof bulkAddToSegment>
+) => {
   return useMutation({
-    mutationFn: bulkUpdateCustomers,
+    mutationFn: bulkAddToSegment,
     ...mutationConfig,
   });
 };
 
-// Export customers
-export const exportCustomers = async (params: CustomersQueryParams = {}): Promise<Blob> => {
-  const queryParams = new URLSearchParams();
-  
-  if (params.search) queryParams.append('search', params.search);
-  if (params.subscriptionStatus !== undefined) queryParams.append('subscriptionStatus', params.subscriptionStatus.toString());
-  if (params.plan !== undefined) queryParams.append('plan', params.plan.toString());
-  if (params.paymentStatus !== undefined) queryParams.append('paymentStatus', params.paymentStatus.toString());
-  if (params.churnRiskLevel !== undefined) queryParams.append('churnRiskLevel', params.churnRiskLevel.toString());
+export const bulkTriggerPlaybook = async (
+  payload: BulkTriggerPlaybookPayload
+): Promise<BulkActionResult> => {
+  return api.post('/customers/bulk/trigger-playbook', payload);
+};
 
-  return api.get(`/customers/export?${queryParams.toString()}`, {
+export const useBulkTriggerPlaybook = (
+  mutationConfig?: MutationConfig<typeof bulkTriggerPlaybook>
+) => {
+  return useMutation({
+    mutationFn: bulkTriggerPlaybook,
+    ...mutationConfig,
+  });
+};
+
+export const bulkAddToWorkQueue = async (
+  payload: BulkAddToWorkQueuePayload
+): Promise<BulkActionResult> => {
+  return api.post('/customers/bulk/add-to-work-queue', payload);
+};
+
+export const useBulkAddToWorkQueue = (
+  mutationConfig?: MutationConfig<typeof bulkAddToWorkQueue>
+) => {
+  return useMutation({
+    mutationFn: bulkAddToWorkQueue,
+    ...mutationConfig,
+  });
+};
+
+export const bulkExportCustomers = async (
+  payload: BulkExportCustomersPayload
+): Promise<Blob> => {
+  return api.post('/customers/bulk/export', payload, {
     responseType: 'blob',
   });
 };
 
-type UseExportCustomersOptions = {
-  mutationConfig?: MutationConfig<typeof exportCustomers>;
+export const useBulkExportCustomers = (
+  mutationConfig?: MutationConfig<typeof bulkExportCustomers>
+) => {
+  return useMutation({
+    mutationFn: bulkExportCustomers,
+    ...mutationConfig,
+  });
 };
 
-export const useExportCustomers = ({ mutationConfig }: UseExportCustomersOptions = {}) => {
+export const useBulkDeleteCustomers = ({ mutationConfig }: UseDeleteCustomersOptions = {}) => {
   return useMutation({
-    mutationFn: exportCustomers,
+    mutationFn: deleteCustomers,
     ...mutationConfig,
   });
 };

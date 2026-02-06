@@ -19,12 +19,13 @@ export type NotificationProps = {
     message?: string;
     actionLabel?: string;
     actionHref?: string;
+    actionHandler?: () => void;
   };
   onDismiss: (id: string) => void;
 };
 
 export const Notification = ({
-  notification: { id, type, title, message, actionHref, actionLabel },
+  notification: { id, type, title, message, actionHref, actionLabel, actionHandler },
   onDismiss,
 }: NotificationProps) => {
   return (
@@ -45,17 +46,30 @@ export const Notification = ({
                   {message}
                 </p>
               )}
-              {actionHref && (
+              {(actionHref || actionHandler) && (
                 <div className="mt-3">
-                  <a
-                    href={actionHref}
-                    className="inline-flex items-center gap-2 rounded-lg bg-accent-primary/90 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-accent-primary"
-                  >
-                    {actionLabel ?? 'View'}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </a>
+                  {actionHandler ? (
+                    <button
+                      type="button"
+                      onClick={actionHandler}
+                      className="inline-flex items-center gap-2 rounded-lg bg-accent-primary/90 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-accent-primary"
+                    >
+                      {actionLabel ?? 'View'}
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <a
+                      href={actionHref}
+                      className="inline-flex items-center gap-2 rounded-lg bg-accent-primary/90 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-accent-primary"
+                    >
+                      {actionLabel ?? 'View'}
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </a>
+                  )}
                 </div>
               )}
             </div>

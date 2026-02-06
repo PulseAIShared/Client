@@ -10,7 +10,7 @@ export const PLATFORM_POLICIES = {
   'admin:users': (user: User) => user.platformRole === PlatformRole.Admin || user.platformRole === PlatformRole.Moderator,
   'admin:support': (user: User) => user.platformRole === PlatformRole.Admin || user.platformRole === PlatformRole.Moderator,
   'admin:platform': (user: User) => user.platformRole === PlatformRole.Admin || user.platformRole === PlatformRole.Moderator,
-  'admin:data-generator': (user: User) => user.platformRole === PlatformRole.Admin,
+  'admin:testing-lab': (user: User) => user.platformRole === PlatformRole.Admin,
 };
 
 const COMPANY_ROLE_HIERARCHY: Record<CompanyRole, number> = {
@@ -27,6 +27,7 @@ export const COMPANY_POLICIES = {
   'company:billing': (user: User) => COMPANY_ROLE_HIERARCHY[user.companyRole] >= COMPANY_ROLE_HIERARCHY[CompanyRole.Owner],
   'customers:read': (user: User) => COMPANY_ROLE_HIERARCHY[user.companyRole] >= COMPANY_ROLE_HIERARCHY[CompanyRole.Viewer],
   'customers:write': (user: User) => COMPANY_ROLE_HIERARCHY[user.companyRole] >= COMPANY_ROLE_HIERARCHY[CompanyRole.Staff],
+  'customers:delete': (user: User) => COMPANY_ROLE_HIERARCHY[user.companyRole] >= COMPANY_ROLE_HIERARCHY[CompanyRole.Owner],
   'integrations:read': (user: User) => COMPANY_ROLE_HIERARCHY[user.companyRole] >= COMPANY_ROLE_HIERARCHY[CompanyRole.Viewer],
   'integrations:write': (user: User) => COMPANY_ROLE_HIERARCHY[user.companyRole] >= COMPANY_ROLE_HIERARCHY[CompanyRole.Staff],
   'analytics:read': (user: User) => COMPANY_ROLE_HIERARCHY[user.companyRole] >= COMPANY_ROLE_HIERARCHY[CompanyRole.Viewer],

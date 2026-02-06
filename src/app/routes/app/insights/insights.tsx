@@ -13,9 +13,22 @@ import {
   RecoveryInsightsSection,
   SegmentInsightsSection,
 } from '@/features/insights/components';
+import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
+import {
+  ActiveUserMetricsCard,
+  ActivationMetricsCard,
+  AlertsAndAutomationCard,
+  DemographicInsightsCard,
+  RecoverySnapshotCard,
+  SegmentSuggestionsCard,
+  SegmentWatchlistCard,
+  ActivityCard,
+  GeoInsightsCard,
+} from '@/features/dashboard/components/cards';
+import { ChurnRiskChart, CustomerTrendChart, GeoMap } from '@/features/dashboard/components/charts';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
 
-type TabId = 'overview' | 'risk' | 'segments' | 'actions';
+type TabId = 'overview' | 'risk' | 'engagement' | 'segments' | 'geo' | 'outcomes';
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   {
@@ -29,7 +42,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   },
   {
     id: 'risk',
-    label: 'Risk Analysis',
+    label: 'Risk',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
@@ -37,8 +50,17 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
     ),
   },
   {
+    id: 'engagement',
+    label: 'Engagement',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3v18h18M7 15l4-4 4 4 4-6" />
+      </svg>
+    ),
+  },
+  {
     id: 'segments',
-    label: 'Customer Segments',
+    label: 'Segments',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -46,11 +68,20 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
     ),
   },
   {
-    id: 'actions',
-    label: 'Actions & Recovery',
+    id: 'geo',
+    label: 'Geo',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 0v10m-7-6h14" />
+      </svg>
+    ),
+  },
+  {
+    id: 'outcomes',
+    label: 'Outcomes',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a10 10 0 11-20 0 10 10 0 0120 0z" />
       </svg>
     ),
   },
@@ -60,35 +91,112 @@ export const InsightsRoute = () => {
   const { checkCompanyPolicy } = useAuthorization();
   const canViewAnalytics = checkCompanyPolicy('analytics:read');
   const [activeTab, setActiveTab] = React.useState<TabId>('overview');
+  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useGetDashboardData();
+  const dashboardErrorValue = dashboardError && typeof dashboardError === 'object'
+    ? (dashboardError as Error)
+    : null;
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
         return <InsightsOverviewSection />;
       case 'risk':
-        // Combined: Churn Analysis + Early Warnings + Accuracy
         return (
           <div className="space-y-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <ChurnRiskChart
+                data={dashboardData?.churnRiskTrend}
+                currentRisk={dashboardData?.stats?.churnRisk}
+                isLoading={dashboardLoading}
+                error={dashboardErrorValue}
+              />
+              <CustomerTrendChart
+                data={dashboardData?.customerTrends}
+                isLoading={dashboardLoading}
+                error={dashboardErrorValue}
+              />
+            </div>
             <ChurnAnalysisSection />
             <EarlyWarningsSection />
             <AccuracyMetricsSection />
           </div>
         );
-      case 'segments':
-        // Combined: Cohorts + Segments + Features
+      case 'engagement':
         return (
           <div className="space-y-8">
-            <CohortAnalysisSection />
-            <SegmentInsightsSection />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ActiveUserMetricsCard
+                data={dashboardData?.activeUserMetrics}
+                isLoading={dashboardLoading}
+                error={dashboardErrorValue}
+              />
+              <ActivationMetricsCard
+                data={dashboardData?.activationMetrics}
+                isLoading={dashboardLoading}
+                error={dashboardErrorValue}
+              />
+            </div>
+            <ActivityCard
+              stats={dashboardData?.stats}
+              isLoading={dashboardLoading}
+              error={dashboardErrorValue}
+            />
             <FeatureUsageSection />
           </div>
         );
-      case 'actions':
-        // Combined: Recommendations + Recovery
+      case 'segments':
         return (
           <div className="space-y-8">
+            <SegmentInsightsSection />
+            <CohortAnalysisSection />
+            <SegmentSuggestionsCard
+              data={dashboardData?.segmentSuggestions}
+              isLoading={dashboardLoading}
+              error={dashboardErrorValue}
+            />
+            <SegmentWatchlistCard
+              segments={dashboardData?.segmentAnalytics?.segmentDistribution}
+              isLoading={dashboardLoading}
+            />
+          </div>
+        );
+      case 'geo':
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <GeoMap
+                data={dashboardData?.geoBreakdown}
+                isLoading={dashboardLoading}
+                error={dashboardErrorValue}
+              />
+              <GeoInsightsCard
+                data={dashboardData?.geoBreakdown}
+                isLoading={dashboardLoading}
+                error={dashboardErrorValue}
+              />
+            </div>
+            <DemographicInsightsCard
+              data={dashboardData?.demographicInsights}
+              isLoading={dashboardLoading}
+              error={dashboardErrorValue}
+            />
+          </div>
+        );
+      case 'outcomes':
+        return (
+          <div className="space-y-8">
+            <RecoverySnapshotCard
+              kpis={dashboardData?.recoveryAnalytics?.kpis}
+              isLoading={dashboardLoading}
+              error={dashboardErrorValue}
+            />
             <RecommendationsSection />
             <RecoveryInsightsSection />
+            <AlertsAndAutomationCard
+              data={dashboardData?.dashboardAlerts}
+              isLoading={dashboardLoading}
+              error={dashboardErrorValue}
+            />
           </div>
         );
       default:

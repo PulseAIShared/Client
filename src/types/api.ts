@@ -97,6 +97,7 @@ export interface DashboardResponse {
   atRiskCustomers: AtRiskCustomer[];
   customerTrends?: CustomerTrendPoint[];
   geoBreakdown?: GeoInsight[];
+  workQueueSummary?: DashboardWorkQueueSummary;
   recoveryAnalytics?: {
     kpis?: {
       missedPaymentsCount?: number;
@@ -122,6 +123,23 @@ export interface DashboardResponse {
   demographicInsights?: DemographicInsight[];
   segmentSuggestions?: SegmentSuggestion[];
   dashboardAlerts?: DashboardAlert[];
+}
+
+export interface DashboardWorkQueueSummary {
+  pendingApprovals: number;
+  highValueCount: number;
+  revenueSavedLast7d: number;
+  oldestPendingAge?: string | null;
+  topItems: DashboardWorkQueueItem[];
+}
+
+export interface DashboardWorkQueueItem {
+  id: string;
+  customerName: string;
+  playbookName: string;
+  reason: string;
+  potentialValue?: number | null;
+  createdAt: string;
 }
 
 /**
@@ -344,6 +362,7 @@ export interface CustomerListItem {
   churnRiskDisplay: string;
   formattedMrr: string;
   formattedLtv: string;
+  healthStatus: 'Healthy' | 'Watch' | 'AtRisk' | 'Critical';
 
   // Raw enum values for filtering/sorting
   plan: SubscriptionPlan;
@@ -356,11 +375,16 @@ export interface CustomerListItem {
   nextBillingDate?: string | null;
   hasPaymentIssues: boolean;
   paymentFailureCount: number;
+  planName: string;
+  monthlyAmount: number;
+  currency: string;
+  paymentStatusLabel: string;
 
   // Tenure (raw)
   tenureDays: number;
 
   // Activity
+  lastActivityAt?: string | null;
   lastActivityDate?: string | null;
   hasRecentActivity: boolean;
   lastSyncedAt: string;
@@ -412,6 +436,22 @@ export interface CustomersListApiResponse {
   hasPreviousPage: boolean;
 }
 
+export interface CustomerSummaryStats {
+  totalCount: number;
+  activeCount: number;
+  totalMrr: number;
+  avgChurnRisk: number;
+  highRiskCount: number;
+  recentActivityCount: number;
+  paymentIssuesCount: number;
+  cancelledCount: number;
+}
+
+export interface CustomersPageApiResponse {
+  customers: CustomersListApiResponse;
+  summary: CustomerSummaryStats;
+}
+
 // Legacy response wrapper - keep for backwards compatibility
 export interface CustomersApiResponse {
   items: CustomerData[];
@@ -427,6 +467,8 @@ export interface CustomersApiResponse {
 export interface CustomersQueryParams {
   page?: number;
   pageSize?: number;
+  segmentId?: string;
+  filter?: string;
   search?: string;
   subscriptionStatus?: SubscriptionStatus;
   plan?: SubscriptionPlan;
@@ -441,6 +483,47 @@ export interface CustomersQueryParams {
   leadSource?: string;
   sortBy?: string;
   sortDescending?: boolean;
+}
+
+export interface SegmentListItem {
+  id: string;
+  name: string;
+  customerCount?: number;
+}
+
+export interface PlaybookListItem {
+  id: string;
+  name: string;
+  status?: string;
+}
+
+export interface BulkActionResult {
+  totalRequested: number;
+  processed: number;
+  failed: number;
+  errors: Array<{
+    customerId: string;
+    message: string;
+  }>;
+}
+
+export interface BulkAddToSegmentPayload {
+  customerIds: string[];
+  segmentId: string;
+}
+
+export interface BulkTriggerPlaybookPayload {
+  customerIds: string[];
+  playbookId: string;
+}
+
+export interface BulkAddToWorkQueuePayload {
+  customerIds: string[];
+  note?: string;
+}
+
+export interface BulkExportCustomersPayload {
+  customerIds: string[];
 }
 
 // Utility functions to help with data transformation
@@ -1140,165 +1223,6 @@ export enum CompanySize {
   Startup = 0,
   SMB = 1,
   Enterprise = 2
-}
-
-export type ImportProcessingStage =
-  | 'Queued'
-  | 'Started'
-  | 'Validating'
-  | 'Ingesting'
-  | 'Aggregating'
-  | 'Summary'
-  | 'Completed'
-  | 'Failed'
-  | 'Cancelled';
-
-const stageOrder: ImportProcessingStage[] = [
-  'Queued',
-  'Started',
-  'Validating',
-  'Ingesting',
-  'Aggregating',
-  'Summary',
-  'Completed',
-  'Failed',
-  'Cancelled'
-];
-
-export const getStageRank = (stage?: ImportProcessingStage) =>
-  stage ? stageOrder.indexOf(stage) : -1;
-
-export interface ImportJobResponse {
-  id: string;
-  fileName: string;
-  status: 'Pending' | 'Validating' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
-  type: string;
-  importSource?: string;
-  totalRecords: number;
-  processedRecords: number;
-  successfulRecords: number;
-  failedRecords: number;
-  skippedRecords: number;
-  updatedRecords: number;
-  newRecords: number;
-  errorMessage?: string;
-  createdAt: string;
-  queuedAt?: string;
-  completedAt?: string;
-  startedAt?: string;
-  message?: string;
-  progressPercentage: number;
-  skipDuplicates?: boolean;
-  actionUrl?: string;
-  stage?: ImportProcessingStage;
-  stageDetail?: string;
-  highestStageReached?: ImportProcessingStage;
-  currentBatch?: number;
-  totalBatches?: number;
-  batchProcessed?: number;
-  batchSize?: number;
-  validationErrors?: ImportErrorResponse[];
-  updates?: ImportUpdateResponse[];
-  summary?: ImportSummaryResponse;
-}
-
-export interface ImportErrorResponse {
-  rowNumber: number;
-  email: string;
-  errorMessage: string;
-  fieldName: string;
-  rawData?: string | null;
-  errorTime: string;
-}
-
-
-export interface ImportJobSummaryResponse {
-  id: string;
-  fileName: string;
-  status: ImportJobStatus;
-  totalRecords: number;
-  successfulRecords: number;
-  errorCount: number;
-  createdAt: string;
-  completedAt?: string;
-}
-
-export enum ImportJobStatus {
-  Pending = 0,
-  Validating = 1,
-  Processing = 2,
-  Completed = 3,
-  Failed = 4,
-  Cancelled = 5
-}
-
-export interface UploadImportResponse {
-  importJobId: string;
-  message: string;
-  status: string;
-}
-
-export interface ConfirmImportResponse {
-  importJobId: string;
-  message: string;
-  status: string;
-}
-
-export interface ImportJobDetailResponse {
-  id: string;
-  fileName: string;
-  status: 'Pending' | 'Validating' | 'Processing' | 'Completed' | 'Failed' | 'Cancelled';
-  type: string;
-  importSource?: string;
-  totalRecords: number;
-  processedRecords: number;
-  successfulRecords: number;
-  failedRecords: number;
-  skippedRecords: number;
-  updatedRecords: number;
-  newRecords: number;
-  errorMessage?: string;
-  createdAt: string;
-  queuedAt?: string;
-  startedAt?: string;
-  completedAt?: string;
-  progressPercentage: number;
-  skipDuplicates?: boolean;
-  actionUrl?: string;
-  stage?: ImportProcessingStage;
-  stageDetail?: string;
-  highestStageReached?: ImportProcessingStage;
-  currentBatch?: number;
-  totalBatches?: number;
-  batchProcessed?: number;
-  batchSize?: number;
-  validationErrors: ImportErrorResponse[];
-  updates: ImportUpdateResponse[];
-  summary?: ImportSummaryResponse;
-  message?: string;
-}
-
-export interface ImportUpdateResponse {
-  rowNumber: number;
-  email: string;
-  customerName: string;
-  updatedFields: ImportFieldUpdate[];
-  updateTime: string;
-}
-
-export interface ImportFieldUpdate {
-  fieldName: string;
-  oldValue: string;
-  newValue: string;
-}
-
-
-export interface ImportSummaryResponse {
-  totalImported: number;
-  duplicatesSkipped: number;
-  errorsEncountered: number;
-  processingTimeMs: number;
-  [key: string]: ReactNode;
 }
 
 interface CustomerDataSourceItem {

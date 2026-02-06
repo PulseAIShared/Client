@@ -22,8 +22,8 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
   const { checkCompanyPolicy } = useAuthorization();
   const { addNotification } = useNotifications();
   
-  // Check if user has write permissions for customers
-  const canDeleteCustomers = checkCompanyPolicy('customers:write');
+  // Check if user has delete permissions for customers
+  const canDeleteCustomers = checkCompanyPolicy('customers:delete');
   
   // If user doesn't have permission, show error and close
   React.useEffect(() => {
@@ -31,7 +31,7 @@ export const DeleteCustomersModal: React.FC<DeleteCustomersModalProps> = ({
       addNotification({
         type: 'error',
         title: 'Access Denied',
-        message: 'You need Staff or Owner permissions to delete customers'
+        message: 'You need Owner permissions to delete customers'
       });
       onClose();
     }

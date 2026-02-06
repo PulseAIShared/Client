@@ -1,64 +1,20 @@
 import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
-import { AtRiskCustomer, MissedPaymentRow } from '@/types/api';
-
-type WorkQueueItem = {
-  id: string;
-  type: 'highRiskCustomer' | 'missedPayment';
-  title: string;
-  subtitle: string;
-  priority: number; // higher = more urgent
-  link: string;
-  actionLabel: string;
-};
+import { DashboardWorkQueueSummary } from '@/types/api';
 
 interface WorkQueueCardProps {
-  atRiskCustomers?: AtRiskCustomer[];
-  missedPayments?: MissedPaymentRow[];
+  workQueueSummary?: DashboardWorkQueueSummary;
   isLoading?: boolean;
 }
 
 export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
-  atRiskCustomers,
-  missedPayments,
+  workQueueSummary,
   isLoading,
 }) => {
   const navigate = useNavigate();
 
-  const items: WorkQueueItem[] = useMemo(() => {
-    const queue: WorkQueueItem[] = [];
-
-    // High-risk customers from dashboard
-    const highRisk = atRiskCustomers?.slice(0, 5) || [];
-    for (const c of highRisk) {
-      queue.push({
-        id: `hr_${c.name}`,
-        type: 'highRiskCustomer',
-        title: c.name,
-        subtitle: `Risk score ${c.score}% · Last activity ${c.daysSince} days ago`,
-        priority: Math.max(1, c.score || 0),
-        link: '/app/customers',
-        actionLabel: 'View customer',
-      });
-    }
-
-    // Missed payments from insights
-    const missed = missedPayments?.slice(0, 5) || [];
-    for (const m of missed) {
-      queue.push({
-        id: `mp_${m.id}`,
-        type: 'missedPayment',
-        title: `${m.customer}`,
-        subtitle: `Missed $${m.amount.toLocaleString()} · ${m.attempts} attempts · ${m.status}`,
-        priority: 60 + (m.attempts || 0),
-        link: '/app/recovery',
-        actionLabel: 'Open recovery',
-      });
-    }
-
-    return queue.sort((a, b) => b.priority - a.priority).slice(0, 8);
-  }, [atRiskCustomers, missedPayments]);
+  const items = useMemo(() => workQueueSummary?.topItems ?? [], [workQueueSummary]);
 
   return (
     <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg h-full flex flex-col">
@@ -67,8 +23,27 @@ export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
           <h3 className="text-lg font-semibold text-text-primary">Work Queue</h3>
           <p className="text-sm text-text-muted">Prioritized actions for today</p>
         </div>
-        <Link to="/app/notifications" className="text-sm text-accent-primary hover:underline">View all</Link>
+        <Link to="/app/work-queue" className="text-sm text-accent-primary hover:underline">View queue</Link>
       </div>
+
+      {workQueueSummary && !isLoading && (
+        <div className="grid grid-cols-3 gap-3 text-xs text-text-muted mb-4">
+          <div className="rounded-lg border border-border-primary/30 p-3">
+            <div className="text-text-primary font-semibold text-sm">{workQueueSummary.pendingApprovals}</div>
+            <div>Pending approvals</div>
+          </div>
+          <div className="rounded-lg border border-border-primary/30 p-3">
+            <div className="text-text-primary font-semibold text-sm">{workQueueSummary.highValueCount}</div>
+            <div>High value items</div>
+          </div>
+          <div className="rounded-lg border border-border-primary/30 p-3">
+            <div className="text-text-primary font-semibold text-sm">
+              ${workQueueSummary.revenueSavedLast7d.toLocaleString()}
+            </div>
+            <div>Saved last 7d</div>
+          </div>
+        </div>
+      )}
 
       {isLoading && (
         <div className="space-y-3 flex-1">
@@ -91,14 +66,16 @@ export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
             {items.map((item) => (
               <li key={item.id} className="py-4 flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="font-medium text-text-primary truncate">{item.title}</div>
-                  <div className="text-xs text-text-muted truncate">{item.subtitle}</div>
+                  <div className="font-medium text-text-primary truncate">{item.customerName}</div>
+                  <div className="text-xs text-text-muted truncate">
+                    {item.playbookName} · {item.reason}
+                  </div>
                 </div>
                 <button
-                  onClick={() => navigate(item.link)}
+                  onClick={() => navigate('/app/work-queue')}
                   className="px-3.5 py-2 bg-accent-primary/15 text-accent-primary rounded-lg text-xs hover:bg-accent-primary/25 whitespace-nowrap"
                 >
-                  {item.actionLabel}
+                  Review
                 </button>
               </li>
             ))}

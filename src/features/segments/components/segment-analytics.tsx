@@ -101,7 +101,7 @@ export const SegmentAnalytics = () => {
         </div>
       </div>
 
-      {/* Segment Distribution and Campaign Performance */}
+      {/* Segment Distribution and Playbook Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
@@ -140,8 +140,8 @@ export const SegmentAnalytics = () => {
         <div className="bg-surface-primary/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Campaign Performance</h2>
-              <p className="text-sm sm:text-base text-text-muted">Recovery campaign success rates by segment</p>
+              <h2 className="text-xl sm:text-2xl font-semibold text-text-primary mb-2">Playbook Performance</h2>
+              <p className="text-sm sm:text-base text-text-muted">Recovery playbook success rates by segment</p>
             </div>
           </div>
 
@@ -156,7 +156,7 @@ export const SegmentAnalytics = () => {
                     <span className="text-sm text-accent-primary font-medium">{successRate}% success</span>
                   </div>
                   <div className="flex items-center justify-between text-sm text-text-muted">
-                    <span>{item.campaigns} campaigns</span>
+                    <span>{item.campaigns} playbooks</span>
                     <span className="font-medium text-success">${Number(revenueRecovered).toLocaleString()} recovered</span>
                   </div>
                   <div className="mt-2 w-full bg-surface-primary/50 rounded-full h-2">

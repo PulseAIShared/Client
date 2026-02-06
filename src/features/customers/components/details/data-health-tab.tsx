@@ -39,19 +39,26 @@ export const CustomerDataHealthTab: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {dataHealth.lastSyncTimes.map((source, index) => (
-                <div key={`${source.source}-${index}`} className="flex items-center justify-between p-4 bg-surface-primary/90 border border-border-primary/20 rounded-xl">
-                  <div>
-                    <div className="text-sm font-semibold text-text-primary">{source.source}</div>
-                    <div className="text-xs text-text-secondary/70">
-                      {source.lastSync ? formatDate(source.lastSync) : 'Never synced'}
+              {dataHealth.lastSyncTimes.map((source, index) => {
+                const name = (source.source || '').toLowerCase();
+                const icon = name.includes('stripe') ? '💳' : name.includes('hubspot') ? '🧩' : name.includes('posthog') ? '📈' : '🔗';
+                return (
+                  <div key={`${source.source}-${index}`} className="flex items-center justify-between p-4 bg-surface-primary/90 border border-border-primary/20 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg" aria-hidden>{icon}</span>
+                      <div>
+                        <div className="text-sm font-semibold text-text-primary">{source.source}</div>
+                        <div className="text-xs text-text-secondary/70">
+                          {source.lastSync ? formatDate(source.lastSync) : 'Never synced'}
+                        </div>
+                      </div>
                     </div>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary/80">
+                      {source.status ?? 'Unknown'}
+                    </span>
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary/80">
-                    {source.status ?? 'Unknown'}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -75,37 +82,7 @@ export const CustomerDataHealthTab: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-surface-primary/90 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg">
-        <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">Import History</h3>
-        {dataHealth.importHistory.length === 0 ? (
-          <div className="p-6 bg-surface-secondary/40 border border-border-primary/20 rounded-xl text-sm text-text-muted">
-            No import jobs logged for this customer.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="text-xs uppercase tracking-wide text-text-secondary/70">
-                <tr>
-                  <th className="text-left py-3 pr-4">Batch</th>
-                  <th className="text-left py-3 pr-4">Source</th>
-                  <th className="text-left py-3 pr-4">Records</th>
-                  <th className="text-left py-3">Imported At</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-primary/20">
-                {dataHealth.importHistory.map((job, index) => (
-                  <tr key={`${job.id}-${index}`}>
-                    <td className="py-3 pr-4 text-text-primary">{job.id}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{job.source}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{job.records ?? 'N/A'}</td>
-                    <td className="py-3 text-text-secondary">{job.importedAt ? formatDate(job.importedAt) : 'N/A'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Import history removed (legacy). */}
     </div>
   );
 };

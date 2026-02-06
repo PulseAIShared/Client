@@ -8,6 +8,7 @@ export type Notification = {
   message?: string;
   actionLabel?: string;
   actionHref?: string;
+  actionHandler?: () => void;
 };
 
 type NotificationsStore = {

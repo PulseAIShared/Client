@@ -246,7 +246,17 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     }
     
     if (notification.actionUrl) {
-      navigate(`/app${notification.actionUrl}`);
+      const actionUrl = notification.actionUrl.trim();
+
+      if (actionUrl.startsWith('/app')) {
+        navigate(actionUrl);
+      } else if (actionUrl.startsWith('app/')) {
+        navigate(`/${actionUrl}`);
+      } else if (actionUrl.startsWith('/')) {
+        navigate(`/app${actionUrl}`);
+      } else {
+        navigate(`/app/${actionUrl}`);
+      }
     }
     
     onClose();

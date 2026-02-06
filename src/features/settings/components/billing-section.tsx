@@ -33,7 +33,7 @@ export const BillingSection = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-success-muted">124</div>
-              <div className="text-sm text-text-muted">Campaigns Sent</div>
+              <div className="text-sm text-text-muted">Playbook Runs</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-accent-secondary">89%</div>

@@ -28,11 +28,30 @@ export const getDashboardData = async (): Promise<DashboardResponse> => {
     activationRateChange: s.activationRateChange ?? s.ActivationRateChange,
   };
 
+  const workQueueRaw = response.workQueueSummary ?? response.WorkQueueSummary;
+  const workQueueSummary = workQueueRaw
+    ? {
+        pendingApprovals: workQueueRaw.pendingApprovals ?? workQueueRaw.PendingApprovals ?? 0,
+        highValueCount: workQueueRaw.highValueCount ?? workQueueRaw.HighValueCount ?? 0,
+        revenueSavedLast7d: workQueueRaw.revenueSavedLast7d ?? workQueueRaw.RevenueSavedLast7d ?? 0,
+        oldestPendingAge: workQueueRaw.oldestPendingAge ?? workQueueRaw.OldestPendingAge,
+        topItems: (workQueueRaw.topItems ?? workQueueRaw.TopItems ?? []).map((item: any) => ({
+          id: item.id ?? item.Id,
+          customerName: item.customerName ?? item.CustomerName,
+          playbookName: item.playbookName ?? item.PlaybookName,
+          reason: item.reason ?? item.Reason,
+          potentialValue: item.potentialValue ?? item.PotentialValue,
+          createdAt: item.createdAt ?? item.CreatedAt,
+        })),
+      }
+    : undefined;
+
   return {
     ...response,
     stats,
     recoveryAnalytics: response.recoveryAnalytics ?? response.RecoveryAnalytics,
     segmentAnalytics: response.segmentAnalytics ?? response.SegmentAnalytics,
+    workQueueSummary,
   };
 };
 

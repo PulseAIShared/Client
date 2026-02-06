@@ -125,7 +125,7 @@ export const LandingHelpInterface: React.FC = () => {
     } else if (lowerContent.includes('pricing') || lowerContent.includes('cost') || lowerContent.includes('price')) {
       response = 'Our pricing is designed to scale with your business. We offer flexible plans based on the number of customers and features you need. You can view our current pricing on our website or contact our sales team for a custom quote.';
     } else if (lowerContent.includes('feature') || lowerContent.includes('what') || lowerContent.includes('how')) {
-      response = 'PulseAI helps you:\n\n• Predict customer churn with AI\n• Segment customers automatically\n• Track engagement metrics\n• Send targeted retention campaigns\n• Analyze customer lifetime value\n\nWhat specific feature interests you most?';
+      response = 'PulseAI helps you:\n\n• Predict customer churn with AI\n• Segment customers automatically\n• Track engagement metrics\n• Trigger targeted retention playbooks\n• Analyze customer lifetime value\n\nWhat specific feature interests you most?';
     } else if (lowerContent.includes('integration') || lowerContent.includes('connect')) {
       response = 'PulseAI integrates with popular platforms like:\n\n• HubSpot\n• Salesforce\n• Stripe\n• Shopify\n• And many more\n\nWe also offer API access for custom integrations. Which platform are you looking to connect?';
     } else if (lowerContent.includes('data') || lowerContent.includes('import')) {
@@ -171,7 +171,7 @@ export const LandingHelpInterface: React.FC = () => {
         response = 'Our pricing scales with your needs:\n\n• Starter: Perfect for small teams\n• Professional: Advanced features for growing businesses\n• Enterprise: Custom solutions for large organizations\n\nEach plan includes core churn prediction, customer segmentation, and analytics. Would you like to discuss which plan fits your needs?';
         break;
       case 'feature_overview':
-        response = 'Here\'s what makes PulseAI powerful:\n\n🎯 **Churn Prediction**: AI identifies at-risk customers\n📊 **Smart Segmentation**: Automatic customer grouping\n📈 **Analytics**: Deep insights into customer behavior\n💌 **Campaigns**: Targeted retention messaging\n🔗 **Integrations**: Connect your existing tools\n\nWhat would you like to explore first?';
+        response = 'Here\'s what makes PulseAI powerful:\n\n🎯 **Churn Prediction**: AI identifies at-risk customers\n📊 **Smart Segmentation**: Automatic customer grouping\n📈 **Analytics**: Deep insights into customer behavior\n🧠 **Playbooks**: Targeted retention actions\n🔗 **Integrations**: Connect your existing tools\n\nWhat would you like to explore first?';
         break;
       default:
         response = `I'll help you with "${action.label}". Could you provide more specific details about what you need?`;

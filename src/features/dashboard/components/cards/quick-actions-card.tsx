@@ -23,16 +23,16 @@ export const QuickActionsCard = () => {
     }
   });
 
-  const handleLaunchCampaign = () => {
-    navigate('/app/campaigns/create');
+  const handleCreatePlaybook = () => {
+    navigate('/app/playbooks/create');
   };
 
   const handleExportInsights = () => {
     exportMutation.mutate(undefined);
   };
 
-  const handleScheduleReview = () => {
-    navigate('/app/campaigns');
+  const handleReviewQueue = () => {
+    navigate('/app/work-queue');
   };
 
   return (
@@ -40,17 +40,17 @@ export const QuickActionsCard = () => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold text-text-primary">Ready to take action?</h3>
-          <p className="text-sm text-text-muted">Launch a campaign, export insights, or schedule a review.</p>
+          <p className="text-sm text-text-muted">Create a playbook, export insights, or review the work queue.</p>
         </div>
         <div className="flex flex-wrap gap-2 sm:gap-3 justify-start lg:justify-end">
           <button
-            onClick={handleLaunchCampaign}
+            onClick={handleCreatePlaybook}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-accent-primary to-accent-secondary text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-150"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v14m0 0l-4-4m4 4l4-4" />
             </svg>
-            Launch
+            Create Playbook
           </button>
           <button
             onClick={handleExportInsights}
@@ -63,13 +63,13 @@ export const QuickActionsCard = () => {
             Export
           </button>
           <button
-            onClick={handleScheduleReview}
+            onClick={handleReviewQueue}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-secondary text-text-primary text-sm font-semibold border border-border-primary/50 hover:border-border-secondary hover:shadow-sm transition-all duration-150"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a1 1 0 011 1v9a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1h3z" />
             </svg>
-            Schedule
+            Work Queue
           </button>
         </div>
       </div>

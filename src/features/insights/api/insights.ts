@@ -67,7 +67,7 @@ const mockBehaviorInsights: BehaviorInsight[] = [
   {
     insight: 'Women aged 35+ have 30% higher LTV than men of the same age group',
     impact: 'High',
-    action: 'Target marketing campaigns towards this demographic',
+    action: 'Target playbook actions towards this demographic',
     metric: '+30% LTV'
   },
   {
@@ -108,7 +108,7 @@ const mockCohortData: CohortData[] = [
 const mockRecoveryFlows: RecoveryFlow[] = [
   {
     id: 'payment-failed',
-    name: 'Payment Recovery Flow',
+    name: 'Payment Recovery Playbook',
     status: 'Active',
     type: 'Automated',
     trigger: 'Payment Failed',
@@ -124,7 +124,7 @@ const mockRecoveryFlows: RecoveryFlow[] = [
   },
   {
     id: 'inactive-users',
-    name: 'Re-engagement Campaign',
+    name: 'Re-engagement Playbook',
     status: 'Active',
     type: 'AI-Generated',
     trigger: '14 days inactive',
@@ -155,7 +155,7 @@ const mockRecoveryFlows: RecoveryFlow[] = [
 ];
 
 const mockFlowTemplates: FlowTemplate[] = [
-  { name: 'Winback Campaign', trigger: 'Cancelled subscription', success_rate: 28 },
+  { name: 'Winback Playbook', trigger: 'Cancelled subscription', success_rate: 28 },
   { name: 'Trial Extension', trigger: 'Trial ending soon', success_rate: 54 },
   { name: 'Feature Adoption', trigger: 'Low feature usage', success_rate: 39 },
   { name: 'Upgrade Nudge', trigger: 'Usage limit reached', success_rate: 67 },
@@ -250,7 +250,7 @@ export const getInsightsData = async (): Promise<InsightsResponse> => {
       aiRecommendations: {
         recommendations: [
           { type: 'risk', title: 'High-Risk Alert', description: '23 customers entering critical churn risk zone', actionText: 'Launch Intervention', iconType: 'alert', count: 23 },
-          { type: 'upsell', title: 'Upsell Opportunity', description: '156 customers ready for premium upgrade', actionText: 'Create Campaign', iconType: 'growth', count: 156 },
+          { type: 'upsell', title: 'Upsell Opportunity', description: '156 customers ready for premium upgrade', actionText: 'Create Playbook', iconType: 'growth', count: 156 },
           { type: 'adoption', title: 'Feature Adoption', description: 'Push analytics feature to boost engagement', actionText: 'Send Tutorials', iconType: 'feature', count: 1 },
         ],
       },

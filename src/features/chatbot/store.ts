@@ -15,7 +15,6 @@ export interface ChatbotContext {
   type: ChatContextType;
   customerId?: string;
   analysisId?: string;
-  importJobId?: string;
   userId?: string;
   segmentId?: string;
   routePath: string;
@@ -316,15 +315,13 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
 
       // Context-based Conversation Management
       generateContextKey: (context: ChatbotContext) => {
-        const { type, customerId, analysisId, importJobId, segmentId } = context;
-        
+        const { type, customerId, analysisId, segmentId } = context;
+
         switch (type) {
           case ChatContextType.CustomerDetail:
             return `customer-${customerId}`;
           case ChatContextType.Analytics:
             return `analytics-${analysisId}`;
-          case ChatContextType.Import:
-            return `import-${importJobId}`;
           case ChatContextType.Segments:
             return `segments-${segmentId}`;
           case ChatContextType.Dashboard:
@@ -376,8 +373,6 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
               return `Customer: ${context.customerId}`;
             case ChatContextType.Analytics:
               return `Analytics: ${context.analysisId}`;
-            case ChatContextType.Import:
-              return `Import: ${context.importJobId}`;
             case ChatContextType.Segments:
               return `Segments: ${context.segmentId}`;
             case ChatContextType.Dashboard:
@@ -386,8 +381,8 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
               return 'Integrations';
             case ChatContextType.Customers:
               return 'Customers';
-            case ChatContextType.Campaigns:
-              return 'Campaigns';
+          case ChatContextType.Campaigns:
+            return 'Playbooks';
             case ChatContextType.Support:
               return 'Support';
             case ChatContextType.General:
@@ -464,12 +459,6 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
                 segmentId: contextKey.split('-')[1],
                 routePath: '/app/segments'
               };
-            } else if (contextKey.startsWith('import-')) {
-              return {
-                type: ChatContextType.Import,
-                importJobId: contextKey.split('-')[1],
-                routePath: `/app/imports/${contextKey.split('-')[1]}`
-              };
             } else if (contextKey === 'dashboard') {
               return {
                 type: ChatContextType.Dashboard,
@@ -488,7 +477,7 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
             } else if (contextKey === 'campaigns') {
               return {
                 type: ChatContextType.Campaigns,
-                routePath: '/app/campaigns'
+                routePath: '/app/playbooks'
               };
             } else if (contextKey === 'support') {
               return {

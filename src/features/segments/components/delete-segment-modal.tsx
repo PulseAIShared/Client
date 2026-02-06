@@ -78,7 +78,7 @@ export const DeleteSegmentModal: React.FC<DeleteSegmentModalProps> = ({
                 <li>• Segment criteria and configuration</li>
                 <li>• Associated customer data</li>
                 <li>• Performance analytics</li>
-                <li>• Campaign history</li>
+                <li>• Playbook history</li>
               </ul>
             </div>
           </div>

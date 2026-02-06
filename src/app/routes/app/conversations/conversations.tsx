@@ -46,9 +46,9 @@ export const ConversationsRoute: React.FC = () => {
         ];
       case ChatContextType.Campaigns:
         return [
-          { id: 'create_campaign', label: 'Create Campaign', action: 'help_create_campaign' },
-          { id: 'campaign_analytics', label: 'Campaign Analytics', action: 'analyze_campaign_performance' },
-          { id: 'target_audience', label: 'Target Audience', action: 'help_target_audience' },
+          { id: 'create_playbook', label: 'Create Playbook', action: 'help_create_playbook' },
+          { id: 'playbook_analytics', label: 'Playbook Analytics', action: 'analyze_playbook_performance' },
+          { id: 'target_audience', label: 'Target Segments', action: 'help_target_segments' },
           { id: 'contact_support', label: 'Contact Support', action: 'contact_support' },
         ];
       case ChatContextType.Analytics:
@@ -68,12 +68,6 @@ export const ConversationsRoute: React.FC = () => {
           { id: 'integration_help', label: 'Integration Help', action: 'help_with_integrations' },
           { id: 'account_settings', label: 'Account Settings', action: 'explain_account_settings' },
           { id: 'billing_help', label: 'Billing Help', action: 'billing_assistance' },
-        ];
-      case ChatContextType.Import:
-        return [
-          { id: 'import_status', label: 'Import Status', action: 'check_import_status' },
-          { id: 'fix_errors', label: 'Fix Import Errors', action: 'help_fix_import_errors' },
-          { id: 'data_mapping', label: 'Data Mapping Help', action: 'data_mapping_help' },
         ];
       default:
         return [
@@ -96,7 +90,6 @@ export const ConversationsRoute: React.FC = () => {
       routePath: (conversation as { contextPath?: string; contextData?: { routePath?: string } }).contextPath || (conversation as { contextData?: { routePath?: string } }).contextData?.routePath || '/app',
       customerId: (conversation as { contextData?: { customerId?: string } }).contextData?.customerId,
       analysisId: (conversation as { contextData?: { analysisId?: string } }).contextData?.analysisId,
-      importJobId: (conversation as { contextData?: { importJobId?: string } }).contextData?.importJobId,
       segmentId: (conversation as { contextData?: { segmentId?: string } }).contextData?.segmentId,
     };
 
@@ -223,8 +216,6 @@ export const ConversationsRoute: React.FC = () => {
         return '🎯';
       case ChatContextType.Integrations:
         return '🔗';
-      case ChatContextType.Import:
-        return '📥';
       case ChatContextType.Support:
         return '🆘';
       default:
@@ -396,11 +387,10 @@ export const ConversationsRoute: React.FC = () => {
                 <option value={ChatContextType.Dashboard}>Dashboard</option>
                 <option value={ChatContextType.CustomerDetail}>Customer Detail</option>
                 <option value={ChatContextType.Customers}>Customers</option>
-                <option value={ChatContextType.Campaigns}>Campaigns</option>
+                <option value={ChatContextType.Campaigns}>Playbooks</option>
                 <option value={ChatContextType.Analytics}>Analytics</option>
                 <option value={ChatContextType.Segments}>Segments</option>
                 <option value={ChatContextType.Integrations}>Integrations</option>
-                <option value={ChatContextType.Import}>Import</option>
                 <option value={ChatContextType.General}>General</option>
               </select>
             </div>

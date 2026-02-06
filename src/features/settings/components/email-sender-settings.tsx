@@ -116,7 +116,7 @@ export const EmailSenderSettings: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold text-text-primary mb-4">Email Sender Profiles</h3>
-        <p className="text-text-muted mb-4">Configure sender identities for campaigns, with guided help for SMTP and API-based providers.</p>
+        <p className="text-text-muted mb-4">Configure sender identities for playbook actions, with guided help for SMTP and API-based providers.</p>
 
         {/* Sub tabs */}
         <div className="mb-6 inline-flex rounded-xl border border-border-primary/40 overflow-hidden">

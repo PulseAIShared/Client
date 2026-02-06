@@ -52,7 +52,6 @@ export interface ChatConversation {
   contextData?: {
     customerId?: string;
     analysisId?: string;
-    importJobId?: string;
     segmentId?: string;
     routePath?: string;
   } | null; // Backend can return null
@@ -130,7 +129,6 @@ export interface ChatbotContext {
   routePath: string;
   customerId?: string;
   analysisId?: string;
-  importJobId?: string;
   segmentId?: string;
   additionalContext?: Record<string, string>;
 }

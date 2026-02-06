@@ -7,10 +7,10 @@ import { TbPlugConnected } from "react-icons/tb";
 import { GiProgression } from "react-icons/gi";
 import { FaUser, FaUsers } from "react-icons/fa";
 import { useMediaQuery } from "@mantine/hooks";
-import { MdSegment, MdCampaign, MdPayments } from "react-icons/md";
+import { MdSegment, MdCampaign, MdInsights } from "react-icons/md";
 import { BsChatDots } from "react-icons/bs";
-import { useTheme } from "@/lib/theme-context";
-
+import { HiOutlineClipboardDocumentCheck } from "react-icons/hi2";
+import { useGetDashboardData } from "@/features/dashboard/api/dashboard";
 
 type DashboardLayoutProps = {
   children: React.ReactNode;
@@ -18,81 +18,86 @@ type DashboardLayoutProps = {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const { theme } = useTheme();
+
+  // Fetch pending count for badge on Work Queue
+  const { data: dashboardData } = useGetDashboardData();
+  const pendingApprovals = dashboardData?.workQueueSummary?.pendingApprovals;
 
   const navigationSections: SideNavigationSection[] = [
     {
-      title: 'Overview',
+      title: 'Core',
       items: [
         {
           name: 'Dashboard',
           icon: BiSolidDashboard,
-          link: '/app',
+          to: '/app',
+          end: true,
         },
-      ],
-    },
-    {
-      title: 'Customer Intelligence',
-      items: [
         {
           name: 'Customers',
           icon: FaUser,
-          link: '/app/customers',
+          to: '/app/customers',
         },
         {
           name: 'Segments',
           icon: MdSegment,
-          link: '/app/segments',
+          to: '/app/segments',
+        },
+      ],
+    },
+    {
+      title: 'Automation',
+      items: [
+        {
+          name: 'Playbooks',
+          icon: MdCampaign,
+          to: '/app/playbooks',
+        },
+        {
+          name: 'Work Queue',
+          icon: HiOutlineClipboardDocumentCheck,
+          to: '/app/work-queue',
+          badge: pendingApprovals && pendingApprovals > 0 ? pendingApprovals : undefined,
+        },
+        {
+          name: 'Conversations',
+          icon: BsChatDots,
+          to: '/app/conversations',
+        },
+      ],
+    },
+    {
+      title: 'Analytics',
+      items: [
+        {
+          name: 'Impact',
+          icon: MdInsights,
+          to: '/app/impact',
         },
         {
           name: 'Insights',
           icon: GiProgression,
-          link: '/app/insights',
+          to: '/app/insights',
         },
       ],
     },
     {
-      title: 'Lifecycle Automation',
-      items: [
-        {
-          name: 'Campaigns',
-          icon: MdCampaign,
-          link: '/app/campaigns',
-        },
-        {
-          name: 'Recovery',
-          icon: MdPayments,
-          link: '/app/recovery',
-        },
-      ],
-    },
-    {
-      title: 'AI Assistant',
-      items: [
-        {
-          name: 'Conversations',
-          icon: BsChatDots,
-          link: '/app/conversations',
-        },
-      ],
-    },
-    {
-      title: 'Operations',
+      title: 'Settings',
       items: [
         {
           name: 'Team',
           icon: FaUsers,
-          link: '/app/team',
+          to: '/app/team',
         },
         {
           name: 'Integrations',
           icon: TbPlugConnected,
-          link: '/app/integrations',
+          to: '/app/integrations',
         },
         {
           name: 'Settings',
           icon: IoMdSettings,
-          link: '/app/settings',
+          to: '/app/settings',
         },
       ],
     },
@@ -100,8 +105,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex w-full flex-col bg-bg-primary min-h-screen transition-colors duration-300">
-      {/* Debug theme indicator */}
-
       <TopNav />
       <div className="flex flex-grow min-h-0">
         <Sidebar sections={navigationSections} />

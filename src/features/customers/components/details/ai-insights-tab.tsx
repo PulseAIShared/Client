@@ -4,7 +4,7 @@ import { useCustomerProfile } from './customer-profile-context';
 import { useCustomerAiInsightsStore } from '@/features/customers/state/customer-ai-insights-store';
 
 export const CustomerAiInsightsTab: React.FC = () => {
-  const { aiInsights, refetch, customerId } = useCustomerProfile();
+  const { aiInsights, customerId } = useCustomerProfile();
   const aiStatus = useCustomerAiInsightsStore((state) => state.status);
   const setAiStatus = useCustomerAiInsightsStore((state) => state.setStatus);
   const markRecommendation = useCustomerAiInsightsStore((state) => state.markRecommendation);
@@ -49,13 +49,6 @@ export const CustomerAiInsightsTab: React.FC = () => {
               {aiStatus === 'fresh' && 'Fresh insights'}
               {aiStatus === 'idle' && 'Awaiting first run'}
             </span>
-            <Button
-              variant="outline"
-              className="border-border-primary/40 hover:border-accent-primary/60 hover:text-accent-primary"
-              onClick={handleManualRerun}
-            >
-              Manual Rerun
-            </Button>
           </div>
         </div>
         <div className="mt-6 space-y-4">

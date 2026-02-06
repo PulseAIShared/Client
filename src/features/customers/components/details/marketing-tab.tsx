@@ -16,7 +16,7 @@ export const CustomerMarketingTab: React.FC = () => {
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-2 bg-surface-secondary/40 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg">
-          <h3 className="text-lg font-semibold text-text-primary mb-4">Campaign Attribution</h3>
+          <h3 className="text-lg font-semibold text-text-primary mb-4">Engagement Attribution</h3>
           {marketing.attribution.length === 0 ? (
             <div className="p-6 bg-surface-primary/70 border border-border-primary/20 rounded-xl text-sm text-text-muted">
               No attribution records found. Connect marketing automation tools to visualize attribution.
@@ -127,17 +127,17 @@ export const CustomerMarketingTab: React.FC = () => {
       </div>
 
       <div className="bg-surface-primary/90 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg">
-        <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">Campaign Performance</h3>
+        <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">Engagement Performance</h3>
         {marketing.campaigns.length === 0 ? (
           <div className="p-6 bg-surface-secondary/40 border border-border-primary/20 rounded-xl text-sm text-text-muted">
-            No campaign engagement tracked for this customer.
+            No engagement activity tracked for this customer.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="text-xs uppercase tracking-wide text-text-secondary/70">
                 <tr>
-                  <th className="text-left py-3 pr-4">Campaign</th>
+                  <th className="text-left py-3 pr-4">Action</th>
                   <th className="text-left py-3 pr-4">Channel</th>
                   <th className="text-left py-3 pr-4">Status</th>
                   <th className="text-left py-3">Revenue Influence</th>

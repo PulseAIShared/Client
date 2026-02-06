@@ -28,12 +28,18 @@ export const CustomerSourcesLogsTab: React.FC = () => {
             No data sources connected. Add CRM, billing, marketing, support, and engagement sources to complete this profile.
           </div>
         ) : (
-          sourcesLogs.sources.map((source, index) => (
+          sourcesLogs.sources.map((source, index) => {
+            const name = (source.name || '').toLowerCase();
+            const icon = name.includes('stripe') ? '💳' : name.includes('hubspot') ? '🧩' : name.includes('posthog') ? '📈' : '🔗';
+            return (
             <div key={`${source.id}-${index}`} className="p-6 bg-surface-secondary/40 border border-border-primary/30 rounded-2xl shadow-lg space-y-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-semibold text-text-primary">{source.name}</div>
-                  <div className="text-xs text-text-secondary/70">{source.type}</div>
+                <div className="flex items-center gap-3">
+                  <span className="text-lg" aria-hidden>{icon}</span>
+                  <div>
+                    <div className="text-sm font-semibold text-text-primary">{source.name}</div>
+                    <div className="text-xs text-text-secondary/70">{source.type}</div>
+                  </div>
                 </div>
                 {source.isPrimary && (
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent-primary/15 text-accent-primary border border-accent-primary/30">
@@ -55,7 +61,7 @@ export const CustomerSourcesLogsTab: React.FC = () => {
                 Raw Record Explorer
               </Button>
             </div>
-          ))
+          )})
         )}
       </div>
 
@@ -113,39 +119,7 @@ export const CustomerSourcesLogsTab: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-surface-primary/90 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg">
-        <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">Import Job History</h3>
-        {sourcesLogs.jobLogs.length === 0 ? (
-          <div className="p-6 bg-surface-secondary/40 border border-border-primary/20 rounded-xl text-sm text-text-muted">
-            No import jobs tracked.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="text-xs uppercase tracking-wide text-text-secondary/70">
-                <tr>
-                  <th className="text-left py-3 pr-4">Job Type</th>
-                  <th className="text-left py-3 pr-4">Started</th>
-                  <th className="text-left py-3 pr-4">Status</th>
-                  <th className="text-left py-3 pr-4">Processed</th>
-                  <th className="text-left py-3">Errors</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-primary/20">
-                {sourcesLogs.jobLogs.map((job, index) => (
-                  <tr key={`${job.id}-${index}`}>
-                    <td className="py-3 pr-4 text-text-primary">{job.jobType}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{formatDate(job.startedAt)}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{job.status}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{job.recordsProcessed ?? 'N/A'}</td>
-                    <td className="py-3 text-text-secondary">{job.errors ?? 0}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Import Job History removed in integration-first model */}
 
       <div className="bg-surface-primary/90 border border-border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg">
         <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">Anomalies</h3>

@@ -130,10 +130,10 @@ export const AtRiskCustomersTable: React.FC<AtRiskCustomersTableProps> = ({ data
       
       <div className="mt-auto pt-4 border-t border-border-primary/50">
         <button 
-          onClick={() => navigate('/app/campaigns/create')}
+          onClick={() => navigate('/app/playbooks/create')}
           className="w-full px-4 py-2 bg-gradient-to-r from-error-bg/20 to-warning-bg/20 text-error-muted rounded-lg hover:from-error-bg/30 hover:to-warning-bg/30 transition-all duration-200 font-medium text-sm border border-error/30"
         >
-          Send Recovery Campaign to All
+          Create Recovery Playbook
         </button>
       </div>
     </div>

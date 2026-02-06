@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import {
   RouterProvider,
   createBrowserRouter,
+  Navigate,
 } from 'react-router-dom';
 
 import { ProtectedRoute } from '@/lib/auth';
@@ -156,14 +157,7 @@ export const createAppRouter = () =>
             return { Component: NotificationsRoute };
           },
         },
-        {
-          path: 'imports/:importJobId',
-          lazy: async () => {
-            const { ImportDetailRoute } = await import('./routes/app/imports/import-detail');
-            return { Component: ImportDetailRoute };
-          },
-        },
-        {
+{
           path: 'segments',
           lazy: async () => {
             const { SegmentsRoute } = await import('./routes/app/segments/segments');
@@ -186,16 +180,56 @@ export const createAppRouter = () =>
         },
         {
           path: 'campaigns',
-          lazy: async () => {
-            const { CampaignsRoute } = await import('./routes/app/campaigns/campaigns');
-            return { Component: CampaignsRoute };
-          },
+          element: <Navigate to="/app/playbooks" replace />,
         },
         {
           path: 'campaigns/create',
+          element: <Navigate to="/app/playbooks/create" replace />,
+        },
+        {
+          path: 'campaigns/*',
+          element: <Navigate to="/app/playbooks" replace />,
+        },
+        {
+          path: 'work-queue',
           lazy: async () => {
-            const { CampaignCreateRoute } = await import('./routes/app/campaigns/create');
-            return { Component: CampaignCreateRoute };
+            const { WorkQueueRoute } = await import('./routes/app/work-queue/work-queue');
+            return { Component: WorkQueueRoute };
+          },
+        },
+        {
+          path: 'playbooks',
+          lazy: async () => {
+            const { PlaybooksRoute } = await import('./routes/app/playbooks/playbooks');
+            return { Component: PlaybooksRoute };
+          },
+        },
+        {
+          path: 'playbooks/create',
+          lazy: async () => {
+            const { PlaybookCreateRoute } = await import('./routes/app/playbooks/playbook-create');
+            return { Component: PlaybookCreateRoute };
+          },
+        },
+        {
+          path: 'playbooks/:playbookId',
+          lazy: async () => {
+            const { PlaybookDetailRoute } = await import('./routes/app/playbooks/playbook-detail');
+            return { Component: PlaybookDetailRoute };
+          },
+        },
+        {
+          path: 'playbooks/:playbookId/runs',
+          lazy: async () => {
+            const { PlaybookRunsRoute } = await import('./routes/app/playbooks/playbook-runs');
+            return { Component: PlaybookRunsRoute };
+          },
+        },
+        {
+          path: 'impact',
+          lazy: async () => {
+            const { ImpactRoute } = await import('./routes/app/impact/impact');
+            return { Component: ImpactRoute };
           },
         },
         {
@@ -207,10 +241,7 @@ export const createAppRouter = () =>
         },
         {
           path: 'recovery',
-          lazy: async () => {
-            const { RecoveryRoute } = await import('./routes/app/recovery/recovery');
-            return { Component: RecoveryRoute };
-          },
+          element: <Navigate to="/app/work-queue" replace />,
         },
         {
           path: 'settings',
@@ -296,11 +327,11 @@ export const createAppRouter = () =>
           return { Component: AdminSupportPage.default };
         },
       },
-      {
-        path: 'admin/data-generator',
+{
+        path: 'admin/testing-lab',
         lazy: async () => {
-          const { DataGeneratorRoute } = await import('./routes/app/admin/data-generator');
-          return { Component: DataGeneratorRoute };
+          const { TestingLabRoute } = await import('./routes/app/admin/testing-lab');
+          return { Component: TestingLabRoute };
         },
       },
       {
