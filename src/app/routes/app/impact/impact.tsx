@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -334,29 +334,24 @@ export const ImpactRoute = () => {
     >
       <ContentLayout>
         <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-          <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Impact</h1>
-                <p className="text-text-muted text-sm sm:text-base">
-                  Measure how PulseLTV protects your revenue.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <PeriodSelector
-                value={periodState}
-                onChange={handlePeriodChange}
-              />
-              <ImpactSegmentFilter
-                segments={segmentOptions}
-                selectedSegmentId={selectedSegmentId}
-                onChange={handleSegmentChange}
-                isLoading={segmentsLoading}
-              />
-            </div>
-          </div>
+          <AppPageHeader
+            title="Impact"
+            description="Measure how PulseLTV protects your revenue."
+            filters={(
+              <>
+                <PeriodSelector
+                  value={periodState}
+                  onChange={handlePeriodChange}
+                />
+                <ImpactSegmentFilter
+                  segments={segmentOptions}
+                  selectedSegmentId={selectedSegmentId}
+                  onChange={handleSegmentChange}
+                  isLoading={segmentsLoading}
+                />
+              </>
+            )}
+          />
 
           {!resolvedRange.isValid && (
             <div className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-warning-muted">

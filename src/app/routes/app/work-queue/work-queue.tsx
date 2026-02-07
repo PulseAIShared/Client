@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/components/ui/notifications/notifications-store';
 import { useUser } from '@/lib/auth';
@@ -867,15 +867,15 @@ export const WorkQueueRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Work Queue</h1>
-            <p className="text-text-muted">Review pending approvals and track downstream outcomes.</p>
-          </div>
-          <Link to="/app/playbooks">
-            <Button variant="outline">View playbooks</Button>
-          </Link>
-        </div>
+        <AppPageHeader
+          title="Work Queue"
+          description="Review pending approvals and track downstream outcomes."
+          actions={(
+            <Link to="/app/playbooks">
+              <Button variant="outline">View playbooks</Button>
+            </Link>
+          )}
+        />
 
         <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl overflow-hidden">
           <div className="p-6 sm:p-8 lg:p-10 space-y-6">

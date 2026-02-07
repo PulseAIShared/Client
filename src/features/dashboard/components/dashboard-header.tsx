@@ -11,6 +11,7 @@ import {
   Minus,
 } from 'lucide-react';
 import { DashboardStats, DashboardWorkQueueSummary } from '@/types/api';
+import { AppPageHeader } from '@/components/layouts';
 
 type Props = {
   stats?: DashboardStats;
@@ -91,18 +92,10 @@ export const DashboardHeader: React.FC<Props> = ({ stats, workQueueSummary }) =>
   };
 
   return (
-    <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-        <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-2">
-            What should I do today?
-          </h1>
-          <p className="text-text-muted text-sm sm:text-base max-w-xl">
-            Welcome back, {user?.data?.firstName || 'there'}. Here's your operational snapshot.
-          </p>
-        </div>
-
-        {/* Action-first Quick Stats */}
+    <AppPageHeader
+      title="What should I do today?"
+      description={`Welcome back, ${user?.data?.firstName || 'there'}. Here's your operational snapshot.`}
+      actions={(
         <div className="flex items-center gap-4 sm:gap-6">
           <button
             onClick={() => navigate('/app/work-queue')}
@@ -145,7 +138,7 @@ export const DashboardHeader: React.FC<Props> = ({ stats, workQueueSummary }) =>
             />
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    />
   );
 };

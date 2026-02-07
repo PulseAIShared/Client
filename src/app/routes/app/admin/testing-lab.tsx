@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
 import {
@@ -1222,26 +1222,10 @@ export const TestingLabRoute = () => {
         }
       >
         <div className="space-y-8">
-          {/* Header */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
-            <div className="relative bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div>
-                  <div className="inline-flex items-center gap-2 bg-accent-primary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-primary/30 mb-4">
-                    <div className="w-2 h-2 bg-accent-primary rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-accent-primary">Admin Tool</span>
-                  </div>
-                  <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
-                    Testing Lab
-                  </h1>
-                  <p className="text-text-secondary">
-                    Simulate real integrations end-to-end, inject events, validate signals, and test playbook behavior.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AppPageHeader
+            title="Testing Lab"
+            description="Admin tool. Simulate integrations end-to-end, inject events, validate signals, and test playbook behavior."
+          />
 
           {/* Tab Navigation */}
           <div className="flex gap-1 bg-surface-primary/50 backdrop-blur-lg p-1 rounded-xl border border-border-primary/50 w-fit">

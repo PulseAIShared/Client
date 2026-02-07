@@ -14,6 +14,7 @@ import {
 } from "../api/team";
 import { useQueryClient } from "@tanstack/react-query";
 import { CompanyRole, TeamInvitationResponse, formatCompanyRole } from "@/types/api";
+import { AppPageHeader } from "@/components/layouts";
 
 const formatDate = (value?: string | null) => {
   if (!value) return "-";
@@ -208,27 +209,48 @@ export const TeamPage: React.FC = () => {
 
   if (!canManage) {
     return (
-      <div className="rounded-2xl border border-border-primary/40 bg-surface-primary/90 p-6 shadow-lg">
-        <h1 className="text-xl font-semibold text-text-primary">Team management</h1>
-        <p className="mt-2 text-sm text-text-secondary">
-          Only workspace owners can manage the team. Contact an owner if you need access.
-        </p>
+      <div className="space-y-6">
+        <AppPageHeader
+          title="Team"
+          description="Manage teammates, invitations, and plan seat usage."
+          compact
+        />
+        <div className="rounded-2xl border border-border-primary/40 bg-surface-primary/90 p-6 shadow-lg">
+          <h2 className="text-xl font-semibold text-text-primary">Team management</h2>
+          <p className="mt-2 text-sm text-text-secondary">
+            Only workspace owners can manage the team. Contact an owner if you need access.
+          </p>
+        </div>
       </div>
     );
   }
 
   if (summaryLoading || membersLoading || invitationsLoading) {
     return (
-      <div className="flex items-center justify-center rounded-2xl border border-border-primary/30 bg-surface-primary/80 p-8 text-text-secondary">
-        Loading team data...
+      <div className="space-y-6">
+        <AppPageHeader
+          title="Team"
+          description="Manage teammates, invitations, and plan seat usage."
+          compact
+        />
+        <div className="flex items-center justify-center rounded-2xl border border-border-primary/30 bg-surface-primary/80 p-8 text-text-secondary">
+          Loading team data...
+        </div>
       </div>
     );
   }
 
   if (summaryError) {
     return (
-      <div className="rounded-2xl border border-error/40 bg-error/15 p-6 text-error-muted">
-        Unable to load team summary.
+      <div className="space-y-6">
+        <AppPageHeader
+          title="Team"
+          description="Manage teammates, invitations, and plan seat usage."
+          compact
+        />
+        <div className="rounded-2xl border border-error/40 bg-error/15 p-6 text-error-muted">
+          Unable to load team summary.
+        </div>
       </div>
     );
   }
@@ -257,20 +279,18 @@ export const TeamPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-text-primary">Team</h1>
-          <p className="text-sm text-text-secondary">Manage teammates, invitations, and plan seat usage.</p>
-        </div>
-        <div className="flex flex-wrap gap-3">
+      <AppPageHeader
+        title="Team"
+        description="Manage teammates, invitations, and plan seat usage."
+        actions={(
           <Button
             className="bg-gradient-to-r from-accent-primary to-accent-secondary text-white hover:from-accent-primary hover:to-accent-secondary"
             onClick={handleInvite}
           >
             Invite teammate
           </Button>
-        </div>
-      </div>
+        )}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-border-primary/30 bg-surface-primary/80 p-4">

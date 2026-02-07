@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
 import { useGetAllUsers, useDeleteUser } from '@/features/admin/api/users';
@@ -182,27 +182,10 @@ export const AdminUsersRoute = () => {
         </div>
       }>
         <div className="space-y-8">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
-          
-          <div className="relative bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-accent-primary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-primary/30 mb-4">
-                  <div className="w-2 h-2 bg-accent-primary rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-accent-primary">Admin Panel</span>
-                </div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
-                  User Management
-                </h1>
-                <p className="text-text-secondary">
-                  Manage users, roles, and permissions
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+          <AppPageHeader
+            title="User Management"
+            description="Admin panel. Manage users, roles, and permissions."
+          />
 
         {/* Filters */}
         <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">

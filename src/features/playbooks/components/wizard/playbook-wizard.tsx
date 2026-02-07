@@ -6,7 +6,7 @@ import {
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Button } from '@/components/ui/button';
 import { Stepper } from '@/components/ui/stepper';
 import {
@@ -721,14 +721,11 @@ export const PlaybookWizard = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
-            Create Playbook
-          </h1>
-          <p className="text-text-muted mt-1">
-            Define triggers, actions, and execution rules.
-          </p>
-        </div>
+        <AppPageHeader
+          title="Create Playbook"
+          description="Define triggers, actions, and execution rules."
+          compact
+        />
 
         <Stepper
           steps={[...WIZARD_STEPS]}

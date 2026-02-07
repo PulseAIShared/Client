@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Button } from '@/components/ui/button';
 import {
   useActivatePlaybook,
@@ -199,16 +199,17 @@ export const PlaybookDetailRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">{playbook.name}</h1>
-            <p className="text-text-muted">{playbook.description || 'Playbook details and actions.'}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <PlaybookCategoryBadge category={playbook.category} />
-            <PlaybookStatusBadge status={playbook.status} />
-          </div>
-        </div>
+        <AppPageHeader
+          title={playbook.name}
+          description={playbook.description || 'Playbook details and actions.'}
+          compact
+          actions={(
+            <>
+              <PlaybookCategoryBadge category={playbook.category} />
+              <PlaybookStatusBadge status={playbook.status} />
+            </>
+          )}
+        />
 
         <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">

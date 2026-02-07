@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { useNotifications } from '@/components/ui/notifications';
 import {
   getCustomers,
@@ -465,15 +465,10 @@ export const CustomersRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6">
-        <div className="rounded-2xl border border-border-primary/30 bg-surface-primary p-5 shadow-sm">
-          <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-text-primary">Customers</h1>
-              <p className="text-sm text-text-secondary">
-                Segment-aware view with filter-scoped stats, health indicators, and bulk actions.
-              </p>
-            </div>
-
+        <AppPageHeader
+          title="Customers"
+          description="Segment-aware view with filter-scoped stats, health indicators, and bulk actions."
+          actions={(
             <button
               onClick={async () => {
                 const ids = await getMatchingCustomerIds();
@@ -483,8 +478,10 @@ export const CustomersRoute = () => {
             >
               {exportLabel}
             </button>
-          </div>
+          )}
+        />
 
+        <div className="rounded-2xl border border-border-primary/30 bg-surface-primary p-5 shadow-sm">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/35 p-3">
               <div className="text-xs uppercase text-text-muted">Total Customers</div>

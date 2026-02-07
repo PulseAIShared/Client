@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
 import { useGetUserById, useUpdateUser } from '@/features/admin/api/users';
@@ -144,26 +144,11 @@ export const AdminUserDetailRoute = () => {
         </div>
       }>
         <div className="space-y-8">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
-          
-          <div className="relative bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-accent-primary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-primary/30 mb-4">
-                  <div className="w-2 h-2 bg-accent-primary rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-accent-primary">Admin Panel</span>
-                </div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
-                  User Details
-                </h1>
-                <p className="text-text-secondary">
-                  View and edit user information
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-3">
+          <AppPageHeader
+            title="User Details"
+            description="Admin panel. View and edit user information."
+            actions={(
+              <>
                 <button
                   onClick={() => navigate('/app/admin/users')}
                   className="px-4 py-2 bg-surface-primary/50 text-text-primary rounded-lg hover:bg-surface-primary transition-colors font-medium text-sm border border-border-primary/50"
@@ -195,10 +180,9 @@ export const AdminUserDetailRoute = () => {
                     </button>
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
+              </>
+            )}
+          />
 
         {/* User Information */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

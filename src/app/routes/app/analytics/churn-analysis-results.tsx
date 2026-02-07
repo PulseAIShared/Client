@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useGetChurnAnalysisResults } from '@/features/analytics/api/churn-analysis';
 import { ChurnAnalysisResultResponse, CustomerChurnResultResponse } from '@/types/api';
@@ -308,45 +308,31 @@ export const ChurnAnalysisResultsRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-        {/* Enhanced Header */}
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 via-accent-secondary/10 to-accent-primary/10 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
-          
-          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-3 mb-2">
-          
-                  {analysis?.status === 'Processing' && (
-                    <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm font-medium border border-accent-primary/30">
-                      Processing
-                    </span>
-                  )}
-                </div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary">
-                  Analysis Results
-                </h1>
-                <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-2xl">
-                  Comprehensive churn analysis results and insights for your customer base
-                </p>
-                <p className="text-text-muted text-sm">Analysis ID: {analysis?.analysisId}</p>
-              </div>
-              
-              {analysis?.status === 'Processing' && (
-                <div className="flex items-center gap-4 px-6 py-4 bg-accent-primary/20 border border-accent-primary/30 rounded-2xl">
+        <AppPageHeader
+          title="Analysis Results"
+          description={`Comprehensive churn analysis results and insights for your customer base. Analysis ID: ${analysis?.analysisId}`}
+          actions={
+            analysis?.status === 'Processing'
+              ? (
+                <div className="flex items-center gap-4 rounded-2xl border border-accent-primary/30 bg-accent-primary/20 px-6 py-4">
                   <Spinner size="sm" />
                   <div>
-                    <p className="font-semibold text-accent-primary mb-1">Analysis in progress...</p>
-                    <p className="text-accent-primary/80 text-sm">
-                      {analysis?.processedCustomers?.toLocaleString()} of {analysis?.totalCustomers?.toLocaleString()} customers processed 
+                    <p className="mb-1 font-semibold text-accent-primary">Analysis in progress...</p>
+                    <p className="text-sm text-accent-primary/80">
+                      {analysis?.processedCustomers?.toLocaleString()} of {analysis?.totalCustomers?.toLocaleString()} customers processed
+                      {' '}
                       ({analysis?.progressPercentage?.toFixed(1)}%)
                     </p>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
+                )
+              : (
+                <span className="px-3 py-1 bg-surface-secondary/40 text-text-secondary rounded-full text-sm font-medium border border-border-primary/30">
+                  {analysis?.status}
+                </span>
+                )
+          }
+        />
 
         {analysis && <AnalysisOverview analysis={analysis} />}
 

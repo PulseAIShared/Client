@@ -1,7 +1,7 @@
 // src/app/routes/app/segments/segment-detail.tsx
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { useGetSegmentById } from '@/features/segments/api/segments';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -43,37 +43,27 @@ export const SegmentDetailRoute: React.FC = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-xl">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => navigate('/app/segments')}
-                  className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary/60 rounded-lg transition-colors"
-                  aria-label="Back to Segments"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <div>
-                  <h1 className="text-2xl font-bold text-text-primary">{segment.name}</h1>
-                  <p className="text-text-secondary text-sm">{segment.description}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  to={`/app/segments/${segment.id}/edit`}
-                  className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-primary/25 transform hover:-translate-y-0.5 transition-all duration-200 text-sm"
-                >
-                  Edit Segment
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AppPageHeader
+          title={segment.name}
+          description={segment.description}
+          compact
+          actions={(
+            <>
+              <button
+                onClick={() => navigate('/app/segments')}
+                className="px-4 py-2 bg-surface-secondary/50 text-text-primary rounded-lg border border-border-primary/30 hover:bg-surface-secondary/80 transition-colors text-sm"
+              >
+                Back to Segments
+              </button>
+              <Link
+                to={`/app/segments/${segment.id}/edit`}
+                className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-primary/25 transform hover:-translate-y-0.5 transition-all duration-200 text-sm"
+              >
+                Edit Segment
+              </Link>
+            </>
+          )}
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

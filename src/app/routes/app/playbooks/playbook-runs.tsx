@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Button } from '@/components/ui/button';
 import { useGetPlaybook, useGetPlaybookRuns } from '@/features/playbooks/api/playbooks';
 import { ConfidenceBadge, LifecycleBadge, OutcomeBadge } from '@/features/playbooks/components';
@@ -22,17 +22,16 @@ export const PlaybookRunsRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
-              {playbook?.name ?? 'Playbook runs'}
-            </h1>
-            <p className="text-text-muted">History of executions and outcomes.</p>
-          </div>
-          <Link to={`/app/playbooks/${playbookId}`}>
-            <Button variant="outline">Back to playbook</Button>
-          </Link>
-        </div>
+        <AppPageHeader
+          title={playbook?.name ?? 'Playbook runs'}
+          description="History of executions and outcomes."
+          compact
+          actions={(
+            <Link to={`/app/playbooks/${playbookId}`}>
+              <Button variant="outline">Back to playbook</Button>
+            </Link>
+          )}
+        />
 
         <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl p-6 sm:p-8">
           {isLoading && <div className="text-text-muted">Loading runs...</div>}

@@ -1,6 +1,6 @@
-// src/app/routes/app/notifications/notifications.tsx
+﻿// src/app/routes/app/notifications/notifications.tsx
 import React, { useState } from 'react';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { 
   useGetNotifications, 
   useMarkNotificationAsRead, 
@@ -239,78 +239,60 @@ export const NotificationsRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-        {/* Enhanced Header */}
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 via-accent-secondary/10 to-accent-primary/10 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
-          
-          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-3 mb-2">
-    
-                  {unreadCount > 0 && (
-                    <span className="px-3 py-1 bg-error/20 text-error-muted rounded-full text-sm font-medium border border-error/30">
-                      {unreadCount} unread
-                    </span>
-                  )}
-                </div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary">
-                  Notifications
-                </h1>
-                <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-2xl">
-                  Stay updated on signals, playbooks, and system alerts
-                </p>
+        <AppPageHeader
+          title="Notifications"
+          description="Stay updated on signals, playbooks, and system alerts."
+          actions={(
+            <>
+              {unreadCount > 0 && (
+                <span className="rounded-full border border-error/30 bg-error/20 px-3 py-1 text-sm font-medium text-error-muted">
+                  {unreadCount} unread
+                </span>
+              )}
+              <Button
+                onClick={() => markAllAsRead.mutate(undefined)}
+                disabled={unreadCount === 0 || markAllAsRead.isPending}
+                variant="outline"
+                className="border-border-primary/50 bg-surface-primary/50 backdrop-blur-sm hover:border-accent-primary/50 hover:text-accent-primary"
+              >
+                {markAllAsRead.isPending ? 'Marking...' : 'Mark All Read'}
+              </Button>
+              <Button
+                onClick={clearAllNotifications}
+                variant="outline"
+                className="border-border-primary/50 bg-surface-primary/50 backdrop-blur-sm hover:border-error/50 hover:text-error-muted"
+              >
+                Clear All
+              </Button>
+            </>
+          )}
+          filters={(
+            <>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { key: 'all', label: 'All Notifications', count: totalCount },
+                  { key: 'unread', label: 'Unread', count: unreadCount },
+                  { key: 'read', label: 'Read', count: totalCount - unreadCount },
+                ].map((filter) => (
+                  <button
+                    key={filter.key}
+                    onClick={() => handleFilterChange(filter.key as 'all' | 'unread' | 'read')}
+                    className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-3 sm:text-base ${
+                      filterType === filter.key
+                        ? 'border border-accent-primary/30 bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary shadow-lg'
+                        : 'border border-border-primary/50 bg-surface-secondary/50 text-text-secondary hover:border-accent-primary/50 hover:bg-surface-secondary/70 hover:text-accent-primary'
+                    }`}
+                  >
+                    {filter.label} ({filter.count})
+                  </button>
+                ))}
               </div>
-              
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <Button
-                  onClick={() => markAllAsRead.mutate(undefined)}
-                  disabled={unreadCount === 0 || markAllAsRead.isPending}
-                  variant="outline"
-                  className="border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary bg-surface-primary/50 backdrop-blur-sm"
-                >
-                  {markAllAsRead.isPending ? 'Marking...' : 'Mark All Read'}
-                </Button>
-                <Button
-                  onClick={clearAllNotifications}
-                  variant="outline"
-                  className="border-border-primary/50 hover:border-error/50 hover:text-error-muted bg-surface-primary/50 backdrop-blur-sm"
-                >
-                  Clear All
-                </Button>
+              <div className="text-sm text-text-muted sm:text-base">
+                Page {currentPage} of {totalPages} - {totalCount} total
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Filters */}
-        <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300">
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center justify-between">
-            <div className="flex flex-wrap gap-3">
-              {[
-                { key: 'all', label: 'All Notifications', count: totalCount },
-                { key: 'unread', label: 'Unread', count: unreadCount },
-                { key: 'read', label: 'Read', count: totalCount - unreadCount }
-              ].map((filter) => (
-                <button
-                  key={filter.key}
-                  onClick={() => handleFilterChange(filter.key as 'all' | 'unread' | 'read')}
-                  className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all duration-300 ${
-                    filterType === filter.key
-                      ? 'bg-gradient-to-r from-accent-primary/30 to-accent-secondary/30 text-accent-primary border border-accent-primary/30 shadow-lg'
-                      : 'bg-surface-secondary/50 text-text-secondary hover:bg-surface-secondary/70 border border-border-primary/50 hover:border-accent-primary/50 hover:text-accent-primary'
-                  }`}
-                >
-                  {filter.label} ({filter.count})
-                </button>
-              ))}
-            </div>
-            
-            <div className="text-sm sm:text-base text-text-muted">
-              Page {currentPage} of {totalPages} • {totalCount} total
-            </div>
-          </div>
-        </div>
+            </>
+          )}
+        />
 
         {/* Enhanced Notifications List */}
         <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
@@ -499,3 +481,4 @@ export const NotificationsRoute = () => {
     </ContentLayout>
   );
 };
+

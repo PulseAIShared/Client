@@ -1,7 +1,7 @@
 // src/app/routes/app/admin/waiting-list.tsx
 import React, { useState, useMemo } from 'react';
 import { useMediaQuery } from '@mantine/hooks';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { 
   useGetWaitingListEntries, 
   WaitingListEntryResponse, 
@@ -84,7 +84,6 @@ export const WaitingListAdminRoute = () => {
   }, [debouncedSearchTerm]);
 
   const { data, isLoading, error } = useGetWaitingListEntries(queryParams);
-  console.log(data)
   const entries = useMemo(() => data?.items || [], [data]);
   const pagination = data?.pagination;
 
@@ -114,27 +113,10 @@ export const WaitingListAdminRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
-          
-          <div className="relative bg-surface-primary backdrop-blur-lg p-6 rounded-2xl border border-border-primary shadow-xl">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-accent-secondary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-secondary/30 mb-4">
-                  <div className="w-2 h-2 bg-info rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-accent-secondary">Admin Panel</span>
-                </div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary mb-2">
-                  Waiting List Management
-                </h1>
-                <p className="text-text-secondary">
-                  Monitor and manage users on the waiting list
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AppPageHeader
+          title="Waiting List Management"
+          description="Admin panel. Monitor and manage users on the waiting list."
+        />
 
         {/* Filters and Search */}
         {isLoading ? (

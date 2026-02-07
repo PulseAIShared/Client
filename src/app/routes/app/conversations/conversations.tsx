@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useChatbotStore } from '@/features/chatbot/store';
 import { useGetUserConversations, useDeleteConversation, useClearConversationMessages, ChatContextType, type ChatConversation } from '@/features/chatbot/api/chatbot';
@@ -296,53 +296,24 @@ export const ConversationsRoute: React.FC = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-        {/* Enhanced Header */}
-        <div className="relative group">
-          {/* Enhanced background gradient effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/5 via-accent-secondary/5 to-accent-primary/5 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
-          
-          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
-              <div className="flex-1 space-y-3">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-primary mb-2">
-                  Conversation History
-                </h1>
-                <p className="text-text-secondary text-base sm:text-lg lg:text-xl max-w-2xl">
-                  Manage and revisit your AI conversations across different contexts and features
-                </p>
+        <AppPageHeader
+          title="Conversation History"
+          description="Manage and revisit your AI conversations across different contexts and features."
+          actions={(
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:flex lg:items-center lg:gap-6">
+              <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/40 px-4 py-3 text-center lg:text-right">
+                <div className="text-xl font-bold text-accent-primary lg:text-2xl">{conversations.length}</div>
+                <div className="text-xs text-text-muted sm:text-sm">total conversations</div>
               </div>
-              
-              {/* Enhanced Mobile: Quick stats in a responsive grid */}
-              <div className="lg:hidden grid grid-cols-2 gap-4 mt-6">
-                <div className="bg-surface-primary/50 backdrop-blur-lg p-4 rounded-2xl border border-border-primary/30 text-center shadow-lg">
-                  <div className="text-xl sm:text-2xl font-bold text-accent-primary">{conversations.length}</div>
-                  <div className="text-xs sm:text-sm text-text-muted">total conversations</div>
+              <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/40 px-4 py-3 text-center lg:text-right">
+                <div className="text-xl font-bold text-success-muted lg:text-2xl">
+                  {conversations.reduce((acc, conv) => acc + conv.messageCount, 0).toLocaleString()}
                 </div>
-                <div className="bg-surface-primary/50 backdrop-blur-lg p-4 rounded-2xl border border-border-primary/30 text-center shadow-lg">
-                  <div className="text-xl sm:text-2xl font-bold text-success-muted">
-                    {conversations.reduce((acc, conv) => acc + conv.messageCount, 0).toLocaleString()}
-                  </div>
-                  <div className="text-xs sm:text-sm text-text-muted">total messages</div>
-                </div>
-              </div>
-              
-              {/* Enhanced Desktop: Quick stats in sidebar format */}
-              <div className="hidden lg:flex items-center gap-6">
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-accent-primary">{conversations.length}</div>
-                  <div className="text-sm text-text-muted">total conversations</div>
-                </div>
-                <div className="w-px h-12 bg-border-primary/30"></div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-success-muted">
-                    {conversations.reduce((acc, conv) => acc + conv.messageCount, 0).toLocaleString()}
-                  </div>
-                  <div className="text-sm text-text-muted">total messages</div>
-                </div>
+                <div className="text-xs text-text-muted sm:text-sm">total messages</div>
               </div>
             </div>
-          </div>
-        </div>
+          )}
+        />
 
         {/* Enhanced Search and Filters */}
         <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-border-primary/30 shadow-xl">

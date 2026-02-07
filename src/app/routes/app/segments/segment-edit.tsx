@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { useGetSegmentById, useUpdateSegment } from '@/features/segments/api/segments';
 import { CriteriaOperator, SegmentStatus, SegmentType } from '@/types/api';
 import { Input, Textarea } from '@/components/ui/form';
@@ -210,39 +210,29 @@ export const SegmentEditRoute: React.FC = () => {
   return (
     <ContentLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-surface-primary/90 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-xl">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary/60 rounded-lg transition-colors"
-                  aria-label="Back"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <div>
-                  <h1 className="text-2xl font-bold text-text-primary">Edit Segment</h1>
-                  <p className="text-text-secondary text-sm">Update properties and criteria.</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleSave}
-                  disabled={updateSegmentMutation.isPending}
-                  className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-primary/25 transform hover:-translate-y-0.5 transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {updateSegmentMutation.isPending && <Spinner size="sm" />}
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AppPageHeader
+          title="Edit Segment"
+          description="Update properties and criteria."
+          compact
+          actions={(
+            <>
+              <button
+                onClick={() => navigate(-1)}
+                className="px-4 py-2 bg-surface-secondary/50 text-text-primary rounded-lg border border-border-primary/30 hover:bg-surface-secondary/80 transition-colors text-sm"
+              >
+                Back
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={updateSegmentMutation.isPending}
+                className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-primary/25 transform hover:-translate-y-0.5 transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {updateSegmentMutation.isPending && <Spinner size="sm" />}
+                Save Changes
+              </button>
+            </>
+          )}
+        />
 
         {/* Form */}
         <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg space-y-6">

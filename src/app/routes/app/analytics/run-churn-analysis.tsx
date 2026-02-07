@@ -1,4 +1,4 @@
-import { ContentLayout } from "@/components/layouts";
+import { AppPageHeader, ContentLayout } from "@/components/layouts";
 import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/components/ui/notifications";
 import { useCheckChurnDataCompleteness, useRunChurnAnalysis } from "@/features/analytics/api/churn-analysis";
@@ -141,33 +141,17 @@ export const RunChurnAnalysisRoute = () => {
     return (
       <ContentLayout>
         <div className="space-y-6">
-          {/* Header */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
-            
-            <div className="relative bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-text-primary animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </div>
-                
-                <div>
-                  <div className="inline-flex items-center gap-2 bg-accent-primary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-accent-primary/30 mb-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-accent-primary">AI Analysis</span>
-                  </div>
-                  <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
-                    Checking Data Completeness
-                  </h1>
-                  <p className="text-text-secondary mt-1">
-                    Analyzing customer data quality for churn prediction accuracy
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AppPageHeader
+            title="Checking Data Completeness"
+            description="Analyzing customer data quality for churn prediction accuracy."
+            compact
+            actions={(
+              <span className="inline-flex items-center gap-2 rounded-full border border-accent-primary/30 bg-accent-primary/20 px-4 py-2 text-sm font-medium text-accent-primary">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                AI Analysis
+              </span>
+            )}
+          />
 
           {/* Loading Content */}
           <div className="bg-surface-primary/50 backdrop-blur-lg p-8 rounded-2xl border border-border-primary/50 shadow-lg">
@@ -215,33 +199,17 @@ export const RunChurnAnalysisRoute = () => {
     return (
       <ContentLayout>
         <div className="space-y-6">
-          {/* Header */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-success/10 to-accent-primary/10 rounded-2xl blur-3xl"></div>
-            
-            <div className="relative bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-success to-accent-primary rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                
-                <div>
-                  <div className="inline-flex items-center gap-2 bg-success/20 backdrop-blur-sm px-4 py-2 rounded-full border border-success/30 mb-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-success">Analysis Started</span>
-                  </div>
-                  <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-success to-accent-primary">
-                    Churn Analysis in Progress
-                  </h1>
-                  <p className="text-text-secondary mt-1">
-                    AI is analyzing {selectedCustomers.size} customers for churn risk
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AppPageHeader
+            title="Churn Analysis in Progress"
+            description={`AI is analyzing ${selectedCustomers.size} customers for churn risk.`}
+            compact
+            actions={(
+              <span className="inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/20 px-4 py-2 text-sm font-medium text-success">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                Analysis Started
+              </span>
+            )}
+          />
 
           {/* Success Content */}
           <div className="bg-gradient-to-r from-success/20 to-accent-primary/20 backdrop-blur-lg p-8 rounded-2xl border border-success/30 shadow-lg">
@@ -315,45 +283,22 @@ export const RunChurnAnalysisRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 rounded-2xl blur-3xl"></div>
-          
-          <div className="relative bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-accent-primary to-accent-secondary rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                
-                <div>
-     
-                  <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-accent-secondary">
-                    Select Customers for Analysis
-                  </h1>
-                  <p className="text-text-secondary mt-1">
-                    Choose customers with sufficient data quality for accurate predictions
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                {selectedCustomers.size > 0 && (
-                  <Button
-                    onClick={handleStartAnalysis}
-                    disabled={runAnalysis.isPending}
-                    isLoading={runAnalysis.isPending}
-                    className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
-                  >
-                    {runAnalysis.isPending ? 'Starting Analysis...' : `Analyze ${selectedCustomers.size} Customers`}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <AppPageHeader
+          title="Select Customers for Analysis"
+          description="Choose customers with sufficient data quality for accurate predictions."
+          actions={(
+            selectedCustomers.size > 0 ? (
+              <Button
+                onClick={handleStartAnalysis}
+                disabled={runAnalysis.isPending}
+                isLoading={runAnalysis.isPending}
+                className="bg-gradient-to-r from-accent-primary to-accent-secondary hover:from-accent-primary/80 hover:to-accent-secondary/80"
+              >
+                {runAnalysis.isPending ? 'Starting Analysis...' : `Analyze ${selectedCustomers.size} Customers`}
+              </Button>
+            ) : undefined
+          )}
+        />
 
         {/* Summary Stats */}
         {completenessData && (

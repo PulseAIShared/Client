@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ContentLayout } from '@/components/layouts';
+import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/form';
 import { useGetPlaybooks } from '@/features/playbooks/api/playbooks';
@@ -53,20 +53,20 @@ export const PlaybooksRoute = () => {
   return (
     <ContentLayout>
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Playbooks</h1>
-            <p className="text-text-muted">Automations built on signals and actions.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link to="/app/work-queue">
-              <Button variant="outline">Work Queue</Button>
-            </Link>
-            <Link to="/app/playbooks/create">
-              <Button variant="default">Create playbook</Button>
-            </Link>
-          </div>
-        </div>
+        <AppPageHeader
+          title="Playbooks"
+          description="Automations built on signals and actions."
+          actions={(
+            <>
+              <Link to="/app/work-queue">
+                <Button variant="outline">Work Queue</Button>
+              </Link>
+              <Link to="/app/playbooks/create">
+                <Button variant="default">Create playbook</Button>
+              </Link>
+            </>
+          )}
+        />
 
         <div className="bg-surface-primary/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl overflow-hidden">
           <div className="p-6 sm:p-8 lg:p-10">
@@ -135,12 +135,12 @@ export const PlaybooksRoute = () => {
                     onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
                     className="w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200"
                   >
-                    <option value="priority:asc">Priority (high â†’ low)</option>
-                    <option value="priority:desc">Priority (low â†’ high)</option>
+                    <option value="priority:asc">Priority (high -&gt; low)</option>
+                    <option value="priority:desc">Priority (low -&gt; high)</option>
                     <option value="activeRuns:desc">Most active runs</option>
                     <option value="createdAt:desc">Newest first</option>
                     <option value="createdAt:asc">Oldest first</option>
-                    <option value="name:asc">Name (Aâ€“Z)</option>
+                    <option value="name:asc">Name (A-Z)</option>
                   </select>
                 </div>
               </div>
@@ -315,7 +315,7 @@ export const PlaybooksRoute = () => {
                       <div>
                         <h3 className="text-lg font-semibold text-text-primary">{playbook.name}</h3>
                         <p className="text-sm text-text-muted">
-                          Priority {playbook.priority} Â· {playbook.activeRunCount} active runs Â· {playbook.totalRunCount} total runs
+                          Priority {playbook.priority} - {playbook.activeRunCount} active runs - {playbook.totalRunCount} total runs
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -343,3 +343,4 @@ export const PlaybooksRoute = () => {
     </ContentLayout>
   );
 };
+
