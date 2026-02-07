@@ -9,6 +9,56 @@ export const enumLabelMap = {
   outcome: ['Succeeded', 'Partial Success', 'Failed', 'Inconclusive', 'Cancelled', 'Rejected'],
 };
 
+export const confidenceLevelDetails = [
+  {
+    value: 0,
+    label: 'Minimal',
+    threshold: '0-1 active providers',
+    description:
+      'Single-source coverage. Best for simple provider-native automations.',
+  },
+  {
+    value: 1,
+    label: 'Good',
+    threshold: '2 active providers',
+    description:
+      'Balanced coverage for multi-source workflows and segment filters.',
+  },
+  {
+    value: 2,
+    label: 'High',
+    threshold: '3 active providers',
+    description:
+      'Stronger stitched profile coverage for higher-impact actions.',
+  },
+  {
+    value: 3,
+    label: 'Excellent',
+    threshold: '4+ active providers',
+    description:
+      'Strictest coverage requirement for sensitive, broad automation.',
+  },
+] as const;
+
+export const getConfidenceLevelDetail = (
+  value: number | string | null | undefined,
+) => {
+  const numericValue =
+    typeof value === 'number'
+      ? value
+      : Number.isFinite(Number(value))
+        ? Number(value)
+        : undefined;
+
+  if (numericValue === undefined) {
+    return undefined;
+  }
+
+  return confidenceLevelDetails.find(
+    (detail) => detail.value === numericValue,
+  );
+};
+
 export const formatEnumLabel = (value: number | string | null | undefined, labels: string[]) => {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'number') {

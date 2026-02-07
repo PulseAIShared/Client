@@ -1,134 +1,235 @@
 import {
   useFormContext,
-  useFieldArray,
 } from 'react-hook-form';
 import { FormSection } from '@/components/ui/form-section';
-import { Button } from '@/components/ui/button';
 import { ActionType } from '@/types/playbooks';
-import { enumLabelMap } from '@/features/playbooks/utils';
+import { formatEnumLabel } from '@/features/playbooks/utils';
 import {
   defaultActionConfig,
 } from '@/features/playbooks/schemas/playbook-form-schema';
 import type { PlaybookFormValues } from '@/features/playbooks/schemas/playbook-form-schema';
+import { PlaybookFieldRecommendation } from '@/types/playbooks';
 import { ActionConfigFields } from './action-config-fields';
+import { RecommendationHint } from './recommendation-hint';
+import { useMemo } from 'react';
 
-const selectClass =
-  'w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200';
+export type ActionChannelOption = {
+  key: string;
+  label: string;
+  actionType: ActionType;
+  isAvailable: boolean;
+  unavailableReason?: string;
+};
 
-export const ActionsStep = () => {
+type ActionsStepProps = {
+  channelOptions: ActionChannelOption[];
+  recommendationByField?: Record<
+    string,
+    PlaybookFieldRecommendation
+  >;
+  overriddenFieldKeys?: ReadonlySet<string>;
+};
+
+export const ActionsStep = ({
+  channelOptions,
+  recommendationByField = {},
+  overriddenFieldKeys,
+}: ActionsStepProps) => {
   const {
-    control,
     watch,
     setValue,
     formState: { errors },
   } = useFormContext<PlaybookFormValues>();
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'actions',
-  });
-
   const actions = watch('actions');
 
-  const handleAddAction = () => {
-    append({
-      actionType: ActionType.SlackAlert,
-      config: defaultActionConfig(ActionType.SlackAlert),
+  const selectedActionTypeSet = useMemo(
+    () =>
+      new Set(
+        actions.map((action) => Number(action.actionType)),
+      ),
+    [actions],
+  );
+
+  const syncActionsByChannels = (
+    nextSelectedActionTypes: number[],
+  ) => {
+    const previousByType = new Map(
+      actions.map((action) => [
+        Number(action.actionType),
+        action.config,
+      ]),
+    );
+
+    const nextActions = nextSelectedActionTypes.map(
+      (actionType) => ({
+        actionType: actionType as ActionType,
+        config:
+          previousByType.get(actionType) ??
+          defaultActionConfig(actionType as ActionType),
+      }),
+    );
+
+    setValue('actions', nextActions, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
     });
   };
 
-  const handleChangeActionType = (
-    index: number,
-    nextType: ActionType,
+  const toggleChannel = (
+    option: ActionChannelOption,
+    checked: boolean,
   ) => {
-    setValue(`actions.${index}.actionType`, nextType);
-    setValue(
-      `actions.${index}.config`,
-      defaultActionConfig(nextType),
+    const currentSelected = new Set(
+      selectedActionTypeSet,
     );
+
+    if (checked) {
+      currentSelected.add(option.actionType);
+    } else {
+      currentSelected.delete(option.actionType);
+    }
+
+    const orderedActionTypes = channelOptions
+      .map((channel) => channel.actionType)
+      .filter((actionType) =>
+        currentSelected.has(actionType),
+      );
+
+    syncActionsByChannels(orderedActionTypes);
   };
+
+  const selectedChannels = channelOptions.filter((option) =>
+    selectedActionTypeSet.has(option.actionType),
+  );
 
   return (
     <FormSection
       title="Actions"
-      description="Define what this playbook should do when triggered. Actions execute in order."
-      action={
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAddAction}
-        >
-          Add action
-        </Button>
-      }
+      description="Choose channels and configure what should happen when this playbook triggers."
     >
+      <div className="space-y-3 rounded-xl border border-border-primary/30 p-4 bg-surface-secondary/30">
+        <div>
+          <h3 className="text-sm font-semibold text-text-primary">
+            Channels
+          </h3>
+          <p className="text-xs text-text-muted mt-1">
+            Integration-backed channels are available once
+            connected.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {channelOptions.map((option) => {
+            const isSelected =
+              selectedActionTypeSet.has(option.actionType);
+            const canToggleOn =
+              option.isAvailable || isSelected;
+
+            return (
+              <label
+                key={option.key}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                  canToggleOn
+                    ? 'border-border-primary/30 bg-surface-primary/60 text-text-primary'
+                    : 'border-border-primary/20 bg-surface-primary/30 text-text-muted'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  disabled={!canToggleOn}
+                  onChange={(event) =>
+                    toggleChannel(
+                      option,
+                      event.target.checked,
+                    )
+                  }
+                  className="h-4 w-4 rounded border-border-primary/40"
+                />
+                <span>{option.label}</span>
+                {!option.isAvailable && !isSelected && (
+                  <span className="ml-auto text-[11px] text-text-muted">
+                    Connect first
+                  </span>
+                )}
+              </label>
+            );
+          })}
+        </div>
+
+        {channelOptions.some(
+          (option) => !option.isAvailable,
+        ) && (
+          <p className="text-xs text-text-muted">
+            Some channels are unavailable because required
+            integrations are not connected.
+          </p>
+        )}
+      </div>
+
       {errors.actions?.root && (
         <p className="text-xs font-medium text-error">
           {errors.actions.root.message}
         </p>
       )}
+      <RecommendationHint
+        recommendation={
+          recommendationByField['actions.sequence']
+        }
+        overridden={Boolean(
+          overriddenFieldKeys?.has('actions.sequence'),
+        )}
+      />
 
       <div className="space-y-4">
-        {fields.map((field, index) => {
-          const currentType =
-            actions?.[index]?.actionType ??
-            field.actionType;
+        {selectedChannels.length === 0 && (
+          <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/30 p-4 text-sm text-text-muted">
+            Select at least one channel to configure its
+            action.
+          </div>
+        )}
+
+        {selectedChannels.map((channel) => {
+          const index = actions.findIndex(
+            (action) =>
+              Number(action.actionType) ===
+              channel.actionType,
+          );
+
+          if (index < 0) {
+            return null;
+          }
 
           return (
             <div
-              key={field.id}
+              key={channel.key}
               className="rounded-xl border border-border-primary/30 p-4 bg-surface-secondary/40"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div className="mb-3">
                 <div className="text-sm font-medium text-text-secondary">
-                  Action {index + 1}
+                  {channel.label}
                 </div>
-                {fields.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="text-xs text-error hover:underline"
-                  >
-                    Remove
-                  </button>
-                )}
+                <p className="text-xs text-text-muted mt-1">
+                  {formatEnumLabel(channel.actionType, [
+                    'Stripe Retry',
+                    'Slack Alert',
+                    'CRM Task',
+                    'HubSpot Workflow',
+                    'Email',
+                    'Webhook',
+                  ])}
+                </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">
-                    Action type
-                  </label>
-                  <select
-                    value={currentType}
-                    onChange={(e) =>
-                      handleChangeActionType(
-                        index,
-                        Number(
-                          e.target.value,
-                        ) as ActionType,
-                      )
-                    }
-                    className={selectClass}
-                  >
-                    {enumLabelMap.actionType.map(
-                      (label, idx) => (
-                        <option key={label} value={idx}>
-                          {label}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">
-                    Action settings
-                  </label>
-                  <ActionConfigFields
-                    index={index}
-                    actionType={currentType}
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Action settings
+                </label>
+                <ActionConfigFields
+                  index={index}
+                  actionType={channel.actionType}
+                />
               </div>
             </div>
           );

@@ -46,6 +46,8 @@ export type TriggerSourceState = {
   hubspot: boolean;
 };
 
+export type ConfidenceMode = 'auto' | 'manual';
+
 export const defaultSourcesForSignal = (
   signalType: TriggerSignalType,
 ): TriggerSourceState => {
@@ -102,6 +104,75 @@ export const defaultActionConfig = (
   }
 };
 
+const parseJsonObject = (rawJson: string) => {
+  try {
+    const parsed = JSON.parse(rawJson);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      !Array.isArray(parsed)
+    ) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // Fall through to default object.
+  }
+
+  return {};
+};
+
+const toStringOrEmpty = (value: unknown) => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  return String(value);
+};
+
+export const parseActionConfigJson = (
+  actionType: ActionType,
+  rawConfigJson: string | null | undefined,
+): ActionConfigState => {
+  const configJson = rawConfigJson?.trim() || '{}';
+  const parsedObject = parseJsonObject(configJson);
+
+  if (actionType === ActionType.StripeRetry) {
+    return {};
+  }
+
+  if (actionType === ActionType.SlackAlert) {
+    return {
+      webhookUrl: toStringOrEmpty(
+        parsedObject.webhookUrl,
+      ),
+      channel: toStringOrEmpty(parsedObject.channel),
+      username: toStringOrEmpty(
+        parsedObject.username,
+      ),
+      iconEmoji: toStringOrEmpty(
+        parsedObject.iconEmoji,
+      ),
+      messageTemplate: toStringOrEmpty(
+        parsedObject.messageTemplate,
+      ),
+    };
+  }
+
+  if (actionType === ActionType.CrmTask) {
+    return {
+      subject: toStringOrEmpty(parsedObject.subject),
+      body: toStringOrEmpty(parsedObject.body),
+      dueDays: toStringOrEmpty(parsedObject.dueDays),
+      assignToOwnerId: toStringOrEmpty(
+        parsedObject.assignToOwnerId,
+      ),
+    };
+  }
+
+  return {
+    rawJson: configJson,
+  };
+};
+
 // ── Zod schemas ──
 
 const identitySchema = z.object({
@@ -118,6 +189,7 @@ const identitySchema = z.object({
 });
 
 const triggerSchema = z.object({
+  confidenceMode: z.enum(['auto', 'manual']),
   signalType: z.enum([
     'payment_failure',
     'inactivity_7d',
@@ -212,6 +284,7 @@ export const STEP_FIELDS: Record<
 > = {
   0: ['name', 'description', 'category'],
   1: [
+    'confidenceMode',
     'signalType',
     'minConfidence',
     'minAmount',
@@ -235,6 +308,7 @@ export const PLAYBOOK_DEFAULT_VALUES: PlaybookFormValues = {
   name: '',
   description: '',
   category: PlaybookCategory.Payment,
+  confidenceMode: 'auto',
   signalType: 'payment_failure',
   minConfidence: ConfidenceLevel.Good,
   minAmount: '',
@@ -365,6 +439,8 @@ export const toPlaybookInput = (
   triggerConditionsJson:
     buildTriggerConditionsJson(values),
   minConfidence: values.minConfidence,
+  confidenceMode:
+    values.confidenceMode === 'auto' ? 1 : 0,
   cooldownHours: values.cooldownHours,
   maxConcurrentRuns: values.maxConcurrentRuns,
   executionMode: values.executionMode,

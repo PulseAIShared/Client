@@ -41,6 +41,11 @@ export enum ConfidenceLevel {
   Excellent = 3,
 }
 
+export enum ConfidenceMode {
+  Manual = 0,
+  Auto = 1,
+}
+
 export enum LifecycleStatus {
   Pending = 0,
   PendingApproval = 1,
@@ -86,6 +91,7 @@ export interface PlaybookDetail extends PlaybookSummary {
   triggerType: TriggerType | string;
   triggerConditionsJson: string;
   minConfidence: ConfidenceLevel | string;
+  confidenceMode?: ConfidenceMode | string;
   cooldownHours: number;
   maxConcurrentRuns: number;
   executionMode: ExecutionMode | string;
@@ -136,6 +142,94 @@ export interface TriggerExplanation {
     matchedSegments: PlaybookTargetSegment[];
     missingSegments: PlaybookTargetSegment[];
   };
+}
+
+export interface ConfidenceEligibilityDistribution {
+  minimal: number;
+  good: number;
+  high: number;
+  excellent: number;
+}
+
+export interface PlaybookConfidenceRecommendation {
+  recommendedMinConfidence: ConfidenceLevel | string;
+  reasonCodes: string[];
+  requiredIntegrations: string[];
+  missingCompanyIntegrations: string[];
+  eligibleCustomersByConfidence: ConfidenceEligibilityDistribution;
+}
+
+export interface PlaybookFieldRecommendation {
+  fieldKey: string;
+  recommendedValue: string;
+  reasonCode: string;
+  humanExplanation: string;
+  confidence: number;
+}
+
+export interface PlaybookRecommendationHints {
+  automationLevel?: string | null;
+  preferredChannels?: string[] | null;
+  riskTolerance?: string | null;
+}
+
+export interface PlaybookRecommendationCurrentDraft {
+  name?: string | null;
+  category?: PlaybookCategory | string | null;
+  signalType?: string | null;
+  actionTypes?: Array<ActionType | string> | null;
+}
+
+export interface RecommendPlaybookBlueprintRequest {
+  goal?: string | null;
+  hints?: PlaybookRecommendationHints | null;
+  currentDraft?: PlaybookRecommendationCurrentDraft | null;
+}
+
+export interface PlaybookBlueprintRecommendation {
+  identity: {
+    category: PlaybookCategory | string;
+    name: string;
+    description: string;
+  };
+  trigger: {
+    signalType: string;
+    conditions: {
+      minAmount?: number | null;
+      minMrr?: number | null;
+      minDaysOverdue?: number | null;
+      minDaysInactive?: number | null;
+    };
+    requiredIntegrations: string[];
+  };
+  execution: {
+    executionMode: ExecutionMode | string;
+    cooldownHours: number;
+    maxConcurrentRuns: number;
+    priority: number;
+  };
+  actions: Array<{
+    actionType: ActionType | string;
+    orderIndex: number;
+    configJson: string;
+  }>;
+  confidence: PlaybookConfidenceRecommendation;
+  fieldRecommendations: PlaybookFieldRecommendation[];
+  explanations: string[];
+  impact: {
+    estimatedEligibleCustomers: number;
+    estimatedRunsPerDay: number;
+    estimatedConfidenceDistribution: ConfidenceEligibilityDistribution;
+  };
+  warnings: string[];
+}
+
+export interface TrackPlaybookRecommendationOverrideRequest {
+  fieldKey: string;
+  recommendedValue?: string | null;
+  selectedValue?: string | null;
+  goal?: string | null;
+  sessionId?: string | null;
 }
 
 export interface ConflictLogEntry {

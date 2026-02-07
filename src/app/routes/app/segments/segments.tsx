@@ -1,5 +1,6 @@
 // src/app/routes/app/segments/segments.tsx
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
 import { 
   SegmentsHeader,
@@ -10,8 +11,30 @@ import {
 type SegmentTab = 'overview' | 'create';
 
 export const SegmentsRoute = () => {
-  const [activeTab, setActiveTab] = useState<SegmentTab>('overview');
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const activeTabParam = searchParams.get('tab');
+  const activeTab: SegmentTab = activeTabParam === 'create' ? 'create' : 'overview';
+  const initialMode = searchParams.get('mode') === 'ai' ? 'ai' : 'manual';
+  const initialTemplateId = searchParams.get('template') ?? undefined;
+
+  const setActiveTab = (tab: SegmentTab) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (tab === 'overview') {
+      nextParams.delete('tab');
+      nextParams.delete('mode');
+      nextParams.delete('template');
+    } else {
+      nextParams.set('tab', 'create');
+      if (!nextParams.get('mode')) {
+        nextParams.set('mode', 'manual');
+      }
+    }
+
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const tabs = [
     { 
@@ -47,7 +70,12 @@ export const SegmentsRoute = () => {
           </div>
         );
       case 'create':
-        return <SegmentCreator />;
+        return (
+          <SegmentCreator
+            initialMode={initialMode}
+            initialTemplateId={initialTemplateId}
+          />
+        );
       default:
         return (
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">

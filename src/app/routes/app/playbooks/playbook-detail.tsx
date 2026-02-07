@@ -222,6 +222,11 @@ export const PlaybookDetailRoute = () => {
               <span>Created {formatDateTime(playbook.createdAt)}</span>
             </div>
             <div className="flex items-center gap-2">
+              <Link to={`/app/playbooks/${playbook.id}/edit`}>
+                <Button size="sm" variant="outline">
+                  Edit
+                </Button>
+              </Link>
               <Button
                 size="sm"
                 variant="secondary"

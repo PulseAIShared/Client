@@ -2,11 +2,24 @@ import { useFormContext } from 'react-hook-form';
 import { FormSection } from '@/components/ui/form-section';
 import { enumLabelMap } from '@/features/playbooks/utils';
 import type { PlaybookFormValues } from '@/features/playbooks/schemas/playbook-form-schema';
+import { PlaybookFieldRecommendation } from '@/types/playbooks';
+import { RecommendationHint } from './recommendation-hint';
 
 const inputClass =
   'w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200';
 
-export const IdentityStep = () => {
+type IdentityStepProps = {
+  recommendationByField?: Record<
+    string,
+    PlaybookFieldRecommendation
+  >;
+  overriddenFieldKeys?: ReadonlySet<string>;
+};
+
+export const IdentityStep = ({
+  recommendationByField = {},
+  overriddenFieldKeys,
+}: IdentityStepProps) => {
   const {
     register,
     formState: { errors },
@@ -32,6 +45,14 @@ export const IdentityStep = () => {
               {errors.name.message}
             </p>
           )}
+          <RecommendationHint
+            recommendation={
+              recommendationByField['identity.name']
+            }
+            overridden={Boolean(
+              overriddenFieldKeys?.has('identity.name'),
+            )}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-2">
@@ -49,6 +70,16 @@ export const IdentityStep = () => {
               </option>
             ))}
           </select>
+          <RecommendationHint
+            recommendation={
+              recommendationByField['identity.category']
+            }
+            overridden={Boolean(
+              overriddenFieldKeys?.has(
+                'identity.category',
+              ),
+            )}
+          />
         </div>
       </div>
 
@@ -71,6 +102,16 @@ export const IdentityStep = () => {
           Optional. Helps your team understand the purpose of
           this playbook.
         </p>
+        <RecommendationHint
+          recommendation={
+            recommendationByField['identity.description']
+          }
+          overridden={Boolean(
+            overriddenFieldKeys?.has(
+              'identity.description',
+            ),
+          )}
+        />
       </div>
     </FormSection>
   );

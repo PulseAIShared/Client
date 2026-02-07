@@ -15,6 +15,7 @@ export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
   const navigate = useNavigate();
 
   const items = useMemo(() => workQueueSummary?.topItems ?? [], [workQueueSummary]);
+  const hasItems = items.length > 0;
 
   return (
     <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg h-full flex flex-col">
@@ -33,8 +34,10 @@ export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
             <div>Pending approvals</div>
           </div>
           <div className="rounded-lg border border-border-primary/30 p-3">
-            <div className="text-text-primary font-semibold text-sm">{workQueueSummary.highValueCount}</div>
-            <div>High value items</div>
+            <div className="text-text-primary font-semibold text-sm">
+              ${(workQueueSummary.atRiskAmount ?? 0).toLocaleString()}
+            </div>
+            <div>At risk</div>
           </div>
           <div className="rounded-lg border border-border-primary/30 p-3">
             <div className="text-text-primary font-semibold text-sm">
@@ -56,11 +59,19 @@ export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
       {!isLoading && items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <CheckCircle className="w-8 h-8 text-success mb-2" />
-          <p className="text-sm text-text-muted">No urgent items. You're all caught up!</p>
+          {workQueueSummary?.hasActivePlaybooks ? (
+            <p className="text-sm text-text-muted">
+              All caught up. No pending work queue actions right now.
+            </p>
+          ) : (
+            <p className="text-sm text-text-muted">
+              No active playbooks yet. Activate a playbook to start generating work queue items.
+            </p>
+          )}
         </div>
       )}
 
-      {!isLoading && items.length > 0 && (
+      {!isLoading && hasItems && (
         <div className="flex-1 overflow-y-auto pr-1">
           <ul className="divide-y divide-border-primary/30">
             {items.map((item) => (
@@ -85,5 +96,3 @@ export const WorkQueueCard: React.FC<WorkQueueCardProps> = ({
     </div>
   );
 };
-
-

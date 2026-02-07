@@ -4,6 +4,11 @@ import { useCustomerDetailQuery } from '@/features/customers/api/customers';
 import { useCustomerProfile } from './customer-profile-context';
 import { Spinner } from '@/components/ui/spinner';
 import { ConfidenceBadge } from '@/features/playbooks/components';
+import {
+  enumLabelMap,
+  formatEnumLabel,
+  getConfidenceLevelDetail,
+} from '@/features/playbooks/utils';
 import { formatDateTime } from '@/utils/customer-helpers';
 import { getWhyDidntTrigger } from '@/features/playbooks/api/playbooks';
 import type { PlaybookRun, TriggerExplanation } from '@/types/playbooks';
@@ -58,6 +63,19 @@ const outcomeTone: Record<string, string> = {
   Inconclusive: 'bg-surface-secondary/60 text-text-secondary border-border-primary/30',
   Cancelled: 'bg-surface-secondary/60 text-text-muted border-border-primary/30',
   Rejected: 'bg-error/10 text-error border-error/30',
+};
+
+const describeConfidence = (
+  confidence: number | string | null | undefined,
+) => {
+  const label = formatEnumLabel(
+    confidence,
+    enumLabelMap.confidence,
+  );
+  const detail = getConfidenceLevelDetail(confidence);
+  return detail
+    ? `${label} (${detail.threshold})`
+    : label;
 };
 
 const useCustomerPlaybookRuns = (customerId?: string) => {
@@ -198,8 +216,11 @@ const WhyDidntTriggerPanel: React.FC<{ customerId: string }> = ({ customerId }) 
               {result.confidenceCheck.passed ? 'PASS' : 'FAIL'}
             </span>
             <span className="text-text-muted">
-              (required: {String(result.confidenceCheck.required)}, actual: {String(result.confidenceCheck.actual)})
+              (required: {describeConfidence(result.confidenceCheck.required)}, actual: {describeConfidence(result.confidenceCheck.actual)})
             </span>
+          </div>
+          <div className="text-xs text-text-muted">
+            Confidence reflects connected active data sources, not prediction certainty.
           </div>
 
           {result.suppressionCheck.isSuppressed && (

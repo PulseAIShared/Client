@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import {
   enumLabelMap,
   formatEnumLabel,
+  getConfidenceLevelDetail,
 } from '@/features/playbooks/utils';
 import {
   signalOptions,
@@ -54,6 +55,9 @@ export const ReviewStep = ({
   const { getValues } =
     useFormContext<PlaybookFormValues>();
   const values = getValues();
+  const confidenceDetail = getConfidenceLevelDetail(
+    values.minConfidence,
+  );
 
   const signal = signalOptions.find(
     (o) => o.value === values.signalType,
@@ -108,10 +112,20 @@ export const ReviewStep = ({
             </span>
           </ReviewRow>
           <ReviewRow label="Min confidence">
-            {formatEnumLabel(
-              values.minConfidence,
-              enumLabelMap.confidence,
-            )}
+            <span>
+              {formatEnumLabel(
+                values.minConfidence,
+                enumLabelMap.confidence,
+              )}
+              {confidenceDetail
+                ? ` (${confidenceDetail.threshold})`
+                : ''}
+            </span>
+          </ReviewRow>
+          <ReviewRow label="Confidence mode">
+            {values.confidenceMode === 'auto'
+              ? 'Auto (recommended)'
+              : 'Manual override'}
           </ReviewRow>
           {values.minMrr && (
             <ReviewRow label="Min MRR">

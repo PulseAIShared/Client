@@ -2,7 +2,14 @@
 import { useUser } from '@/lib/auth';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, AlertTriangle, DollarSign } from 'lucide-react';
+import {
+  ClipboardCheck,
+  AlertTriangle,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from 'lucide-react';
 import { DashboardStats, DashboardWorkQueueSummary } from '@/types/api';
 
 type Props = {
@@ -17,6 +24,71 @@ export const DashboardHeader: React.FC<Props> = ({ stats, workQueueSummary }) =>
   const pendingApprovals = workQueueSummary?.pendingApprovals ?? 0;
   const highRiskCount = stats?.churnRisk ?? '0%';
   const recoveredRevenue = stats?.recoveredRevenue ?? '$0';
+
+  const parseChange = (value?: string) => {
+    if (!value) {
+      return null;
+    }
+
+    const normalized = value.trim();
+    if (
+      normalized === '—' ||
+      normalized === '-' ||
+      normalized.toLowerCase() === 'na'
+    ) {
+      return null;
+    }
+
+    const numeric = Number(
+      normalized.replace('%', '').replace('+', '').trim(),
+    );
+
+    if (!Number.isFinite(numeric)) {
+      return null;
+    }
+
+    return numeric;
+  };
+
+  const TrendBadge = ({
+    change,
+    prefersLower,
+  }: {
+    change?: string;
+    prefersLower: boolean;
+  }) => {
+    const numericChange = parseChange(change);
+
+    if (numericChange === null) {
+      return (
+        <div className="inline-flex items-center gap-1 text-[11px] text-text-muted">
+          <Minus className="h-3 w-3" />
+          <span>No trend yet</span>
+        </div>
+      );
+    }
+
+    const isPositiveDelta = numericChange > 0;
+    const isNegativeDelta = numericChange < 0;
+    const isImproving = prefersLower ? isNegativeDelta : isPositiveDelta;
+
+    const trendColorClass = isImproving
+      ? 'text-success'
+      : isPositiveDelta || isNegativeDelta
+        ? 'text-error'
+        : 'text-text-muted';
+
+    return (
+      <div className={`inline-flex items-center gap-1 text-[11px] ${trendColorClass}`}>
+        {isPositiveDelta && <TrendingUp className="h-3 w-3" />}
+        {isNegativeDelta && <TrendingDown className="h-3 w-3" />}
+        {!isPositiveDelta && !isNegativeDelta && (
+          <Minus className="h-3 w-3" />
+        )}
+        <span>{change} vs prior period</span>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg">
@@ -43,6 +115,7 @@ export const DashboardHeader: React.FC<Props> = ({ stats, workQueueSummary }) =>
               </span>
             </div>
             <div className="text-xs text-text-muted">Pending approvals</div>
+            <TrendBadge prefersLower={true} />
           </button>
           <div className="w-px h-10 bg-border-primary/50"></div>
           <div className="text-center sm:text-right">
@@ -51,6 +124,10 @@ export const DashboardHeader: React.FC<Props> = ({ stats, workQueueSummary }) =>
               <span className="text-xl sm:text-2xl font-bold text-warning">{highRiskCount}</span>
             </div>
             <div className="text-xs text-text-muted">Churn risk</div>
+            <TrendBadge
+              change={stats?.churnRiskChange}
+              prefersLower={true}
+            />
           </div>
           <div className="w-px h-10 bg-border-primary/50"></div>
           <div className="text-center sm:text-right">
@@ -59,6 +136,13 @@ export const DashboardHeader: React.FC<Props> = ({ stats, workQueueSummary }) =>
               <span className="text-xl sm:text-2xl font-bold text-success">{recoveredRevenue}</span>
             </div>
             <div className="text-xs text-text-muted">Recovered</div>
+            <TrendBadge
+              change={
+                stats?.recoveredRevenueChange ??
+                stats?.revenueSavedChange
+              }
+              prefersLower={false}
+            />
           </div>
         </div>
       </div>

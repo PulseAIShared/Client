@@ -1,29 +1,322 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
-import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
-import { useGetPlaybooks } from '@/features/playbooks/api/playbooks';
 import { Spinner } from '@/components/ui/spinner';
-import { TrendingUp, DollarSign, CheckCircle, XCircle } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  CheckCircle,
+  Clock3,
+  DollarSign,
+  TrendingUp,
+  XCircle,
+} from 'lucide-react';
+import { PeriodSelector } from '@/features/analytics/components/period-selector';
+import { ImpactSegmentFilter } from '@/features/analytics/components/segment-filter';
+import { RevenueTrendChart } from '@/features/analytics/components/revenue-trend-chart';
+import { RecoveryRateChart } from '@/features/analytics/components/recovery-rate-chart';
+import { ChurnDistributionChart } from '@/features/analytics/components/churn-distribution-chart';
+import { RecoveryFunnel } from '@/features/analytics/components/recovery-funnel';
+import {
+  ImpactPeriodState,
+  applyImpactPeriodToSearchParams,
+  getImpactPeriodLabel,
+  parseImpactPeriodFromSearchParams,
+  resolveImpactPeriodRange,
+} from '@/features/analytics/utils/impact-period';
+import {
+  useGetImpactRecoveryFunnel,
+  useGetImpactPlaybookPerformance,
+  useGetImpactSegments,
+  useGetImpactSummary,
+  useGetImpactTrends,
+} from '@/features/analytics/api/impact';
+import { ImpactPlaybookPerformanceItem } from '@/types/api';
+
+const statusLabels = ['Draft', 'Active', 'Paused', 'Archived'] as const;
+
+const toPercent = (value: number): number => {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  if (value <= 1 && value >= 0) {
+    return value * 100;
+  }
+
+  return value;
+};
+
+const normalizeRatio = (value: number): number => {
+  if (!Number.isFinite(value) || value < 0) {
+    return 0;
+  }
+
+  if (value <= 1) {
+    return value;
+  }
+
+  return value / 100;
+};
+
+const formatPercent = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return '0%';
+  }
+
+  return `${value.toFixed(1)}%`;
+};
+
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(Number.isFinite(value) ? value : 0);
+};
+
+const resolvePlaybookStatus = (status: string | number): string => {
+  if (typeof status === 'number') {
+    return statusLabels[status] ?? String(status);
+  }
+
+  return status;
+};
+
+const ChangeChip: React.FC<{ value: number }> = ({ value }) => {
+  if (Math.abs(value) < 0.05) {
+    return (
+      <span className="inline-flex items-center rounded-full border border-border-primary/40 bg-surface-secondary/60 px-2 py-0.5 text-xs text-text-muted">
+        No change vs prior period
+      </span>
+    );
+  }
+
+  if (value > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/10 px-2 py-0.5 text-xs text-success">
+        <ArrowUpRight className="h-3.5 w-3.5" />
+        +{formatPercent(value)} vs prior period
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-error/40 bg-error/10 px-2 py-0.5 text-xs text-error-muted">
+      <ArrowDownRight className="h-3.5 w-3.5" />
+      {formatPercent(value)} vs prior period
+    </span>
+  );
+};
+
+const SupportingKpi: React.FC<{
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  emphasize?: boolean;
+  context: string;
+}> = ({ label, value, icon, emphasize, context }) => (
+  <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/40 p-4">
+    <div className="mb-2 flex items-center justify-between">
+      <span className="text-xs uppercase tracking-wide text-text-muted">{label}</span>
+      <span>{icon}</span>
+    </div>
+    <div className={`text-2xl font-semibold ${emphasize ? 'text-success' : 'text-text-primary'}`}>{value}</div>
+    <div className="mt-1 text-xs text-text-muted">{context}</div>
+  </div>
+);
+
+const PlaybookPerformanceCard: React.FC<{
+  item: ImpactPlaybookPerformanceItem;
+}> = ({ item }) => {
+  const status = resolvePlaybookStatus(item.status);
+  const coverageRatio = normalizeRatio(item.coverageRate);
+  const coveragePercent = coverageRatio * 100;
+  const recoveryRatePercent = toPercent(item.recoveryRate);
+
+  return (
+    <div className="rounded-2xl border border-border-primary/30 bg-surface-primary/80 p-5 shadow-lg">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-base font-semibold text-text-primary">{item.name}</div>
+          <div className="mt-1 text-xs text-text-muted">
+            Priority {item.priority}
+            {item.signalType ? ` · Signal: ${item.signalType}` : ''}
+          </div>
+        </div>
+        <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${
+          status === 'Active'
+            ? 'bg-success/10 text-success border-success/30'
+            : status === 'Paused'
+              ? 'bg-warning/10 text-warning border-warning/30'
+              : 'bg-surface-secondary/60 text-text-secondary border-border-primary/30'
+        }`}>
+          {status}
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="rounded-lg bg-surface-secondary/40 p-3">
+          <div className="text-xs text-text-muted">Customers reached</div>
+          <div className="text-lg font-semibold text-text-primary">{item.customersReached}</div>
+        </div>
+        <div className="rounded-lg bg-surface-secondary/40 p-3">
+          <div className="text-xs text-text-muted">Runs</div>
+          <div className="text-lg font-semibold text-text-primary">{item.runs}</div>
+        </div>
+        <div className="rounded-lg bg-surface-secondary/40 p-3">
+          <div className="text-xs text-text-muted">Recovered revenue</div>
+          <div className="text-lg font-semibold text-success">{formatCurrency(item.recoveredRevenue)}</div>
+        </div>
+        <div className="rounded-lg bg-surface-secondary/40 p-3">
+          <div className="text-xs text-text-muted">Recovery rate</div>
+          <div className="text-lg font-semibold text-text-primary">{formatPercent(recoveryRatePercent)}</div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-border-primary/30 bg-surface-secondary/30 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-muted">
+          <span>Coverage (actioned vs eligible)</span>
+          {item.eligibleCustomers > 0 ? (
+            <span>
+              {item.actionedCustomers}/{item.eligibleCustomers} customers · {formatCurrency(item.actionedAmount)}/{formatCurrency(item.eligibleAmount)}
+            </span>
+          ) : (
+            <span>No eligible opportunities in this period</span>
+          )}
+        </div>
+        <div className="mt-2 h-2 w-full rounded-full bg-surface-secondary/70">
+          <div
+            className="h-2 rounded-full bg-accent-primary transition-all"
+            style={{ width: `${Math.min(100, Math.max(0, coveragePercent))}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-text-muted">
+        <div>Avg recovery time: {item.averageRecoveryTimeDays.toFixed(1)} days</div>
+        <Link to={`/app/playbooks/${item.playbookId}`} className="inline-flex items-center gap-1 text-accent-primary hover:underline text-xs font-medium">
+          View playbook
+          <TrendingUp className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      {item.missedWhilePaused > 0 && (
+        <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm text-text-primary">
+          <div className="flex items-center gap-2 font-medium">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            Missed while paused
+          </div>
+          <div className="mt-1 text-text-muted">
+            {item.missedWhilePaused} eligible customers were missed in this period · {formatCurrency(item.missedWhilePausedAmount)} at risk
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const ImpactRoute = () => {
   const { checkCompanyPolicy } = useAuthorization();
   const canViewAnalytics = checkCompanyPolicy('analytics:read');
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const { data: dashboardData, isLoading: dashboardLoading } = useGetDashboardData();
-  const { data: playbooks, isLoading: playbooksLoading } = useGetPlaybooks();
+  const selectedSegmentId = searchParams.get('segmentId') ?? undefined;
+  const periodState = React.useMemo<ImpactPeriodState>(
+    () => parseImpactPeriodFromSearchParams(searchParams),
+    [searchParams],
+  );
+  const resolvedRange = React.useMemo(
+    () => resolveImpactPeriodRange(periodState),
+    [periodState],
+  );
+  const periodLabel = React.useMemo(
+    () => getImpactPeriodLabel(periodState),
+    [periodState],
+  );
+  const trendInterval = React.useMemo<'daily' | 'weekly'>(() => {
+    if (!resolvedRange.isValid) {
+      return 'daily';
+    }
 
-  const isLoading = dashboardLoading || playbooksLoading;
-  const kpis = dashboardData?.recoveryAnalytics?.kpis;
-  const workQueue = dashboardData?.workQueueSummary;
+    const fromMs = new Date(resolvedRange.fromIso).getTime();
+    const toMs = new Date(resolvedRange.toIso).getTime();
+    const rangeDays = Math.max(1, Math.ceil((toMs - fromMs) / (1000 * 60 * 60 * 24)));
 
-  const totalRuns = playbooks?.reduce((sum, pb) => sum + pb.totalRunCount, 0) ?? 0;
-  const activeRuns = playbooks?.reduce((sum, pb) => sum + pb.activeRunCount, 0) ?? 0;
-  const activePlaybooks = playbooks?.filter((pb) => {
-    const s = pb.status;
-    return s === 1 || s === 'Active';
-  }).length ?? 0;
+    return rangeDays > 45 ? 'weekly' : 'daily';
+  }, [resolvedRange.fromIso, resolvedRange.isValid, resolvedRange.toIso]);
+
+  const impactQueryParams = React.useMemo(
+    () => ({
+      from: resolvedRange.fromIso,
+      to: resolvedRange.toIso,
+      segmentId: selectedSegmentId,
+    }),
+    [resolvedRange.fromIso, resolvedRange.toIso, selectedSegmentId],
+  );
+
+  const {
+    data: impactSummary,
+    isLoading: summaryLoading,
+    isError: summaryError,
+  } = useGetImpactSummary(impactQueryParams, resolvedRange.isValid);
+  const { data: segmentOptions = [], isLoading: segmentsLoading } = useGetImpactSegments();
+  const {
+    data: playbookPerformance,
+    isLoading: performanceLoading,
+    isError: performanceError,
+  } = useGetImpactPlaybookPerformance(impactQueryParams, resolvedRange.isValid);
+  const {
+    data: impactTrends,
+    isLoading: trendsLoading,
+    isError: trendsError,
+  } = useGetImpactTrends(
+    {
+      ...impactQueryParams,
+      interval: trendInterval,
+    },
+    resolvedRange.isValid,
+  );
+  const {
+    data: impactFunnel,
+    isLoading: funnelLoading,
+    isError: funnelError,
+  } = useGetImpactRecoveryFunnel(impactQueryParams, resolvedRange.isValid);
+
+  const isLoading = summaryLoading || performanceLoading || trendsLoading || funnelLoading;
+  const hasDataError = summaryError || performanceError || trendsError || funnelError;
+
+  const kpis = impactSummary?.recoveryKpis;
+  const recoveryRate = toPercent(kpis?.recoveryRate ?? 0);
+  const priorRecoveryRate = toPercent(kpis?.recoveryRatePriorPeriod ?? 0);
+  const recoveryRateDelta = recoveryRate - priorRecoveryRate;
+
+  const playbooks = playbookPerformance?.playbooks ?? [];
+  const totalRuns = playbookPerformance?.totalRunsInPeriod ?? 0;
+  const activePlaybooks = playbookPerformance?.activePlaybookCount ?? 0;
+  const pausedPlaybooks = playbookPerformance?.pausedPlaybookCount ?? 0;
+  const totalPlaybooks = playbookPerformance?.totalPlaybooks ?? 0;
+  const totalRecoveredRevenueInPeriod = playbookPerformance?.totalRecoveredRevenueInPeriod ?? 0;
+
+  const showRecoveryEmptyState = (kpis?.missedAmount ?? 0) > 0 && (kpis?.recoveredAmount ?? 0) <= 0;
+
+  const handlePeriodChange = (next: ImpactPeriodState) => {
+    const nextParams = applyImpactPeriodToSearchParams(searchParams, next);
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const handleSegmentChange = (segmentId?: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (segmentId) {
+      nextParams.set('segmentId', segmentId);
+    } else {
+      nextParams.delete('segmentId');
+    }
+
+    setSearchParams(nextParams, { replace: true });
+  };
 
   return (
     <CompanyAuthorization
@@ -41,23 +334,35 @@ export const ImpactRoute = () => {
     >
       <ContentLayout>
         <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-          {/* Header */}
           <div className="bg-surface-primary/80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl border border-border-primary/30 shadow-lg">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Impact</h1>
                 <p className="text-text-muted text-sm sm:text-base">
-                  Measure the outcomes of your playbook actions and recovered revenue.
+                  Measure how PulseLTV protects your revenue.
                 </p>
               </div>
-              <Link
-                to="/app/insights"
-                className="px-4 py-2.5 bg-surface-secondary/50 text-text-primary rounded-lg hover:bg-surface-secondary transition-colors font-medium text-sm border border-border-primary/50 self-start"
-              >
-                Deep-dive analytics
-              </Link>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <PeriodSelector
+                value={periodState}
+                onChange={handlePeriodChange}
+              />
+              <ImpactSegmentFilter
+                segments={segmentOptions}
+                selectedSegmentId={selectedSegmentId}
+                onChange={handleSegmentChange}
+                isLoading={segmentsLoading}
+              />
             </div>
           </div>
+
+          {!resolvedRange.isValid && (
+            <div className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-warning-muted">
+              Select a valid custom date range to load impact data.
+            </div>
+          )}
 
           {isLoading && (
             <div className="flex items-center justify-center py-16">
@@ -65,126 +370,154 @@ export const ImpactRoute = () => {
             </div>
           )}
 
-          {!isLoading && (
+          {!isLoading && resolvedRange.isValid && (
             <>
-              {/* Recovery KPIs */}
-              <div>
-                <h2 className="text-lg font-semibold text-text-primary mb-4">Revenue Recovery</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <KpiCard
-                    label="Missed Amount"
-                    value={`$${(kpis?.missedAmount ?? 0).toLocaleString()}`}
-                    icon={<XCircle className="w-5 h-5 text-error" />}
-                  />
-                  <KpiCard
-                    label="Recovered Amount"
-                    value={`$${(kpis?.recoveredAmount ?? 0).toLocaleString()}`}
-                    icon={<DollarSign className="w-5 h-5 text-success" />}
-                    highlight
-                  />
-                  <KpiCard
-                    label="Recovery Rate"
-                    value={`${Math.round(kpis?.recoveryRate ?? 0)}%`}
-                    icon={<TrendingUp className="w-5 h-5 text-accent-primary" />}
-                  />
-                  <KpiCard
-                    label="Avg Days to Recover"
-                    value={(kpis?.averageDaysToRecover ?? 0).toFixed(1)}
-                    icon={<CheckCircle className="w-5 h-5 text-info-muted" />}
-                  />
-                </div>
-              </div>
-
-              {/* Playbook Health */}
-              <div>
-                <h2 className="text-lg font-semibold text-text-primary mb-4">Playbook Health</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <KpiCard label="Active Playbooks" value={String(activePlaybooks)} />
-                  <KpiCard label="Active Runs" value={String(activeRuns)} />
-                  <KpiCard label="Total Runs" value={String(totalRuns)} />
-                  <KpiCard
-                    label="Revenue Saved (7d)"
-                    value={`$${(workQueue?.revenueSavedLast7d ?? 0).toLocaleString()}`}
-                    highlight
-                  />
-                </div>
-              </div>
-
-              {/* Work Queue Summary */}
-              <div>
-                <h2 className="text-lg font-semibold text-text-primary mb-4">Operational Summary</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg text-center">
-                    <div className="text-3xl font-bold text-accent-primary">{workQueue?.pendingApprovals ?? 0}</div>
-                    <div className="text-sm text-text-muted mt-1">Pending Approvals</div>
-                    <Link
-                      to="/app/work-queue"
-                      className="text-xs text-accent-primary hover:underline mt-2 inline-block"
-                    >
-                      Go to work queue
-                    </Link>
-                  </div>
-                  <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg text-center">
-                    <div className="text-3xl font-bold text-warning">{workQueue?.highValueCount ?? 0}</div>
-                    <div className="text-sm text-text-muted mt-1">High Value Items</div>
-                  </div>
-                  <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg text-center">
-                    <div className="text-3xl font-bold text-text-primary">{dashboardData?.stats?.recoveredRevenue ?? '$0'}</div>
-                    <div className="text-sm text-text-muted mt-1">Total Recovered Revenue</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Playbook Success Rates */}
-              {playbooks && playbooks.length > 0 && (
-                <div>
-                  <h2 className="text-lg font-semibold text-text-primary mb-4">Playbook Performance</h2>
-                  <div className="bg-surface-primary/80 backdrop-blur-lg rounded-2xl border border-border-primary/30 shadow-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-border-primary/30">
-                            <th className="text-left px-6 py-4 text-text-secondary font-medium">Playbook</th>
-                            <th className="text-center px-4 py-4 text-text-secondary font-medium">Status</th>
-                            <th className="text-center px-4 py-4 text-text-secondary font-medium">Priority</th>
-                            <th className="text-center px-4 py-4 text-text-secondary font-medium">Active Runs</th>
-                            <th className="text-center px-4 py-4 text-text-secondary font-medium">Total Runs</th>
-                            <th className="text-right px-6 py-4 text-text-secondary font-medium"></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {playbooks.map((pb) => {
-                            const statusStr = typeof pb.status === 'number'
-                              ? ['Draft', 'Active', 'Paused', 'Archived'][pb.status] ?? String(pb.status)
-                              : String(pb.status);
-
-                            return (
-                              <tr key={pb.id} className="border-b border-border-primary/10 hover:bg-surface-secondary/20 transition-colors">
-                                <td className="px-6 py-4 font-medium text-text-primary">{pb.name}</td>
-                                <td className="text-center px-4 py-4">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${
-                                    statusStr === 'Active' ? 'bg-success/10 text-success border-success/30' : 'bg-surface-secondary/60 text-text-secondary border-border-primary/30'
-                                  }`}>
-                                    {statusStr}
-                                  </span>
-                                </td>
-                                <td className="text-center px-4 py-4 text-text-secondary">{pb.priority}</td>
-                                <td className="text-center px-4 py-4 text-text-primary font-medium">{pb.activeRunCount}</td>
-                                <td className="text-center px-4 py-4 text-text-secondary">{pb.totalRunCount}</td>
-                                <td className="text-right px-6 py-4">
-                                  <Link to={`/app/playbooks/${pb.id}`} className="text-accent-primary hover:underline text-xs font-medium">
-                                    View
-                                  </Link>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+              {hasDataError && (
+                <div className="rounded-xl border border-error/30 bg-error/10 p-4 text-error-muted">
+                  We could not load all impact data for this view. Please retry.
                 </div>
               )}
+
+              <section className="rounded-2xl border border-border-primary/30 bg-surface-primary/80 p-6 shadow-lg">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold text-text-primary">Revenue Impact</h2>
+                  <span className="text-xs text-text-muted">Selected period: {periodLabel}</span>
+                </div>
+
+                <div className="mt-6 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+                  <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/40 p-5 text-center">
+                    <div className="text-xs uppercase tracking-wide text-text-muted">Recovery Rate</div>
+                    <div className="mt-2 text-5xl font-bold text-accent-primary">{formatPercent(recoveryRate)}</div>
+                    <div className="mt-3">
+                      <ChangeChip value={recoveryRateDelta} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <SupportingKpi
+                      label="Revenue at risk"
+                      value={formatCurrency(kpis?.missedAmount ?? 0)}
+                      icon={<XCircle className="h-4 w-4 text-error" />}
+                      context="Selected period"
+                    />
+                    <SupportingKpi
+                      label="Revenue recovered"
+                      value={formatCurrency(kpis?.recoveredAmount ?? 0)}
+                      icon={<DollarSign className="h-4 w-4 text-success" />}
+                      emphasize
+                      context="Selected period"
+                    />
+                    <SupportingKpi
+                      label="Avg days to recover"
+                      value={(kpis?.averageDaysToRecover ?? 0).toFixed(1)}
+                      icon={<Clock3 className="h-4 w-4 text-info-muted" />}
+                      context="Selected period"
+                    />
+                    <SupportingKpi
+                      label="Recovered revenue"
+                      value={formatCurrency(kpis?.allTimeRecoveredAmount ?? 0)}
+                      icon={<CheckCircle className="h-4 w-4 text-accent-primary" />}
+                      context="All-time"
+                    />
+                  </div>
+                </div>
+
+                {showRecoveryEmptyState && (
+                  <div className="mt-5 rounded-xl border border-warning/30 bg-warning/10 p-4">
+                    <div className="text-sm font-medium text-text-primary">No recovery activity in this period.</div>
+                    <p className="mt-1 text-sm text-text-muted">
+                      Revenue at risk: <span className="font-semibold text-text-primary">{formatCurrency(kpis?.missedAmount ?? 0)}</span>. Activate a playbook to start recovering revenue.
+                    </p>
+                    <Link
+                      to="/app/playbooks"
+                      className="mt-3 inline-flex items-center text-sm font-medium text-accent-primary hover:underline"
+                    >
+                      Go to playbooks
+                    </Link>
+                  </div>
+                )}
+
+                <RecoveryFunnel
+                  funnel={impactFunnel}
+                  isLoading={funnelLoading}
+                />
+              </section>
+
+              <section>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold text-text-primary">Trends</h2>
+                  <div className="text-sm text-text-muted">
+                    Aggregation: {impactTrends?.interval ?? trendInterval}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                  <RevenueTrendChart
+                    points={impactTrends?.points ?? []}
+                    interval={impactTrends?.interval ?? trendInterval}
+                    hasSufficientData={impactTrends?.hasSufficientData ?? false}
+                    isLoading={trendsLoading}
+                  />
+                  <RecoveryRateChart
+                    points={impactTrends?.points ?? []}
+                    interval={impactTrends?.interval ?? trendInterval}
+                    hasSufficientData={impactTrends?.hasSufficientData ?? false}
+                    isLoading={trendsLoading}
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <ChurnDistributionChart
+                    buckets={impactTrends?.churnDistribution ?? []}
+                    isLoading={trendsLoading}
+                  />
+                </div>
+              </section>
+
+              <section>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold text-text-primary">Playbook Performance</h2>
+                  <div className="text-sm text-text-muted">
+                    {activePlaybooks} active playbooks · {totalRuns} runs this period · {formatCurrency(totalRecoveredRevenueInPeriod)} recovered this period
+                  </div>
+                </div>
+
+                {totalPlaybooks === 0 && (
+                  <div className="rounded-2xl border border-border-primary/30 bg-surface-primary/80 p-6 text-center shadow-lg">
+                    <div className="text-base font-medium text-text-primary">No playbooks yet</div>
+                    <p className="mt-2 text-sm text-text-muted">Create your first playbook to start automated recovery actions.</p>
+                    <Link to="/app/playbooks/create" className="mt-3 inline-flex text-sm font-medium text-accent-primary hover:underline">
+                      Create playbook
+                    </Link>
+                  </div>
+                )}
+
+                {totalPlaybooks > 0 && playbookPerformance?.noActivePlaybooks && (
+                  <div className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm text-text-primary">
+                    No active playbooks. Turn on at least one playbook to start taking recovery actions.
+                  </div>
+                )}
+
+                {totalPlaybooks > 0 && playbookPerformance?.allPlaybooksPaused && (
+                  <div className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm text-text-primary">
+                    All playbooks are paused ({pausedPlaybooks}). Unpause a playbook to resume automated coverage.
+                  </div>
+                )}
+
+                {totalPlaybooks > 0 && playbookPerformance?.noActivityInPeriod && (
+                  <div className="mb-4 rounded-xl border border-border-primary/30 bg-surface-secondary/30 p-4 text-sm text-text-muted">
+                    No playbook activity in this period. Try expanding the period or activating playbooks with live eligible signals.
+                  </div>
+                )}
+
+                {playbooks.length > 0 && (
+                  <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                    {playbooks.map((item) => (
+                      <PlaybookPerformanceCard key={item.playbookId} item={item} />
+                    ))}
+                  </div>
+                )}
+              </section>
             </>
           )}
         </div>
@@ -192,16 +525,3 @@ export const ImpactRoute = () => {
     </CompanyAuthorization>
   );
 };
-
-const KpiCard: React.FC<{
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-  highlight?: boolean;
-}> = ({ label, value, icon, highlight }) => (
-  <div className="bg-surface-primary/80 backdrop-blur-lg p-5 rounded-2xl border border-border-primary/30 shadow-lg text-center">
-    {icon && <div className="flex justify-center mb-2">{icon}</div>}
-    <div className={`text-2xl font-bold ${highlight ? 'text-success' : 'text-text-primary'}`}>{value}</div>
-    <div className="text-xs text-text-muted mt-1">{label}</div>
-  </div>
-);

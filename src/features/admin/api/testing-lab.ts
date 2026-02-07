@@ -48,6 +48,7 @@ export interface PlaybookEvaluation {
   playbookName: string;
   wouldTrigger: boolean;
   suppressionReason?: string | null;
+  suppressionDetailsJson?: string | null;
   decisionSummary?: DecisionSummary | null;
   missingConditions: string[];
 }

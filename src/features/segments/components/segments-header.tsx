@@ -1,7 +1,18 @@
 // src/features/segments/components/segments-header.tsx
 import React from 'react';
+import { useGetSegmentPerformance, useGetSegments } from '@/features/segments/api/segments';
 
 export const SegmentsHeader = () => {
+  const { data: segments = [] } = useGetSegments();
+  const { data: performance } = useGetSegmentPerformance();
+
+  const activeSegments = segments.filter((segment) => segment.status === 'active').length;
+  const hasSegments = segments.length > 0;
+  const hasPerformanceData = hasSegments && Boolean(performance) && performance!.avgChurnReduction > 0;
+  const avgChurnReductionText = hasPerformanceData
+    ? `${Math.round(performance!.avgChurnReduction)}%`
+    : null;
+
   return (
     <div className="relative group">
       {/* Enhanced background gradient effect */}
@@ -22,11 +33,13 @@ export const SegmentsHeader = () => {
           {/* Enhanced Mobile: Quick stats in a responsive grid */}
           <div className="lg:hidden grid grid-cols-2 gap-4 mt-6">
             <div className="bg-surface-primary/50 backdrop-blur-lg p-4 rounded-2xl border border-border-primary/30 text-center shadow-lg">
-              <div className="text-xl sm:text-2xl font-bold text-success-muted">-34%</div>
-              <div className="text-xs sm:text-sm text-text-muted">churn reduction</div>
+              <div className="text-xl sm:text-2xl font-bold text-success-muted">{avgChurnReductionText ?? '-'}</div>
+              <div className="text-xs sm:text-sm text-text-muted">
+                {hasPerformanceData ? 'avg churn reduction' : 'no performance data'}
+              </div>
             </div>
             <div className="bg-surface-primary/50 backdrop-blur-lg p-4 rounded-2xl border border-border-primary/30 text-center shadow-lg">
-              <div className="text-xl sm:text-2xl font-bold text-accent-primary">12</div>
+              <div className="text-xl sm:text-2xl font-bold text-accent-primary">{activeSegments}</div>
               <div className="text-xs sm:text-sm text-text-muted">active segments</div>
             </div>
           </div>
@@ -34,12 +47,14 @@ export const SegmentsHeader = () => {
           {/* Enhanced Desktop: Quick stats in sidebar format */}
           <div className="hidden lg:flex items-center gap-6">
             <div className="text-right">
-              <div className="text-3xl font-bold text-success-muted">-34%</div>
-              <div className="text-sm text-text-muted">avg churn reduction</div>
+              <div className="text-3xl font-bold text-success-muted">{avgChurnReductionText ?? '-'}</div>
+              <div className="text-sm text-text-muted">
+                {hasPerformanceData ? 'avg churn reduction' : 'no performance data'}
+              </div>
             </div>
             <div className="w-px h-12 bg-border-primary/30"></div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-accent-primary">12</div>
+              <div className="text-3xl font-bold text-accent-primary">{activeSegments}</div>
               <div className="text-sm text-text-muted">active segments</div>
             </div>
           </div>

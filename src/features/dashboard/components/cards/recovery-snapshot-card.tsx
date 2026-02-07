@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { RecoveryAnalyticsKpis } from '@/types/api';
+import { RecoveryProgressBar } from './recovery-progress-bar';
 
 interface RecoverySnapshotCardProps {
   kpis?: Partial<RecoveryAnalyticsKpis>;
@@ -33,22 +34,29 @@ export const RecoverySnapshotCard: React.FC<RecoverySnapshotCardProps> = ({ kpis
       )}
 
       {!isLoading && kpis && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 text-center">
-            <div className="text-xs text-text-muted">Missed Amount</div>
-            <div className="text-xl font-bold text-text-primary">${(kpis.missedAmount || 0).toLocaleString()}</div>
-          </div>
-          <div className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 text-center">
-            <div className="text-xs text-text-muted">Recovered Amount</div>
-            <div className="text-xl font-bold text-success">${(kpis.recoveredAmount || 0).toLocaleString()}</div>
-          </div>
-          <div className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 text-center">
-            <div className="text-xs text-text-muted">Recovery Rate</div>
-            <div className="text-xl font-bold text-text-primary">{Math.round(kpis.recoveryRate || 0)}%</div>
-          </div>
-          <div className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 text-center">
-            <div className="text-xs text-text-muted">Avg Days to Recover</div>
-            <div className="text-xl font-bold text-text-primary">{(kpis.averageDaysToRecover || 0).toFixed(1)}</div>
+        <div className="space-y-4">
+          <RecoveryProgressBar
+            missedAmount={kpis.missedAmount || 0}
+            recoveredAmount={kpis.recoveredAmount || 0}
+          />
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 text-center">
+              <div className="text-xs text-text-muted">Missed Amount</div>
+              <div className="text-xl font-bold text-text-primary">${(kpis.missedAmount || 0).toLocaleString()}</div>
+            </div>
+            <div className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 text-center">
+              <div className="text-xs text-text-muted">Recovered Amount</div>
+              <div className="text-xl font-bold text-success">${(kpis.recoveredAmount || 0).toLocaleString()}</div>
+            </div>
+            <div className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 text-center">
+              <div className="text-xs text-text-muted">Recovery Rate</div>
+              <div className="text-xl font-bold text-text-primary">{Math.round(kpis.recoveryRate || 0)}%</div>
+            </div>
+            <div className="p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 text-center">
+              <div className="text-xs text-text-muted">Avg Days to Recover</div>
+              <div className="text-xl font-bold text-text-primary">{(kpis.averageDaysToRecover || 0).toFixed(1)}</div>
+            </div>
           </div>
         </div>
       )}

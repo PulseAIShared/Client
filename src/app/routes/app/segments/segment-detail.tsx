@@ -65,8 +65,7 @@ export const SegmentDetailRoute: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Link
-                  to={`/app/segments/${segment.id}/edit`
-                  }
+                  to={`/app/segments/${segment.id}/edit`}
                   className="px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-lg hover:shadow-lg hover:shadow-accent-primary/25 transform hover:-translate-y-0.5 transition-all duration-200 text-sm"
                 >
                   Edit Segment
@@ -99,7 +98,7 @@ export const SegmentDetailRoute: React.FC = () => {
             {segment.criteria.map((c, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-surface-secondary/30 rounded-xl border border-border-primary/30">
                 <div className="font-medium text-text-primary">{c.label}</div>
-                <div className="text-sm text-text-muted">{c.field} · {c.operator} · {c.value}</div>
+                <div className="text-sm text-text-muted">{c.field} - {c.operator} - {c.value}</div>
               </div>
             ))}
           </div>

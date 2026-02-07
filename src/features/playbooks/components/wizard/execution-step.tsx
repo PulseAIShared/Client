@@ -2,11 +2,24 @@ import { useFormContext } from 'react-hook-form';
 import { FormSection } from '@/components/ui/form-section';
 import { enumLabelMap } from '@/features/playbooks/utils';
 import type { PlaybookFormValues } from '@/features/playbooks/schemas/playbook-form-schema';
+import { PlaybookFieldRecommendation } from '@/types/playbooks';
+import { RecommendationHint } from './recommendation-hint';
 
 const inputClass =
   'w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200';
 
-export const ExecutionStep = () => {
+type ExecutionStepProps = {
+  recommendationByField?: Record<
+    string,
+    PlaybookFieldRecommendation
+  >;
+  overriddenFieldKeys?: ReadonlySet<string>;
+};
+
+export const ExecutionStep = ({
+  recommendationByField = {},
+  overriddenFieldKeys,
+}: ExecutionStepProps) => {
   const {
     register,
     formState: { errors },
@@ -40,6 +53,18 @@ export const ExecutionStep = () => {
             Approval mode sends runs to the work queue for
             review before executing.
           </p>
+          <RecommendationHint
+            recommendation={
+              recommendationByField[
+                'execution.executionMode'
+              ]
+            }
+            overridden={Boolean(
+              overriddenFieldKeys?.has(
+                'execution.executionMode',
+              ),
+            )}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-2">
@@ -62,6 +87,18 @@ export const ExecutionStep = () => {
             Minimum hours between runs for the same
             customer.
           </p>
+          <RecommendationHint
+            recommendation={
+              recommendationByField[
+                'execution.cooldownHours'
+              ]
+            }
+            overridden={Boolean(
+              overriddenFieldKeys?.has(
+                'execution.cooldownHours',
+              ),
+            )}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-2">
@@ -83,6 +120,18 @@ export const ExecutionStep = () => {
           <p className="text-xs text-text-muted mt-2">
             Maximum number of active runs at any given time.
           </p>
+          <RecommendationHint
+            recommendation={
+              recommendationByField[
+                'execution.maxConcurrentRuns'
+              ]
+            }
+            overridden={Boolean(
+              overriddenFieldKeys?.has(
+                'execution.maxConcurrentRuns',
+              ),
+            )}
+          />
         </div>
       </div>
 
@@ -110,6 +159,16 @@ export const ExecutionStep = () => {
             playbooks match a customer, the highest priority
             runs first. Range: 1-100.
           </p>
+          <RecommendationHint
+            recommendation={
+              recommendationByField['execution.priority']
+            }
+            overridden={Boolean(
+              overriddenFieldKeys?.has(
+                'execution.priority',
+              ),
+            )}
+          />
         </div>
       </div>
     </FormSection>

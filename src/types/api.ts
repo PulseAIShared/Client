@@ -98,6 +98,7 @@ export interface DashboardResponse {
   customerTrends?: CustomerTrendPoint[];
   geoBreakdown?: GeoInsight[];
   workQueueSummary?: DashboardWorkQueueSummary;
+  suggestedAction?: DashboardSuggestedAction;
   recoveryAnalytics?: {
     kpis?: {
       missedPaymentsCount?: number;
@@ -128,6 +129,8 @@ export interface DashboardResponse {
 export interface DashboardWorkQueueSummary {
   pendingApprovals: number;
   highValueCount: number;
+  atRiskAmount: number;
+  hasActivePlaybooks: boolean;
   revenueSavedLast7d: number;
   oldestPendingAge?: string | null;
   topItems: DashboardWorkQueueItem[];
@@ -140,6 +143,118 @@ export interface DashboardWorkQueueItem {
   reason: string;
   potentialValue?: number | null;
   createdAt: string;
+}
+
+export interface DashboardSuggestedAction {
+  actionType: string;
+  title: string;
+  description: string;
+  actionUrl: string;
+}
+
+export interface ImpactQueryContract {
+  from: string;
+  to: string;
+  segmentId?: string;
+}
+
+export interface ImpactRecoveryKpis {
+  missedPaymentsCount: number;
+  missedAmount: number;
+  missedAmountPriorPeriod: number;
+  recoveredAmount: number;
+  recoveredAmountPriorPeriod: number;
+  recoveryRate: number;
+  recoveryRatePriorPeriod: number;
+  averageDaysToRecover: number;
+  averageDaysToRecoverPriorPeriod: number;
+  allTimeRecoveredAmount: number;
+  hasRecoveryData: boolean;
+}
+
+export interface ImpactSummaryResponse {
+  recoveryKpis: ImpactRecoveryKpis;
+}
+
+export interface ImpactSegmentOption {
+  id: string;
+  name: string;
+  customerCount?: number;
+}
+
+export interface ImpactPlaybookPerformanceItem {
+  playbookId: string;
+  name: string;
+  status: string | number;
+  priority: number;
+  signalType?: string | null;
+  customersReached: number;
+  runs: number;
+  recoveredRevenue: number;
+  recoveryRate: number;
+  averageRecoveryTimeDays: number;
+  eligibleCustomers: number;
+  eligibleAmount: number;
+  actionedCustomers: number;
+  actionedAmount: number;
+  coverageRate: number;
+  missedWhilePaused: number;
+  missedWhilePausedAmount: number;
+  hasActivityInPeriod: boolean;
+}
+
+export interface ImpactPlaybookPerformanceResponse {
+  from: string;
+  to: string;
+  segmentId?: string | null;
+  totalPlaybooks: number;
+  activePlaybookCount: number;
+  pausedPlaybookCount: number;
+  totalRunsInPeriod: number;
+  totalRecoveredRevenueInPeriod: number;
+  hasActivityInPeriod: boolean;
+  noActivePlaybooks: boolean;
+  allPlaybooksPaused: boolean;
+  noActivityInPeriod: boolean;
+  playbooks: ImpactPlaybookPerformanceItem[];
+}
+
+export type ImpactTrendInterval = 'daily' | 'weekly';
+
+export interface ImpactTrendPoint {
+  bucketStart: string;
+  revenueAtRisk: number;
+  revenueRecovered: number;
+  recoveryRate: number;
+}
+
+export interface ImpactChurnDistributionBucket {
+  bucket: string;
+  customerCount: number;
+}
+
+export interface ImpactTrendsResponse {
+  from: string;
+  to: string;
+  segmentId?: string | null;
+  interval: ImpactTrendInterval;
+  hasSufficientData: boolean;
+  points: ImpactTrendPoint[];
+  churnDistribution: ImpactChurnDistributionBucket[];
+}
+
+export interface ImpactRecoveryFunnelResponse {
+  from: string;
+  to: string;
+  segmentId?: string | null;
+  totalAtRisk: number;
+  actioned: number;
+  recovered: number;
+  lost: number;
+  atRiskCustomers: number;
+  actionedCustomers: number;
+  recoveredCustomers: number;
+  hasData: boolean;
 }
 
 /**
@@ -203,6 +318,7 @@ export interface AtRiskCustomer {
   name: string;
   daysSince: number;
   score: number;
+  riskDriver?: string | null;
 }
 
 
@@ -825,6 +941,8 @@ export const formatCriteriaOperator = (operator: CriteriaOperator): string => {
 
 // Transform new API response to legacy format for backward compatibility
 export const transformSegmentResponse = (segment: SegmentResponse): CustomerSegment => {
+  const normalizedType = formatSegmentType(segment.type).toLowerCase().replace(/\s+/g, '-');
+
   return {
     id: segment.id,
     name: segment.name,
@@ -842,7 +960,7 @@ export const transformSegmentResponse = (segment: SegmentResponse): CustomerSegm
     createdAt: segment.createdAt,
     updatedAt: segment.updatedAt,
     status: formatSegmentStatus(segment.status).toLowerCase() as any,
-    type: formatSegmentType(segment.type).toLowerCase().replace('-', '') as any,
+    type: normalizedType as CustomerSegment['type'],
     color: segment.color
   };
 };

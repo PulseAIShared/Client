@@ -2,8 +2,30 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useExportDashboardInsights } from '@/features/dashboard/api/dashboard';
+import { DashboardSuggestedAction } from '@/types/api';
 
-export const QuickActionsCard = () => {
+interface QuickActionsCardProps {
+  suggestedAction?: DashboardSuggestedAction;
+}
+
+const getSuggestedActionLabel = (actionType?: string): string => {
+  switch (actionType) {
+    case 'ConnectIntegration':
+      return 'Connect Integration';
+    case 'ReviewWorkQueue':
+      return 'Review Queue';
+    case 'ImproveRecoveryPlaybook':
+      return 'Improve Recovery';
+    case 'LaunchRetentionPlaybook':
+      return 'Launch Retention';
+    case 'CreateSegment':
+      return 'Create Segment';
+    default:
+      return 'Create Playbook';
+  }
+};
+
+export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({ suggestedAction }) => {
   const navigate = useNavigate();
   const exportMutation = useExportDashboardInsights({
     onSuccess: (blob) => {
@@ -23,7 +45,12 @@ export const QuickActionsCard = () => {
     }
   });
 
-  const handleCreatePlaybook = () => {
+  const handlePrimaryAction = () => {
+    if (suggestedAction?.actionUrl) {
+      navigate(suggestedAction.actionUrl);
+      return;
+    }
+
     navigate('/app/playbooks/create');
   };
 
@@ -39,18 +66,22 @@ export const QuickActionsCard = () => {
     <div className="relative bg-gradient-to-r from-surface-primary via-surface-secondary to-surface-primary p-5 sm:p-6 rounded-2xl border border-border-primary/40 shadow-md hover:shadow-lg transition-all duration-200">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold text-text-primary">Ready to take action?</h3>
-          <p className="text-sm text-text-muted">Create a playbook, export insights, or review the work queue.</p>
+          <h3 className="text-lg font-semibold text-text-primary">
+            {suggestedAction ? 'Recommended next step' : 'Ready to take action?'}
+          </h3>
+          <p className="text-sm text-text-muted">
+            {suggestedAction?.description ?? 'Create a playbook, export insights, or review the work queue.'}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2 sm:gap-3 justify-start lg:justify-end">
           <button
-            onClick={handleCreatePlaybook}
+            onClick={handlePrimaryAction}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-accent-primary to-accent-secondary text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-150"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v14m0 0l-4-4m4 4l4-4" />
             </svg>
-            Create Playbook
+            {getSuggestedActionLabel(suggestedAction?.actionType)}
           </button>
           <button
             onClick={handleExportInsights}

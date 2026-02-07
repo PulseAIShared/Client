@@ -1,24 +1,95 @@
 // src/app/routes/app/dashboard/dashboard.tsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ContentLayout } from '@/components/layouts';
-import { DashboardHeader, GettingStarted } from '@/features/dashboard/components';
+import { DashboardHeader, GettingStarted, SegmentEmptyState, SegmentFilter } from '@/features/dashboard/components';
 import {
   WorkQueueCard,
   RecoverySnapshotCard,
   QuickActionsCard,
 } from '@/features/dashboard/components/cards';
-import { useGetDashboardData } from '@/features/dashboard/api/dashboard';
+import {
+  useGetDashboardData,
+  useGetDashboardIntegrationStatus,
+  useGetDashboardSegmentsList,
+} from '@/features/dashboard/api/dashboard';
 import { Spinner } from '@/components/ui/spinner';
 import { CompanyAuthorization, useAuthorization } from '@/lib/authorization';
 import { AlertTriangle } from 'lucide-react';
+import { NoIntegrationState } from '@/features/dashboard/components/no-integration-state';
+
+const getRiskDriverLabel = (riskDriver?: string | null): string => {
+  switch (riskDriver) {
+    case 'PaymentDistress':
+      return 'Payment distress';
+    case 'Inactivity':
+      return 'Recent inactivity';
+    case 'LowEngagement':
+      return 'Low product engagement';
+    case 'HighModelScore':
+      return 'Elevated churn score';
+    case 'Composite':
+      return 'Mixed risk factors';
+    default:
+      return 'Elevated churn risk';
+  }
+};
+
+const parseDashboardCount = (value?: string): number | null => {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.replace(/[^0-9-]/g, '');
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(normalized, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+};
 
 export const DashboardRoute = () => {
   const { checkCompanyPolicy } = useAuthorization();
-  const { data: dashboardData, isLoading, error } = useGetDashboardData();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedSegmentId = searchParams.get('segmentId') ?? undefined;
+  const dashboardQueryParams = React.useMemo(
+    () => ({
+      segmentId: selectedSegmentId,
+    }),
+    [selectedSegmentId],
+  );
+
+  const {
+    data: dashboardData,
+    isLoading: dashboardLoading,
+    error,
+  } = useGetDashboardData(dashboardQueryParams);
+  const {
+    data: integrationStatus,
+    isLoading: integrationStatusLoading,
+  } = useGetDashboardIntegrationStatus();
+  const {
+    data: segmentOptions = [],
+    isLoading: segmentsLoading,
+  } = useGetDashboardSegmentsList();
+  const isLoading = dashboardLoading || integrationStatusLoading;
+  const selectedSegment = segmentOptions.find((segment) => segment.id === selectedSegmentId);
 
   // Check if user has read access to analytics
   const canViewAnalytics = checkCompanyPolicy('analytics:read');
+
+  const handleSegmentChange = (segmentId?: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (segmentId) {
+      nextParams.set('segmentId', segmentId);
+    } else {
+      nextParams.delete('segmentId');
+    }
+
+    setSearchParams(nextParams, { replace: true });
+  };
 
   if (isLoading) {
     return (
@@ -62,12 +133,66 @@ export const DashboardRoute = () => {
     );
   }
 
-  // Check if there are no customers (totalUsers is "0" or empty arrays)
-  const hasNoCustomers = !dashboardData ||
-    dashboardData.stats?.totalUsers === '0' ||
-    (dashboardData.atRiskCustomers?.length === 0 &&
-     dashboardData.customerInsights?.length === 0 &&
-     dashboardData.churnRiskTrend?.length === 0);
+  if (
+    integrationStatus &&
+    !integrationStatus.hasActiveIntegration
+  ) {
+    return (
+      <CompanyAuthorization
+        policyCheck={canViewAnalytics}
+        forbiddenFallback={
+          <ContentLayout>
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-center bg-surface-primary/80 backdrop-blur-xl p-8 rounded-3xl border border-border-primary/50 shadow-2xl max-w-md">
+                <div className="w-16 h-16 bg-gradient-to-br from-warning/20 to-warning-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-warning-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-text-primary mb-2">Access Restricted</h2>
+                <p className="text-text-muted">
+                  You need analytics read permissions to view the dashboard. Please contact your company owner.
+                </p>
+              </div>
+            </div>
+          </ContentLayout>
+        }
+      >
+        <ContentLayout>
+          <NoIntegrationState />
+        </ContentLayout>
+      </CompanyAuthorization>
+    );
+  }
+
+  const scopedCustomerCount = parseDashboardCount(dashboardData?.stats?.totalUsers);
+  const hasNoSignalsInScope =
+    (dashboardData?.atRiskCustomers?.length ?? 0) === 0 &&
+    (dashboardData?.customerInsights?.length ?? 0) === 0 &&
+    (dashboardData?.churnRiskTrend?.length ?? 0) === 0;
+  const hasNoCustomersInScope = scopedCustomerCount === 0 || (scopedCustomerCount === null && hasNoSignalsInScope);
+  const isSegmentScopeEmpty = Boolean(selectedSegmentId) && hasNoCustomersInScope;
+  const hasNoCustomers = !selectedSegmentId && hasNoCustomersInScope;
+
+  if (isSegmentScopeEmpty) {
+    return (
+      <ContentLayout>
+        <div className="space-y-6 sm:space-y-8">
+          <DashboardHeader stats={dashboardData?.stats} workQueueSummary={dashboardData?.workQueueSummary} />
+          <SegmentFilter
+            segments={segmentOptions}
+            selectedSegmentId={selectedSegmentId}
+            onChange={handleSegmentChange}
+            isLoading={segmentsLoading}
+          />
+          <SegmentEmptyState
+            segmentName={selectedSegment?.name}
+            onClearFilter={() => handleSegmentChange(undefined)}
+          />
+        </div>
+      </ContentLayout>
+    );
+  }
 
   if (hasNoCustomers) {
     return (
@@ -107,6 +232,12 @@ export const DashboardRoute = () => {
         <div className="space-y-6 sm:space-y-8 lg:space-y-10">
           {/* Header - action-first */}
           <DashboardHeader stats={dashboardData?.stats} workQueueSummary={dashboardData?.workQueueSummary} />
+          <SegmentFilter
+            segments={segmentOptions}
+            selectedSegmentId={selectedSegmentId}
+            onChange={handleSegmentChange}
+            isLoading={segmentsLoading}
+          />
 
           {/* Primary Panel: Work Queue + High-risk customers */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
@@ -144,7 +275,9 @@ export const DashboardRoute = () => {
                             {customer.name}
                           </div>
                           <div className="text-xs text-text-muted truncate">
-                            {customer.daysSince > 0 ? `Inactive for ${customer.daysSince} days` : 'Elevated churn risk'}
+                            {customer.riskDriver === 'Inactivity' && customer.daysSince > 0
+                              ? `${getRiskDriverLabel(customer.riskDriver)} • ${customer.daysSince} days`
+                              : getRiskDriverLabel(customer.riskDriver)}
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -190,7 +323,7 @@ export const DashboardRoute = () => {
           </div>
 
           {/* Quick actions */}
-          <QuickActionsCard />
+          <QuickActionsCard suggestedAction={dashboardData?.suggestedAction} />
         </div>
       </ContentLayout>
     </CompanyAuthorization>

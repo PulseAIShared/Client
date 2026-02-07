@@ -219,6 +219,13 @@ export const createAppRouter = () =>
           },
         },
         {
+          path: 'playbooks/:playbookId/edit',
+          lazy: async () => {
+            const { PlaybookEditRoute } = await import('./routes/app/playbooks/playbook-edit');
+            return { Component: PlaybookEditRoute };
+          },
+        },
+        {
           path: 'playbooks/:playbookId/runs',
           lazy: async () => {
             const { PlaybookRunsRoute } = await import('./routes/app/playbooks/playbook-runs');

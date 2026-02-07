@@ -4,9 +4,14 @@ import { MutationConfig, QueryConfig } from '@/lib/react-query';
 import {
   ConflictLogEntry,
   PagedResult,
+  PlaybookBlueprintRecommendation,
+  PlaybookConfidenceRecommendation,
   PlaybookDetail,
+  PlaybookFieldRecommendation,
   PlaybookRun,
   PlaybookSummary,
+  RecommendPlaybookBlueprintRequest,
+  TrackPlaybookRecommendationOverrideRequest,
   TriggerExplanation,
   WorkQueueItem,
   WorkQueueResponse,
@@ -26,6 +31,13 @@ type PlaybookActionInput = {
   configJson: string;
 };
 
+export type RecommendPlaybookConfidenceInput = {
+  signalType?: string | null;
+  actionTypes?: number[];
+  executionMode?: number | null;
+  hasTargetSegments?: boolean;
+};
+
 export type PlaybookInput = {
   name: string;
   description?: string | null;
@@ -33,12 +45,17 @@ export type PlaybookInput = {
   triggerType: number;
   triggerConditionsJson: string;
   minConfidence: number;
+  confidenceMode: number;
   cooldownHours: number;
   maxConcurrentRuns: number;
   executionMode: number;
   priority: number;
   targetSegmentIds: string[];
   actions: PlaybookActionInput[];
+};
+
+export type PlaybookConnectedIntegrations = {
+  providers: string[];
 };
 
 const mapPlaybookSummary = (raw: any): PlaybookSummary => ({
@@ -53,12 +70,49 @@ const mapPlaybookSummary = (raw: any): PlaybookSummary => ({
   signalType: raw.signalType ?? raw.SignalType ?? null,
 });
 
+const normalizeProvider = (
+  provider: unknown,
+): string | null => {
+  if (typeof provider !== 'string') {
+    return null;
+  }
+
+  const normalized = provider
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '');
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized.includes('hubspot')) {
+    return 'hubspot';
+  }
+
+  if (normalized.includes('stripe')) {
+    return 'stripe';
+  }
+
+  if (normalized.includes('posthog')) {
+    return 'posthog';
+  }
+
+  if (normalized.includes('mailchimp')) {
+    return 'mailchimp';
+  }
+
+  return normalized;
+};
+
 const mapPlaybookDetail = (raw: any): PlaybookDetail => ({
   ...mapPlaybookSummary(raw),
   description: raw.description ?? raw.Description,
   triggerType: raw.triggerType ?? raw.TriggerType,
   triggerConditionsJson: raw.triggerConditionsJson ?? raw.TriggerConditionsJson ?? '{}',
   minConfidence: raw.minConfidence ?? raw.MinConfidence,
+  confidenceMode:
+    raw.confidenceMode ?? raw.ConfidenceMode,
   cooldownHours: raw.cooldownHours ?? raw.CooldownHours ?? 0,
   maxConcurrentRuns: raw.maxConcurrentRuns ?? raw.MaxConcurrentRuns ?? 1,
   executionMode: raw.executionMode ?? raw.ExecutionMode,
@@ -124,6 +178,135 @@ const mapTriggerExplanation = (raw: any): TriggerExplanation => ({
   },
 });
 
+const mapConfidenceDistribution = (raw: any) => ({
+  minimal: raw?.minimal ?? raw?.Minimal ?? 0,
+  good: raw?.good ?? raw?.Good ?? 0,
+  high: raw?.high ?? raw?.High ?? 0,
+  excellent: raw?.excellent ?? raw?.Excellent ?? 0,
+});
+
+const mapPlaybookConfidenceRecommendation = (raw: any): PlaybookConfidenceRecommendation => ({
+  recommendedMinConfidence:
+    raw.recommendedMinConfidence ?? raw.RecommendedMinConfidence,
+  reasonCodes: raw.reasonCodes ?? raw.ReasonCodes ?? [],
+  requiredIntegrations:
+    raw.requiredIntegrations ?? raw.RequiredIntegrations ?? [],
+  missingCompanyIntegrations:
+    raw.missingCompanyIntegrations ??
+    raw.MissingCompanyIntegrations ??
+    [],
+  eligibleCustomersByConfidence: mapConfidenceDistribution(
+    raw.eligibleCustomersByConfidence ??
+      raw.EligibleCustomersByConfidence,
+  ),
+});
+
+const mapPlaybookFieldRecommendation = (
+  raw: any,
+): PlaybookFieldRecommendation => ({
+  fieldKey: raw.fieldKey ?? raw.FieldKey ?? '',
+  recommendedValue:
+    raw.recommendedValue ?? raw.RecommendedValue ?? 'null',
+  reasonCode: raw.reasonCode ?? raw.ReasonCode ?? 'unknown',
+  humanExplanation:
+    raw.humanExplanation ??
+    raw.HumanExplanation ??
+    'Recommendation generated from deterministic rules.',
+  confidence:
+    raw.confidence ?? raw.Confidence ?? 0,
+});
+
+const mapPlaybookBlueprintRecommendation = (
+  raw: any,
+): PlaybookBlueprintRecommendation => ({
+  identity: {
+    category:
+      raw.identity?.category ?? raw.Identity?.Category,
+    name: raw.identity?.name ?? raw.Identity?.Name ?? '',
+    description:
+      raw.identity?.description ??
+      raw.Identity?.Description ??
+      '',
+  },
+  trigger: {
+    signalType:
+      raw.trigger?.signalType ??
+      raw.Trigger?.SignalType ??
+      '',
+    conditions: {
+      minAmount:
+        raw.trigger?.conditions?.minAmount ??
+        raw.Trigger?.Conditions?.MinAmount,
+      minMrr:
+        raw.trigger?.conditions?.minMrr ??
+        raw.Trigger?.Conditions?.MinMrr,
+      minDaysOverdue:
+        raw.trigger?.conditions?.minDaysOverdue ??
+        raw.Trigger?.Conditions?.MinDaysOverdue,
+      minDaysInactive:
+        raw.trigger?.conditions?.minDaysInactive ??
+        raw.Trigger?.Conditions?.MinDaysInactive,
+    },
+    requiredIntegrations:
+      raw.trigger?.requiredIntegrations ??
+      raw.Trigger?.RequiredIntegrations ??
+      [],
+  },
+  execution: {
+    executionMode:
+      raw.execution?.executionMode ??
+      raw.Execution?.ExecutionMode,
+    cooldownHours:
+      raw.execution?.cooldownHours ??
+      raw.Execution?.CooldownHours ??
+      0,
+    maxConcurrentRuns:
+      raw.execution?.maxConcurrentRuns ??
+      raw.Execution?.MaxConcurrentRuns ??
+      1,
+    priority:
+      raw.execution?.priority ??
+      raw.Execution?.Priority ??
+      100,
+  },
+  actions: (raw.actions ?? raw.Actions ?? []).map(
+    (action: any) => ({
+      actionType:
+        action.actionType ?? action.ActionType,
+      orderIndex:
+        action.orderIndex ?? action.OrderIndex ?? 0,
+      configJson:
+        action.configJson ?? action.ConfigJson ?? '{}',
+    }),
+  ),
+  confidence: mapPlaybookConfidenceRecommendation(
+    raw.confidence ?? raw.Confidence ?? {},
+  ),
+  fieldRecommendations: (
+    raw.fieldRecommendations ??
+    raw.FieldRecommendations ??
+    []
+  ).map(mapPlaybookFieldRecommendation),
+  explanations:
+    raw.explanations ?? raw.Explanations ?? [],
+  impact: {
+    estimatedEligibleCustomers:
+      raw.impact?.estimatedEligibleCustomers ??
+      raw.Impact?.EstimatedEligibleCustomers ??
+      0,
+    estimatedRunsPerDay:
+      raw.impact?.estimatedRunsPerDay ??
+      raw.Impact?.EstimatedRunsPerDay ??
+      0,
+    estimatedConfidenceDistribution:
+      mapConfidenceDistribution(
+        raw.impact?.estimatedConfidenceDistribution ??
+          raw.Impact?.EstimatedConfidenceDistribution,
+      ),
+  },
+  warnings: raw.warnings ?? raw.Warnings ?? [],
+});
+
 const mapConflictEntry = (raw: any): ConflictLogEntry => ({
   id: raw.id ?? raw.Id,
   suppressedPlaybookName: raw.suppressedPlaybookName ?? raw.SuppressedPlaybookName,
@@ -172,6 +355,39 @@ export const getPlaybooks = async (params?: PlaybookListParams): Promise<Playboo
   return ((response as unknown as any[]) ?? []).map(mapPlaybookSummary);
 };
 
+export const getPlaybookConnectedIntegrations = async (): Promise<PlaybookConnectedIntegrations> => {
+  const response = await api.get('/integrations');
+  const rawItems = Array.isArray(response)
+    ? response
+    : [];
+
+  const providers = rawItems
+    .filter((item) => {
+      const status = String(
+        item?.status ?? item?.Status ?? '',
+      ).toLowerCase();
+
+      const isExpired = Boolean(
+        item?.isTokenExpired ??
+          item?.IsTokenExpired ??
+          false,
+      );
+
+      return status === 'connected' && !isExpired;
+    })
+    .map((item) =>
+      normalizeProvider(item?.type ?? item?.Type),
+    )
+    .filter(
+      (provider): provider is string =>
+        provider !== null,
+    );
+
+  return {
+    providers: Array.from(new Set(providers)).sort(),
+  };
+};
+
 export const getPlaybooksQueryOptions = (params?: PlaybookListParams) => ({
   queryKey: ['playbooks', params],
   queryFn: () => getPlaybooks(params),
@@ -183,6 +399,23 @@ export const useGetPlaybooks = (
 ) => {
   return useQuery({
     ...getPlaybooksQueryOptions(params),
+    ...queryConfig,
+  });
+};
+
+export const getPlaybookConnectedIntegrationsQueryOptions =
+  () => ({
+    queryKey: ['playbooks', 'connected-integrations'],
+    queryFn: getPlaybookConnectedIntegrations,
+  });
+
+export const useGetPlaybookConnectedIntegrations = (
+  queryConfig?: QueryConfig<
+    typeof getPlaybookConnectedIntegrationsQueryOptions
+  >,
+) => {
+  return useQuery({
+    ...getPlaybookConnectedIntegrationsQueryOptions(),
     ...queryConfig,
   });
 };
@@ -354,6 +587,110 @@ export const useGetPlaybookRuns = (
 export const getWhyDidntTrigger = async (playbookId: string, customerId: string): Promise<TriggerExplanation> => {
   const response = await api.get(`/playbooks/${playbookId}/debug/${customerId}`);
   return mapTriggerExplanation(response);
+};
+
+export const recommendPlaybookConfidence = async (
+  payload: RecommendPlaybookConfidenceInput,
+): Promise<PlaybookConfidenceRecommendation> => {
+  const response = await api.post(
+    '/playbooks/recommend-confidence',
+    {
+      signalType: payload.signalType ?? null,
+      actionTypes: payload.actionTypes ?? [],
+      executionMode: payload.executionMode ?? null,
+      hasTargetSegments: payload.hasTargetSegments ?? false,
+    },
+  );
+
+  return mapPlaybookConfidenceRecommendation(response);
+};
+
+export const getRecommendPlaybookConfidenceQueryOptions = (
+  payload: RecommendPlaybookConfidenceInput,
+) => ({
+  queryKey: ['playbooks', 'recommend-confidence', payload],
+  queryFn: () => recommendPlaybookConfidence(payload),
+});
+
+export const useRecommendPlaybookConfidence = (
+  payload: RecommendPlaybookConfidenceInput,
+  queryConfig?: QueryConfig<
+    typeof getRecommendPlaybookConfidenceQueryOptions
+  >,
+) => {
+  return useQuery({
+    ...getRecommendPlaybookConfidenceQueryOptions(payload),
+    ...queryConfig,
+  });
+};
+
+export const recommendPlaybookBlueprint = async (
+  payload: RecommendPlaybookBlueprintRequest,
+): Promise<PlaybookBlueprintRecommendation> => {
+  const response = await api.post(
+    '/playbooks/recommend-blueprint',
+    {
+      goal: payload.goal ?? null,
+      hints: payload.hints ?? null,
+      currentDraft: payload.currentDraft ?? null,
+    },
+  );
+
+  return mapPlaybookBlueprintRecommendation(response);
+};
+
+export const getRecommendPlaybookBlueprintQueryOptions = (
+  payload: RecommendPlaybookBlueprintRequest,
+) => ({
+  queryKey: ['playbooks', 'recommend-blueprint', payload],
+  queryFn: () => recommendPlaybookBlueprint(payload),
+});
+
+export const useRecommendPlaybookBlueprint = (
+  payload: RecommendPlaybookBlueprintRequest,
+  queryConfig?: QueryConfig<
+    typeof getRecommendPlaybookBlueprintQueryOptions
+  >,
+) => {
+  return useQuery({
+    ...getRecommendPlaybookBlueprintQueryOptions(payload),
+    ...queryConfig,
+  });
+};
+
+export const useRecommendPlaybookBlueprintMutation = (
+  mutationConfig?: MutationConfig<
+    typeof recommendPlaybookBlueprint
+  >,
+) => {
+  return useMutation({
+    mutationFn: recommendPlaybookBlueprint,
+    ...mutationConfig,
+  });
+};
+
+export const trackPlaybookRecommendationOverride = async (
+  payload: TrackPlaybookRecommendationOverrideRequest,
+): Promise<void> => {
+  await api.post('/playbooks/recommendation-overrides', {
+    fieldKey: payload.fieldKey,
+    recommendedValue:
+      payload.recommendedValue ?? null,
+    selectedValue: payload.selectedValue ?? null,
+    goal: payload.goal ?? null,
+    sessionId: payload.sessionId ?? null,
+  });
+};
+
+export const useTrackPlaybookRecommendationOverride = (
+  mutationConfig?: MutationConfig<
+    typeof trackPlaybookRecommendationOverride
+  >,
+) => {
+  return useMutation({
+    mutationFn: trackPlaybookRecommendationOverride,
+    ...mutationConfig,
+  });
 };
 
 export const getPlaybookConflicts = async (

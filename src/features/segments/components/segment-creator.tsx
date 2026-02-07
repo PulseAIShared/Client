@@ -1,5 +1,5 @@
 // src/features/segments/components/segment-creator.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
 import { createSegment, usePreviewSegment, useGenerateSegmentFromPrompt } from '../api/segments';
@@ -7,8 +7,30 @@ import { SegmentType, CriteriaOperator, GeneratedSegmentDto } from '@/types/api'
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/components/ui/notifications';
+import { X } from 'lucide-react';
 
-type CriteriaField = 'age' | 'ltv' | 'churn_risk' | 'plan_type' | 'login_frequency' | 'feature_usage' | 'payment_status' | 'support_tickets';
+type CriteriaField =
+  | 'fullname'
+  | 'email'
+  | 'company'
+  | 'job_title'
+  | 'country'
+  | 'location'
+  | 'industry'
+  | 'lifecycle_stage'
+  | 'age'
+  | 'mrr'
+  | 'ltv'
+  | 'churn_risk'
+  | 'login_frequency'
+  | 'feature_usage'
+  | 'engagement_score'
+  | 'deal_count'
+  | 'open_tickets'
+  | 'csat'
+  | 'failed_payments'
+  | 'plan_type'
+  | 'payment_status';
 
 interface Criteria {
   id: string;
@@ -19,14 +41,27 @@ interface Criteria {
 }
 
 const availableFields = [
+  { value: 'fullname', label: 'Full Name', type: 'text' },
+  { value: 'email', label: 'Email', type: 'text' },
+  { value: 'company', label: 'Company', type: 'text' },
+  { value: 'job_title', label: 'Job Title', type: 'text' },
+  { value: 'country', label: 'Country', type: 'text' },
+  { value: 'location', label: 'Location', type: 'text' },
+  { value: 'industry', label: 'Industry', type: 'text' },
+  { value: 'lifecycle_stage', label: 'Lifecycle Stage', type: 'text' },
+  { value: 'plan_type', label: 'Subscription Plan', type: 'text' },
+  { value: 'payment_status', label: 'Payment Status', type: 'text' },
   { value: 'age', label: 'Age', type: 'number' },
+  { value: 'mrr', label: 'MRR', type: 'number' },
   { value: 'ltv', label: 'Lifetime Value', type: 'number' },
   { value: 'churn_risk', label: 'Churn Risk %', type: 'number' },
-  { value: 'plan_type', label: 'Subscription Plan', type: 'select', options: ['Trial', 'Basic', 'Pro', 'Enterprise'] },
-  { value: 'login_frequency', label: 'Weekly Logins', type: 'number' },
+  { value: 'login_frequency', label: 'Monthly Login Frequency', type: 'number' },
   { value: 'feature_usage', label: 'Feature Usage %', type: 'number' },
-  { value: 'payment_status', label: 'Payment Status', type: 'select', options: ['active', 'failed', 'cancelled'] },
-  { value: 'support_tickets', label: 'Support Tickets', type: 'number' },
+  { value: 'engagement_score', label: 'Engagement Score', type: 'number' },
+  { value: 'deal_count', label: 'Deal Count', type: 'number' },
+  { value: 'open_tickets', label: 'Open Tickets', type: 'number' },
+  { value: 'csat', label: 'CSAT Score', type: 'number' },
+  { value: 'failed_payments', label: 'Failed Payments (30d)', type: 'number' },
 ];
 
 const operators = [
@@ -36,10 +71,12 @@ const operators = [
   { value: CriteriaOperator.LessThan, label: 'Less than' },
   { value: CriteriaOperator.Contains, label: 'Contains' },
   { value: CriteriaOperator.In, label: 'Is one of' },
+  { value: CriteriaOperator.NotIn, label: 'Is not one of' },
 ];
 
 const segmentTemplates = [
   {
+    id: 'high-value',
     name: 'High-Value Customers',
     description: 'Customers with high LTV and low churn risk',
     type: SegmentType.Behavioral,
@@ -49,47 +86,59 @@ const segmentTemplates = [
     ]
   },
   {
-    name: 'At-Risk Trial Users',
-    description: 'Trial users with low engagement',
+    id: 'at-risk',
+    name: 'At-Risk Customers',
+    description: 'Customers with elevated churn risk and low engagement',
     type: SegmentType.Behavioral,
     criteria: [
-      { field: 'plan_type', operator: CriteriaOperator.Equals, value: 'Trial', label: 'Plan = Trial' },
-      { field: 'login_frequency', operator: CriteriaOperator.LessThan, value: '2', label: 'Weekly Logins < 2' },
+      { field: 'churn_risk', operator: CriteriaOperator.GreaterThan, value: '65', label: 'Churn Risk > 65%' },
+      { field: 'login_frequency', operator: CriteriaOperator.LessThan, value: '2', label: 'Monthly Login Frequency < 2' },
       { field: 'feature_usage', operator: CriteriaOperator.LessThan, value: '30', label: 'Feature Usage < 30%' }
     ]
   },
   {
+    id: 'power-users',
     name: 'Enterprise Power Users',
     description: 'Enterprise customers with high engagement',
     type: SegmentType.Behavioral,
     criteria: [
       { field: 'plan_type', operator: CriteriaOperator.Equals, value: 'Enterprise', label: 'Plan = Enterprise' },
       { field: 'feature_usage', operator: CriteriaOperator.GreaterThan, value: '70', label: 'Feature Usage > 70%' },
-      { field: 'login_frequency', operator: CriteriaOperator.GreaterThan, value: '10', label: 'Weekly Logins > 10' }
+      { field: 'login_frequency', operator: CriteriaOperator.GreaterThan, value: '10', label: 'Monthly Login Frequency > 10' }
     ]
   },
   {
+    id: 'payment-recovery',
     name: 'Payment Recovery Needed',
     description: 'Customers with recent payment failures',
     type: SegmentType.Behavioral,
     criteria: [
-      { field: 'payment_status', operator: CriteriaOperator.Equals, value: 'failed', label: 'Payment Status = Failed' },
+      { field: 'failed_payments', operator: CriteriaOperator.GreaterThan, value: '0', label: 'Failed Payments > 0' },
       { field: 'churn_risk', operator: CriteriaOperator.GreaterThan, value: '60', label: 'Churn Risk > 60%' }
     ]
   }
 ];
 
-export const SegmentCreator = () => {
+type SegmentCreatorProps = {
+  initialMode?: 'ai' | 'manual';
+  initialTemplateId?: string;
+};
+
+export const SegmentCreator: React.FC<SegmentCreatorProps> = ({
+  initialMode = 'manual',
+  initialTemplateId,
+}) => {
   const [segmentName, setSegmentName] = useState('');
   const [segmentDescription, setSegmentDescription] = useState('');
   const [segmentType, setSegmentType] = useState<SegmentType>(SegmentType.Behavioral);
   const [segmentColor, setSegmentColor] = useState('#8b5cf6');
   const [criteria, setCriteria] = useState<Criteria[]>([]);
-  const [isAIMode, setIsAIMode] = useState(false);
+  const [isAIMode, setIsAIMode] = useState(initialMode === 'ai');
   const [aiPrompt, setAIPrompt] = useState('');
   const [error, setError] = useState('');
   const [previewError, setPreviewError] = useState('');
   const [previewData, setPreviewData] = useState<{ estimatedCustomerCount: number; averageChurnRate: number; averageLifetimeValue: number; averageRevenue: number; matchingSampleCustomers: string[] } | null>(null);
+  const [sourceLabel, setSourceLabel] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -103,10 +152,14 @@ export const SegmentCreator = () => {
         setSegmentDescription(generated.description);
         setSegmentType(generated.type);
 
+        const supportedFieldValues = new Set(availableFields.map((field) => field.value));
+
         // Transform AI criteria to our format
         const transformedCriteria = generated.criteria.map((c, idx) => ({
           id: `ai-${idx}`,
-          field: c.field as CriteriaField,
+          field: supportedFieldValues.has(c.field)
+            ? (c.field as CriteriaField)
+            : 'churn_risk',
           operator: c.operator,
           value: c.value,
           label: c.label
@@ -116,6 +169,7 @@ export const SegmentCreator = () => {
         setAIPrompt('');
         setIsAIMode(false);
         setError('');
+        setSourceLabel('AI generated');
 
         addNotification({
           type: 'success',
@@ -144,8 +198,6 @@ export const SegmentCreator = () => {
   const createSegmentMutation = useMutation({
     mutationFn: createSegment,
     onSuccess: async (newSegment) => {
-      console.log('SUCCESS CALLBACK FIRED:', newSegment);
-      
       addNotification({
         type: 'success',
         title: 'Segment Created',
@@ -156,7 +208,6 @@ export const SegmentCreator = () => {
       navigate('/app/segments');
     },
     onError: (error) => {
-      console.error('Create segment failed:', error);
       addNotification({
         type: 'error',
         title: 'Creation Failed',
@@ -234,7 +285,26 @@ export const SegmentCreator = () => {
       label: c.label
     })));
     setPreviewData(null);
+    setSourceLabel(`Template: ${template.name}`);
   };
+
+  useEffect(() => {
+    setIsAIMode(initialMode === 'ai');
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (!initialTemplateId) {
+      return;
+    }
+
+    const template = segmentTemplates.find((entry) => entry.id === initialTemplateId);
+    if (!template) {
+      return;
+    }
+
+    setIsAIMode(false);
+    loadTemplate(template);
+  }, [initialTemplateId]);
 
   const generateAISegment = () => {
     if (!aiPrompt.trim()) {
@@ -298,7 +368,10 @@ export const SegmentCreator = () => {
             </div>
           </button>
           <button
-            onClick={() => setIsAIMode(true)}
+            onClick={() => {
+              setIsAIMode(true);
+              setSourceLabel(null);
+            }}
             className={`group px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
               isAIMode
                 ? 'bg-gradient-to-r from-accent-secondary/30 to-accent-secondary/40 text-accent-secondary border border-accent-secondary/30 shadow-lg'
@@ -362,6 +435,40 @@ export const SegmentCreator = () => {
       ) : (
         /* Enhanced Manual Creation Mode */
         <div className="space-y-8">
+          {/* Enhanced Templates (optional first step) */}
+          <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-text-primary">Start from a template (optional)</h3>
+              <button
+                onClick={() => setSourceLabel(null)}
+                className="text-xs text-text-muted hover:text-text-primary"
+              >
+                Skip
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {segmentTemplates.map((template) => (
+                <button
+                  key={template.id}
+                  onClick={() => loadTemplate(template)}
+                  className="group text-left p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 hover:border-accent-primary/30 hover:bg-accent-primary/10 transition-all duration-200"
+                >
+                  <h4 className="font-semibold text-text-primary group-hover:text-accent-primary transition-colors">
+                    {template.name}
+                  </h4>
+                  <p className="text-sm text-text-muted mt-1">{template.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Source indicator */}
+          {sourceLabel && (
+            <div className="rounded-xl border border-accent-primary/30 bg-accent-primary/10 px-4 py-3 text-sm text-accent-primary">
+              {sourceLabel}
+            </div>
+          )}
+
           {/* Enhanced Basic Information */}
           <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
             <h3 className="text-xl font-semibold text-text-primary mb-6">Basic Information</h3>
@@ -381,7 +488,7 @@ export const SegmentCreator = () => {
                 <label className="text-sm font-medium text-text-secondary">Type:</label>
                 <select
                   value={segmentType}
-                  onChange={(e) => setSegmentType(e.target.value as unknown as SegmentType)}
+                  onChange={(e) => setSegmentType(Number(e.target.value) as SegmentType)}
                   className="px-3 py-2 bg-surface-secondary/50 border border-border-primary/30 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50"
                 >
                   <option value={SegmentType.Behavioral}>Behavioral</option>
@@ -400,25 +507,6 @@ export const SegmentCreator = () => {
                 placeholder="Describe what this segment represents..."
                 className="w-full bg-surface-secondary/50 border border-border-primary/30 rounded-xl px-4 py-3 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all h-20 resize-none"
               />
-            </div>
-          </div>
-
-          {/* Enhanced Templates */}
-          <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 shadow-lg">
-            <h3 className="text-xl font-semibold text-text-primary mb-6">Quick Templates</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {segmentTemplates.map((template) => (
-                <button
-                  key={template.name}
-                  onClick={() => loadTemplate(template)}
-                  className="group text-left p-4 bg-surface-secondary/30 rounded-xl border border-border-primary/30 hover:border-accent-primary/30 hover:bg-accent-primary/10 transition-all duration-200"
-                >
-                  <h4 className="font-semibold text-text-primary group-hover:text-accent-primary transition-colors">
-                    {template.name}
-                  </h4>
-                  <p className="text-sm text-text-muted mt-1">{template.description}</p>
-                </button>
-              ))}
             </div>
           </div>
 
@@ -493,9 +581,11 @@ export const SegmentCreator = () => {
                       <div className="flex items-end">
                         <button
                           onClick={() => removeCriteria(criterion.id)}
-                          className="w-full px-3 py-2 bg-error/20 text-error rounded-lg hover:bg-error/30 transition-colors font-medium"
+                          className="h-10 w-10 rounded-lg border border-border-primary/40 text-text-muted hover:text-error hover:border-error/40 hover:bg-error/10 transition-colors flex items-center justify-center"
+                          title="Remove criterion"
+                          aria-label="Remove criterion"
                         >
-                          Remove
+                          <X className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
@@ -511,7 +601,7 @@ export const SegmentCreator = () => {
               <p className="font-medium">Validation Error</p>
               <p className="text-sm mt-1">{previewError}</p>
               <p className="text-xs mt-2 text-error-muted">
-                Supported fields: fullname, email, company, age, mrr, ltv, churn_risk, login_frequency, feature_usage, lifecycle_stage, country, and more.
+                Supported fields include fullname, email, company, country, age, mrr, ltv, churn_risk, login_frequency, feature_usage, open_tickets, csat, and failed_payments.
               </p>
             </div>
           )}

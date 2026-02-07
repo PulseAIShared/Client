@@ -6,6 +6,7 @@ import { CriteriaOperator, SegmentStatus, SegmentType } from '@/types/api';
 import { Input, Textarea } from '@/components/ui/form';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
+import { X } from 'lucide-react';
 
 type EditableCriteria = {
   id: string;
@@ -14,6 +15,30 @@ type EditableCriteria = {
   value: string;
   label: string;
 };
+
+const editableFieldOptions = [
+  'fullname',
+  'email',
+  'company',
+  'job_title',
+  'country',
+  'location',
+  'industry',
+  'lifecycle_stage',
+  'plan_type',
+  'payment_status',
+  'age',
+  'mrr',
+  'ltv',
+  'churn_risk',
+  'login_frequency',
+  'feature_usage',
+  'engagement_score',
+  'deal_count',
+  'open_tickets',
+  'csat',
+  'failed_payments',
+];
 
 export const SegmentEditRoute: React.FC = () => {
   const navigate = useNavigate();
@@ -282,11 +307,17 @@ export const SegmentEditRoute: React.FC = () => {
                 <div key={c.id} className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-surface-secondary/30 p-4 rounded-xl border border-border-primary/30">
                   <div>
                     <label className="block text-text-primary font-medium mb-2">Field</label>
-                    <input
+                    <select
                       className="w-full bg-surface-primary/50 border border-border-primary/30 rounded-lg px-3 py-2 text-text-primary"
                       value={c.field}
                       onChange={(e) => updateCriterion(c.id, { field: e.target.value })}
-                    />
+                    >
+                      {editableFieldOptions.map((fieldOption) => (
+                        <option key={fieldOption} value={fieldOption}>
+                          {fieldOption}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-text-primary font-medium mb-2">Operator</label>
@@ -315,9 +346,11 @@ export const SegmentEditRoute: React.FC = () => {
                   <div className="flex items-end">
                     <button
                       onClick={() => removeCriterion(c.id)}
-                      className="w-full px-3 py-2 bg-error/20 text-error rounded-lg hover:bg-error/30"
+                      className="h-10 w-10 rounded-lg border border-border-primary/40 text-text-muted hover:text-error hover:border-error/40 hover:bg-error/10 transition-colors flex items-center justify-center"
+                      title="Remove criterion"
+                      aria-label="Remove criterion"
                     >
-                      Remove
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                 </div>

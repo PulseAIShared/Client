@@ -119,67 +119,33 @@ export const createSegment = async (data: {
     criteria: data.criteria
   };
   
-  try {
-    const response = await api.post('/segments', request);
-    console.log('RAW API RESPONSE:', response);
-    
-    // Handle empty response from 201 Created - segment was created successfully
-    if (!response || (typeof response === 'string' && response === "") || response === null || response === undefined) {
-      console.log('Empty response from server, segment created successfully');
-      // Return a mock segment object for the UI
-      return {
-        id: Date.now().toString(), // Temporary ID
-        name: data.name,
-        description: data.description,
-        criteria: data.criteria.map(c => ({
-          field: c.field,
-          operator: c.operator as unknown as 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in' | 'not_in',
-          value: c.value,
-          label: c.label
-        })),
-        customerCount: 0,
-        churnRate: 0,
-        avgLTV: 0,
-        avgRevenue: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        status: 'active' as const,
-        type: data.type as any,
-        color: data.color
-      };
-    }
-    
-    // If we get actual data, transform it
-    if (response && typeof response === 'object') {
-      return transformSegmentResponse(response as unknown as SegmentResponse);
-    }
-    
-    // Fallback for unexpected response
-    console.warn('Unexpected response format:', response);
-    return {
-      id: Date.now().toString(),
-      name: data.name,
-      description: data.description,
-      criteria: data.criteria.map(c => ({
-        field: c.field,
-        operator: c.operator as unknown as 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in' | 'not_in',
-        value: c.value,
-        label: c.label
-      })),
-      customerCount: 0,
-      churnRate: 0,
-      avgLTV: 0,
-      avgRevenue: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'active' as const,
-      type: data.type as any,
-      color: data.color
-    };
-  } catch (error) {
-    console.error('Create segment error:', error);
-    throw error;
+  const response = await api.post('/segments', request) as SegmentResponse | undefined;
+
+  if (response && typeof response === 'object') {
+    return transformSegmentResponse(response);
   }
+
+  // Defensive fallback for unusual empty-body responses.
+  return {
+    id: Date.now().toString(),
+    name: data.name,
+    description: data.description,
+    criteria: data.criteria.map(c => ({
+      field: c.field,
+      operator: c.operator as unknown as 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'in' | 'not_in',
+      value: c.value,
+      label: c.label
+    })),
+    customerCount: 0,
+    churnRate: 0,
+    avgLTV: 0,
+    avgRevenue: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    status: 'active' as const,
+    type: data.type as any,
+    color: data.color
+  };
 };
 
 type UseCreateSegmentOptions = {
@@ -293,8 +259,7 @@ export const generateSegmentFromPrompt = async (data: {
     prompt: data.prompt
   };
 
-  const response = await api.post<GeneratedSegmentDto>('/segments/ai/generate', request);
-  return response.data;
+  return await api.post('/segments/ai/generate', request) as GeneratedSegmentDto;
 };
 
 type UseGenerateSegmentFromPromptOptions = {

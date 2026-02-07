@@ -1,38 +1,32 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 
 export const GettingStarted = () => {
   return (
     <div className="space-y-8">
-      {/* Main welcome card */}
       <div className="relative bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 backdrop-blur-lg p-8 rounded-2xl border border-accent-primary/30 shadow-xl overflow-hidden">
-        {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 25% 25%, rgb(var(--accent-secondary)) 0%, transparent 50%), 
-                             radial-gradient(circle at 75% 75%, rgb(var(--accent-primary)) 0%, transparent 50%)`,
-          }}></div>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 25% 25%, rgb(var(--accent-secondary)) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgb(var(--accent-primary)) 0%, transparent 50%)',
+            }}
+          />
         </div>
 
         <div className="relative text-center">
-
-
           <h1 className="text-4xl font-bold text-text-primary mb-4">
             Ready to predict and prevent churn?
           </h1>
           <p className="text-xl text-text-secondary mb-8 max-w-2xl mx-auto">
-            Get started by importing your customer data or connecting your integrations to unlock powerful AI-driven insights.
+            Connect your integrations to unify billing, product, CRM, and support data for accurate churn insights.
           </p>
         </div>
       </div>
 
-      {/* Action cards grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Import customers card */}
-        <Link 
-          to="/app/customers"
-          className="group block"
-        >
+        <Link to="/app/integrations" className="group block">
           <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl hover:border-accent-primary/50 transition-all duration-300 h-full">
             <div className="flex items-start gap-4 mb-4">
               <div className="p-3 bg-gradient-to-r from-accent-primary to-info rounded-xl">
@@ -42,43 +36,39 @@ export const GettingStarted = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-text-primary mb-2 group-hover:text-accent-primary transition-colors">
-                  Import Customer Data
+                  Connect Billing Data
                 </h3>
                 <p className="text-text-muted text-sm mb-4">
-                  Upload CSV files with your customer information to get started with churn analysis.
+                  Start with Stripe to bring in MRR, failed payments, and lifecycle signals automatically.
                 </p>
               </div>
             </div>
-            
+
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-3 text-text-secondary text-sm">
-                <div className="w-1.5 h-1.5 bg-accent-primary rounded-full"></div>
-                <span>CSV upload with guided mapping</span>
+                <div className="w-1.5 h-1.5 bg-accent-primary rounded-full" />
+                <span>Subscription and invoice status tracking</span>
               </div>
               <div className="flex items-center gap-3 text-text-secondary text-sm">
-                <div className="w-1.5 h-1.5 bg-info-muted rounded-full"></div>
-                <span>Automatic data validation</span>
+                <div className="w-1.5 h-1.5 bg-info-muted rounded-full" />
+                <span>Automatic MRR and LTV enrichment</span>
               </div>
               <div className="flex items-center gap-3 text-text-secondary text-sm">
-                <div className="w-1.5 h-1.5 bg-success-muted rounded-full"></div>
-                <span>Sample template provided</span>
+                <div className="w-1.5 h-1.5 bg-success-muted rounded-full" />
+                <span>No manual files or mapping needed</span>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <span className="text-accent-primary font-medium group-hover:text-accent-primary/80 transition-colors">
-                Get Started →
+                Connect Stripe -&gt;
               </span>
-              <div className="text-xs text-text-muted">Recommended</div>
+              <div className="text-xs text-text-muted">Start here</div>
             </div>
           </div>
         </Link>
 
-        {/* Connect integrations card */}
-        <Link 
-          to="/app/settings"
-          className="group block"
-        >
+        <Link to="/app/integrations" className="group block">
           <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg hover:shadow-xl hover:border-success/50 transition-all duration-300 h-full">
             <div className="flex items-start gap-4 mb-4">
               <div className="p-3 bg-gradient-to-r from-success-bg to-success rounded-xl">
@@ -88,40 +78,39 @@ export const GettingStarted = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-text-primary mb-2 group-hover:text-success-muted transition-colors">
-                  Connect Integrations
+                  Connect Product and CRM Data
                 </h3>
                 <p className="text-text-muted text-sm mb-4">
-                  Sync data automatically from HubSpot, Stripe, and other platforms.
+                  Add HubSpot, PostHog, and support tools to complete each customer&apos;s risk profile.
                 </p>
               </div>
             </div>
-            
+
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-3 text-text-secondary text-sm">
-                <div className="w-1.5 h-1.5 bg-success-muted rounded-full"></div>
-                <span>Real-time data synchronization</span>
+                <div className="w-1.5 h-1.5 bg-success-muted rounded-full" />
+                <span>Behavior and engagement signals</span>
               </div>
               <div className="flex items-center gap-3 text-text-secondary text-sm">
-                <div className="w-1.5 h-1.5 bg-success rounded-full"></div>
-                <span>Multiple platform support</span>
+                <div className="w-1.5 h-1.5 bg-success rounded-full" />
+                <span>Company and lifecycle context</span>
               </div>
               <div className="flex items-center gap-3 text-text-secondary text-sm">
-                <div className="w-1.5 h-1.5 bg-accent-primary rounded-full"></div>
-                <span>Automated data mapping</span>
+                <div className="w-1.5 h-1.5 bg-accent-primary rounded-full" />
+                <span>Unified customer timeline</span>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <span className="text-success-muted font-medium group-hover:text-success transition-colors">
-                Setup Now →
+                Connect More Sources -&gt;
               </span>
-              <div className="text-xs text-text-muted">Advanced</div>
+              <div className="text-xs text-text-muted">Recommended</div>
             </div>
           </div>
         </Link>
       </div>
 
-      {/* What's next section */}
       <div className="bg-surface-secondary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg">
         <div className="flex items-start gap-4 mb-6">
           <div className="p-3 bg-gradient-to-r from-accent-secondary to-accent-secondary rounded-xl">
@@ -132,7 +121,7 @@ export const GettingStarted = () => {
           <div className="flex-1">
             <h3 className="text-xl font-semibold text-text-primary mb-2">What happens next?</h3>
             <p className="text-text-muted text-sm mb-6">
-              Once you have customer data in PulseLTV, you'll unlock powerful features for retention and growth.
+              Once integrations are connected, PulseLTV starts scoring risk and surfacing the best actions to prevent churn.
             </p>
           </div>
         </div>
@@ -182,18 +171,16 @@ export const GettingStarted = () => {
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-border-primary/50">
-          <Link 
+          <Link
             to="/app/docs/getting-started"
             className="inline-flex items-center gap-2 text-sm text-accent-primary hover:text-accent-primary/80 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332-.477-4.5 1.253" />
             </svg>
             View Complete Setup Guide
           </Link>
-          <div className="text-xs text-text-muted">
-            Take the full tour →
-          </div>
+          <div className="text-xs text-text-muted">Take the full tour -&gt;</div>
         </div>
       </div>
     </div>

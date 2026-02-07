@@ -99,7 +99,7 @@ export const PlaybookRowActions: React.FC<Props> = ({ id, status }) => {
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/app/playbooks/${id}`);
+    navigate(`/app/playbooks/${id}/edit`);
   };
 
   const handleActivate = async (e: React.MouseEvent) => {
