@@ -1,6 +1,7 @@
 import {
   useFormContext,
 } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 import { FormSection } from '@/components/ui/form-section';
 import { ActionType } from '@/types/playbooks';
 import { formatEnumLabel } from '@/features/playbooks/utils';
@@ -12,6 +13,10 @@ import { PlaybookFieldRecommendation } from '@/types/playbooks';
 import { ActionConfigFields } from './action-config-fields';
 import { RecommendationHint } from './recommendation-hint';
 import { useMemo } from 'react';
+import {
+  getActionTypeIntegrationKey,
+  IntegrationBadgeIcon,
+} from './integration-visuals';
 
 export type ActionChannelOption = {
   key: string;
@@ -19,6 +24,9 @@ export type ActionChannelOption = {
   actionType: ActionType;
   isAvailable: boolean;
   unavailableReason?: string;
+  providerKey?: string;
+  status?: string;
+  integrationId?: string | null;
 };
 
 type ActionsStepProps = {
@@ -104,19 +112,32 @@ export const ActionsStep = ({
     selectedActionTypeSet.has(option.actionType),
   );
 
+  const getActionDescription = (
+    actionType: ActionType,
+  ) =>
+    formatEnumLabel(actionType, [
+      'Retry failed Stripe payment',
+      'Send Slack alert',
+      'Create CRM follow-up task',
+      'Trigger HubSpot workflow',
+      'Send email',
+      'Call outbound webhook',
+    ]);
+
   return (
     <FormSection
       title="Actions"
-      description="Choose channels and configure what should happen when this playbook triggers."
+      description="Choose action channels and configure what should happen when this playbook triggers."
     >
       <div className="space-y-3 rounded-xl border border-border-primary/30 p-4 bg-surface-secondary/30">
         <div>
           <h3 className="text-sm font-semibold text-text-primary">
-            Channels
+            Action channels
           </h3>
           <p className="text-xs text-text-muted mt-1">
-            Integration-backed channels are available once
-            connected.
+            Webhook is always available. Integration-backed
+            channels (including Email sender channels) are
+            available once connected.
           </p>
         </div>
 
@@ -126,13 +147,21 @@ export const ActionsStep = ({
               selectedActionTypeSet.has(option.actionType);
             const canToggleOn =
               option.isAvailable || isSelected;
+            const providerKey =
+              option.providerKey ??
+              getActionTypeIntegrationKey(
+                option.actionType,
+              );
+            const statusLabel = option.isAvailable
+              ? 'Connected'
+              : 'Connect required';
 
             return (
               <label
                 key={option.key}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                className={`group flex gap-3 rounded-xl border px-3 py-3 text-sm transition-all ${
                   canToggleOn
-                    ? 'border-border-primary/30 bg-surface-primary/60 text-text-primary'
+                    ? 'border-border-primary/30 bg-surface-primary/60 text-text-primary hover:border-accent-primary/40 hover:bg-surface-secondary/40'
                     : 'border-border-primary/20 bg-surface-primary/30 text-text-muted'
                 }`}
               >
@@ -146,14 +175,45 @@ export const ActionsStep = ({
                       event.target.checked,
                     )
                   }
-                  className="h-4 w-4 rounded border-border-primary/40"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-border-primary/40"
                 />
-                <span>{option.label}</span>
-                {!option.isAvailable && !isSelected && (
-                  <span className="ml-auto text-[11px] text-text-muted">
-                    Connect first
-                  </span>
-                )}
+                <IntegrationBadgeIcon
+                  integration={providerKey}
+                  size="sm"
+                  className={
+                    canToggleOn
+                      ? ''
+                      : 'opacity-70'
+                  }
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-text-primary">
+                      {option.label}
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
+                        option.isAvailable
+                          ? 'border-success/40 bg-success/10 text-success'
+                          : 'border-border-primary/35 bg-surface-secondary/50 text-text-muted'
+                      }`}
+                    >
+                      {statusLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-text-muted">
+                    {getActionDescription(
+                      option.actionType,
+                    )}
+                  </p>
+                  {!option.isAvailable &&
+                    !isSelected && (
+                      <p className="mt-1 text-[11px] text-text-muted">
+                        {option.unavailableReason ??
+                          'Connect this channel in Integrations before enabling it here.'}
+                      </p>
+                    )}
+                </div>
               </label>
             );
           })}
@@ -163,8 +223,14 @@ export const ActionsStep = ({
           (option) => !option.isAvailable,
         ) && (
           <p className="text-xs text-text-muted">
-            Some channels are unavailable because required
-            integrations are not connected.
+            Some action channels are unavailable because their
+            channel connection is not active.{' '}
+            <Link
+              to="/app/integrations?capability=action_channel"
+              className="text-accent-primary hover:underline"
+            >
+              Manage action channels
+            </Link>
           </p>
         )}
       </div>
@@ -207,20 +273,26 @@ export const ActionsStep = ({
               key={channel.key}
               className="rounded-xl border border-border-primary/30 p-4 bg-surface-secondary/40"
             >
-              <div className="mb-3">
-                <div className="text-sm font-medium text-text-secondary">
-                  {channel.label}
+              <div className="mb-3 flex items-start gap-3">
+                <IntegrationBadgeIcon
+                  integration={
+                    channel.providerKey ??
+                    getActionTypeIntegrationKey(
+                      channel.actionType,
+                    )
+                  }
+                  size="sm"
+                />
+                <div>
+                  <div className="text-sm font-medium text-text-secondary">
+                    {channel.label}
+                  </div>
+                  <p className="text-xs text-text-muted mt-1">
+                    {getActionDescription(
+                      channel.actionType,
+                    )}
+                  </p>
                 </div>
-                <p className="text-xs text-text-muted mt-1">
-                  {formatEnumLabel(channel.actionType, [
-                    'Stripe Retry',
-                    'Slack Alert',
-                    'CRM Task',
-                    'HubSpot Workflow',
-                    'Email',
-                    'Webhook',
-                  ])}
-                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">

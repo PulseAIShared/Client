@@ -45,7 +45,7 @@ export const CampaignCreateRoute = () => {
     },
   });
 
-  // Fetch sender profiles (email settings)
+  // Fetch sender profiles (managed from Integrations action channels)
   const { data: senderProfiles = [], isLoading: senderProfilesLoading } = useQuery({
     queryKey: ['email', 'senders'],
     queryFn: async () => {
@@ -75,7 +75,7 @@ export const CampaignCreateRoute = () => {
       return;
     }
     if (!hasSenderProfiles || !formData.senderProfileId) {
-      alert('Please set up an email sender in Settings and select a sender profile before creating a campaign.');
+      alert('Please set up an email sender in Integrations and select a sender profile before creating a campaign.');
       return;
     }
     if (!formData.content.trim()) {
@@ -170,7 +170,7 @@ The PulseLTV Team`,
               <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 rounded-full blur-xl animate-pulse"></div>
             </div>
             <p className="text-text-secondary font-medium">Loading campaign builder...</p>
-            <p className="text-text-muted text-sm">Preparing segments and email settings</p>
+            <p className="text-text-muted text-sm">Preparing segments and email sender profiles</p>
           </div>
         </div>
       </ContentLayout>
@@ -279,7 +279,7 @@ The PulseLTV Team`,
                   </select>
                 </div>
                 <div className="text-sm text-text-muted self-end">
-                  Changes to sender profiles can be managed in Settings.
+                  Changes to sender profiles can be managed in Integrations.
                 </div>
               </div>
             ) : (
@@ -292,10 +292,10 @@ The PulseLTV Team`,
                     <div className="font-medium text-text-primary mb-1">Email sending not configured</div>
                     <div className="text-text-muted mb-3">You need to create a sender profile before sending campaigns.</div>
                     <a
-                      href="/app/settings?tab=account"
+                      href="/app/integrations?capability=action_channel"
                       className="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-accent-primary to-accent-secondary text-white font-semibold hover:shadow-lg hover:shadow-accent-secondary/25 transition-all"
                     >
-                      Go to Settings → Account
+                      Go to Integrations
                     </a>
                   </div>
                 </div>

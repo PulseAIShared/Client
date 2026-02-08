@@ -369,6 +369,13 @@ export const createAppRouter = () =>
           return { Component: PostHogOAuthCallback };
         },
       },
+      {
+        path: 'oauth/slack/callback',
+        lazy: async () => {
+          const { SlackOAuthCallback } = await import('../features/settings/components/slack-oauth-callback');
+          return { Component: SlackOAuthCallback };
+        },
+      },
           ],
         },
         {

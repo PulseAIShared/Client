@@ -159,6 +159,19 @@ export interface PlaybookConfidenceRecommendation {
   eligibleCustomersByConfidence: ConfidenceEligibilityDistribution;
 }
 
+export interface PlaybookActionChannel {
+  key: string;
+  label: string;
+  actionType: ActionType | string;
+  isConnected: boolean;
+  status: string;
+  integrationId?: string | null;
+}
+
+export interface PlaybookActionChannelsResponse {
+  channels: PlaybookActionChannel[];
+}
+
 export interface PlaybookFieldRecommendation {
   fieldKey: string;
   recommendedValue: string;

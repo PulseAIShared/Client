@@ -67,12 +67,15 @@ export const defaultSourcesForSignal = (
 
 export type ActionConfigState = {
   webhookUrl?: string;
+  webhookMethod?: string;
+  webhookBody?: string;
   channel?: string;
   username?: string;
   iconEmoji?: string;
   messageTemplate?: string;
   subject?: string;
   body?: string;
+  senderProfileId?: string;
   dueDays?: string;
   assignToOwnerId?: string;
   rawJson?: string;
@@ -86,8 +89,8 @@ export const defaultActionConfig = (
       return {
         webhookUrl: '',
         channel: '',
-        username: 'PulseAI',
-        iconEmoji: ':robot_face:',
+        username: '',
+        iconEmoji: '',
         messageTemplate: '',
       };
     case ActionType.CrmTask:
@@ -96,6 +99,18 @@ export const defaultActionConfig = (
         body: '',
         dueDays: '',
         assignToOwnerId: '',
+      };
+    case ActionType.Email:
+      return {
+        subject: '',
+        body: '',
+        senderProfileId: '',
+      };
+    case ActionType.Webhook:
+      return {
+        webhookUrl: '',
+        webhookMethod: 'POST',
+        webhookBody: '',
       };
     case ActionType.StripeRetry:
       return {};
@@ -168,6 +183,30 @@ export const parseActionConfigJson = (
     };
   }
 
+  if (actionType === ActionType.Email) {
+    return {
+      subject: toStringOrEmpty(parsedObject.subject),
+      body: toStringOrEmpty(parsedObject.body),
+      senderProfileId: toStringOrEmpty(
+        parsedObject.senderProfileId,
+      ),
+    };
+  }
+
+  if (actionType === ActionType.Webhook) {
+    return {
+      webhookUrl: toStringOrEmpty(
+        parsedObject.url ?? parsedObject.webhookUrl,
+      ),
+      webhookMethod:
+        toStringOrEmpty(parsedObject.method) ||
+        'POST',
+      webhookBody: toStringOrEmpty(
+        parsedObject.body ?? parsedObject.bodyTemplate,
+      ),
+    };
+  }
+
   return {
     rawJson: configJson,
   };
@@ -224,12 +263,15 @@ const executionSchema = z.object({
 
 const actionConfigSchema = z.object({
   webhookUrl: z.string().optional().or(z.literal('')),
+  webhookMethod: z.string().optional().or(z.literal('')),
+  webhookBody: z.string().optional().or(z.literal('')),
   channel: z.string().optional().or(z.literal('')),
   username: z.string().optional().or(z.literal('')),
   iconEmoji: z.string().optional().or(z.literal('')),
   messageTemplate: z.string().optional().or(z.literal('')),
   subject: z.string().optional().or(z.literal('')),
   body: z.string().optional().or(z.literal('')),
+  senderProfileId: z.string().optional().or(z.literal('')),
   dueDays: z.string().optional().or(z.literal('')),
   assignToOwnerId: z.string().optional().or(z.literal('')),
   rawJson: z.string().optional().or(z.literal('')),
@@ -243,11 +285,44 @@ const actionItemSchema = z
   .superRefine((action, ctx) => {
     if (
       action.actionType === ActionType.SlackAlert &&
+      !action.config.channel?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Slack channel is required',
+        path: ['config', 'channel'],
+      });
+    }
+
+    if (
+      action.actionType === ActionType.Email &&
+      !action.config.subject?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Email subject is required',
+        path: ['config', 'subject'],
+      });
+    }
+
+    if (
+      action.actionType === ActionType.Email &&
+      !action.config.body?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Email body is required',
+        path: ['config', 'body'],
+      });
+    }
+
+    if (
+      action.actionType === ActionType.Webhook &&
       !action.config.webhookUrl?.trim()
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Slack webhook URL is required',
+        message: 'Webhook URL is required',
         path: ['config', 'webhookUrl'],
       });
     }
@@ -402,6 +477,45 @@ const buildActionConfigJson = (action: {
       dueDays: parseNumber(action.config.dueDays ?? ''),
       assignToOwnerId:
         action.config.assignToOwnerId?.trim() ||
+        undefined,
+    };
+    return JSON.stringify(
+      Object.fromEntries(
+        Object.entries(config).filter(
+          ([, value]) => value !== undefined,
+        ),
+      ),
+    );
+  }
+
+  if (action.actionType === ActionType.Email) {
+    const config: Record<string, unknown> = {
+      subject:
+        action.config.subject?.trim() || undefined,
+      body: action.config.body?.trim() || undefined,
+      senderProfileId:
+        action.config.senderProfileId?.trim() ||
+        undefined,
+    };
+    return JSON.stringify(
+      Object.fromEntries(
+        Object.entries(config).filter(
+          ([, value]) => value !== undefined,
+        ),
+      ),
+    );
+  }
+
+  if (action.actionType === ActionType.Webhook) {
+    const method =
+      action.config.webhookMethod?.trim().toUpperCase() ||
+      'POST';
+    const config: Record<string, unknown> = {
+      url:
+        action.config.webhookUrl?.trim() || undefined,
+      method,
+      body:
+        action.config.webhookBody?.trim() ||
         undefined,
     };
     return JSON.stringify(

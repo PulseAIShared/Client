@@ -11,6 +11,11 @@ import {
 } from '@/features/playbooks/schemas/playbook-form-schema';
 import type { PlaybookFormValues } from '@/features/playbooks/schemas/playbook-form-schema';
 import { Pencil } from 'lucide-react';
+import {
+  formatIntegrationLabel,
+  getActionTypeIntegrationKey,
+  IntegrationBadgeIcon,
+} from './integration-visuals';
 
 type ReviewStepProps = {
   onEditStep: (step: number) => void;
@@ -66,7 +71,7 @@ export const ReviewStep = ({
     values.requiredSources,
   )
     .filter(([, v]) => v)
-    .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1));
+    .map(([k]) => k);
 
   return (
     <div className="space-y-6">
@@ -148,9 +153,25 @@ export const ReviewStep = ({
             </ReviewRow>
           )}
           <ReviewRow label="Required data sources">
-            {activeSources.length > 0
-              ? activeSources.join(', ')
-              : 'None'}
+            {activeSources.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {activeSources.map((source) => (
+                  <span
+                    key={source}
+                    className="inline-flex items-center gap-2 rounded-full border border-border-primary/35 bg-surface-secondary/60 px-2.5 py-1 text-xs text-text-primary"
+                  >
+                    <IntegrationBadgeIcon
+                      integration={source}
+                      size="sm"
+                      className="h-5 w-5 rounded-md"
+                    />
+                    {formatIntegrationLabel(source)}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              'None'
+            )}
           </ReviewRow>
           <ReviewRow label="Target segments">
             {values.targetSegmentIds.length > 0
@@ -223,6 +244,11 @@ export const ReviewStep = ({
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-primary/10 text-xs font-semibold text-accent-primary">
                   {index + 1}
                 </span>
+                <IntegrationBadgeIcon
+                  integration={getActionTypeIntegrationKey(Number(action.actionType))}
+                  size="sm"
+                  className="h-7 w-7 rounded-lg"
+                />
                 <div>
                   <div className="text-sm font-medium text-text-primary">
                     {typeLabel}

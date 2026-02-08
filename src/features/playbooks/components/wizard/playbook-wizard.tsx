@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Stepper } from '@/components/ui/stepper';
 import {
   useCreatePlaybook,
+  useGetPlaybookActionChannels,
   useGetPlaybookConnectedIntegrations,
   useRecommendPlaybookBlueprintMutation,
   useTrackPlaybookRecommendationOverride,
@@ -44,6 +45,10 @@ import { ReviewStep } from './review-step';
 import { WizardFooter } from './wizard-footer';
 import { CreationModeSelector } from './creation-mode-selector';
 import { DetectedIntegrations } from './detected-integrations';
+import {
+  getActionTypeIntegrationKey,
+  normalizeIntegrationKey,
+} from './integration-visuals';
 
 const goalOptions = [
   {
@@ -103,7 +108,7 @@ type PlaybookActionChannel = Omit<
   requiredProvider?: string;
 };
 
-const actionChannels: PlaybookActionChannel[] = [
+const defaultActionChannels: PlaybookActionChannel[] = [
   {
     key: 'stripe',
     label: 'Stripe',
@@ -114,6 +119,7 @@ const actionChannels: PlaybookActionChannel[] = [
     key: 'slack',
     label: 'Slack',
     actionType: ActionType.SlackAlert,
+    requiredProvider: 'slack',
   },
   {
     key: 'hubspot',
@@ -132,6 +138,51 @@ const actionChannels: PlaybookActionChannel[] = [
     actionType: ActionType.Webhook,
   },
 ];
+
+const parseActionTypeValue = (
+  value: unknown,
+): ActionType | null => {
+  if (
+    typeof value === 'number' &&
+    ActionType[value] !== undefined
+  ) {
+    return value as ActionType;
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  if (
+    Number.isFinite(numericValue) &&
+    ActionType[numericValue] !== undefined
+  ) {
+    return numericValue as ActionType;
+  }
+
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[_\-\s]+/g, '');
+
+  switch (normalized) {
+    case 'striperetry':
+      return ActionType.StripeRetry;
+    case 'slackalert':
+      return ActionType.SlackAlert;
+    case 'crmtask':
+      return ActionType.CrmTask;
+    case 'hubspotworkflow':
+      return ActionType.HubspotWorkflow;
+    case 'email':
+      return ActionType.Email;
+    case 'webhook':
+      return ActionType.Webhook;
+    default:
+      return null;
+  }
+};
 
 const assistantInputClass =
   'w-full px-4 py-3 bg-surface-secondary/50 border border-border-primary/30 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200';
@@ -316,6 +367,10 @@ export const PlaybookWizard = () => {
     useRecommendPlaybookBlueprintMutation();
   const trackOverrideMutation =
     useTrackPlaybookRecommendationOverride();
+  const {
+    data: actionChannelsData,
+    isSuccess: isActionChannelsSuccess,
+  } = useGetPlaybookActionChannels();
   const { data: connectedIntegrationsData } =
     useGetPlaybookConnectedIntegrations();
 
@@ -375,29 +430,111 @@ export const PlaybookWizard = () => {
     [connectedIntegrationsData],
   );
 
+  const apiActionChannels = useMemo(
+    () => actionChannelsData?.channels ?? [],
+    [actionChannelsData],
+  );
+
+  const hasApiActionChannels =
+    isActionChannelsSuccess &&
+    apiActionChannels.length > 0;
+
   const actionChannelOptions = useMemo<
     ActionChannelOption[]
-  >(
-    () =>
-      actionChannels.map((channel) => {
-        const isAvailable = channel.requiredProvider
-          ? connectedProviders.includes(
-              channel.requiredProvider,
-            )
-          : true;
+  >(() => {
+    const baseChannelsByKey = new Map(
+      defaultActionChannels.map((channel) => [
+        channel.key.toLowerCase(),
+        channel,
+      ]),
+    );
 
-        return {
-          key: channel.key,
-          label: channel.label,
-          actionType: channel.actionType,
+    const apiChannelsByKey = new Map(
+      apiActionChannels.map((channel) => [
+        String(channel.key).toLowerCase(),
+        channel,
+      ]),
+    );
+
+    const orderedKeys = [
+      ...defaultActionChannels.map((channel) =>
+        channel.key.toLowerCase(),
+      ),
+      ...apiActionChannels
+        .map((channel) =>
+          String(channel.key).toLowerCase(),
+        )
+        .filter(
+          (key) => !baseChannelsByKey.has(key),
+        ),
+    ];
+
+    return orderedKeys.flatMap((key) => {
+      const baseChannel = baseChannelsByKey.get(key);
+      const apiChannel = apiChannelsByKey.get(key);
+      const resolvedActionType =
+        parseActionTypeValue(apiChannel?.actionType) ??
+        baseChannel?.actionType ??
+        null;
+
+      if (resolvedActionType === null) {
+        return [];
+      }
+
+      const isAvailable =
+        hasApiActionChannels && apiChannel
+          ? Boolean(apiChannel.isConnected)
+          : baseChannel?.requiredProvider
+            ? connectedProviders.includes(
+                baseChannel.requiredProvider,
+              )
+            : true;
+
+      const label =
+        apiChannel?.label ??
+        baseChannel?.label ??
+        key.toUpperCase();
+      const providerKey =
+        normalizeIntegrationKey(
+          String(
+            apiChannel?.key ??
+              baseChannel?.key ??
+              '',
+          ),
+        ) ||
+        getActionTypeIntegrationKey(
+          resolvedActionType,
+        );
+
+      const unavailableReason = isAvailable
+        ? undefined
+        : apiChannel?.status
+          ? `${label} channel status is ${apiChannel.status}.`
+          : `${label} action channel is not connected.`;
+
+      return [
+        {
+          key: apiChannel?.key ?? baseChannel?.key ?? key,
+          label,
+          actionType: resolvedActionType,
           isAvailable,
-          unavailableReason: channel.requiredProvider
-            ? `${channel.label} requires a connected ${channel.label} integration.`
-            : undefined,
-        };
-      }),
-    [connectedProviders],
-  );
+          unavailableReason,
+          providerKey,
+          status:
+            apiChannel?.status ??
+            (isAvailable
+              ? 'Connected'
+              : 'Not connected'),
+          integrationId:
+            apiChannel?.integrationId ?? null,
+        },
+      ];
+    });
+  }, [
+    apiActionChannels,
+    connectedProviders,
+    hasApiActionChannels,
+  ]);
 
   useEffect(() => {
     if (

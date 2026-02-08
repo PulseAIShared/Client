@@ -35,30 +35,30 @@ export const ActionConfigFields = ({
         <div>
           <input
             {...register(
-              `actions.${index}.config.webhookUrl`,
+              `actions.${index}.config.channel`,
             )}
-            placeholder="Slack webhook URL"
+            placeholder="#support-alerts or @owner"
             className={inputClass}
           />
-          {actionErrors?.webhookUrl && (
+          {actionErrors?.channel && (
             <p className="mt-1.5 text-xs font-medium text-error">
-              {actionErrors.webhookUrl.message}
+              {actionErrors.channel.message}
             </p>
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <input
             {...register(
-              `actions.${index}.config.channel`,
+              `actions.${index}.config.messageTemplate`,
             )}
-            placeholder="#support or @owner"
+            placeholder="Message template (optional)"
             className={inputClass}
           />
           <input
             {...register(
               `actions.${index}.config.username`,
             )}
-            placeholder="Bot name"
+            placeholder="Display name (optional)"
             className={inputClass}
           />
         </div>
@@ -67,20 +67,22 @@ export const ActionConfigFields = ({
             {...register(
               `actions.${index}.config.iconEmoji`,
             )}
-            placeholder=":robot_face:"
+            placeholder="Icon emoji (optional)"
             className={inputClass}
           />
           <input
             {...register(
-              `actions.${index}.config.messageTemplate`,
+              `actions.${index}.config.webhookUrl`,
             )}
-            placeholder="Message template"
+            placeholder="Webhook override URL (optional)"
             className={inputClass}
           />
         </div>
         <p className="text-xs text-text-muted">
-          Use placeholders like {'{signal_type}'} and{' '}
-          {'{reason}'}
+          Uses your connected Slack integration token by
+          default. Add a webhook URL only if you need a
+          specific override. Message template placeholders:{' '}
+          {'{signal_type}'}, {'{reason}'}, {'{customer_id}'}.
         </p>
       </div>
     );
@@ -118,6 +120,94 @@ export const ActionConfigFields = ({
             className={inputClass}
           />
         </div>
+      </div>
+    );
+  }
+
+  if (actionType === ActionType.Email) {
+    return (
+      <div className="space-y-3">
+        <div>
+          <input
+            {...register(`actions.${index}.config.subject`)}
+            placeholder="Email subject"
+            className={inputClass}
+          />
+          {actionErrors?.subject && (
+            <p className="mt-1.5 text-xs font-medium text-error">
+              {actionErrors.subject.message}
+            </p>
+          )}
+        </div>
+        <div>
+          <textarea
+            {...register(`actions.${index}.config.body`)}
+            placeholder="Email body (HTML or plain text)"
+            rows={4}
+            className={inputClass}
+          />
+          {actionErrors?.body && (
+            <p className="mt-1.5 text-xs font-medium text-error">
+              {actionErrors.body.message}
+            </p>
+          )}
+        </div>
+        <input
+          {...register(
+            `actions.${index}.config.senderProfileId`,
+          )}
+          placeholder="Sender profile ID (optional)"
+          className={inputClass}
+        />
+        <p className="text-xs text-text-muted">
+          Optional sender profile ID to force a specific
+          connected sender. Leave blank to use the default
+          connected sender profile.
+        </p>
+      </div>
+    );
+  }
+
+  if (actionType === ActionType.Webhook) {
+    return (
+      <div className="space-y-3">
+        <div>
+          <input
+            {...register(`actions.${index}.config.webhookUrl`)}
+            placeholder="Webhook URL"
+            className={inputClass}
+          />
+          {actionErrors?.webhookUrl && (
+            <p className="mt-1.5 text-xs font-medium text-error">
+              {actionErrors.webhookUrl.message}
+            </p>
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <select
+            {...register(
+              `actions.${index}.config.webhookMethod`,
+            )}
+            className={inputClass}
+            defaultValue="POST"
+          >
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+            <option value="GET">GET</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+          <div className="text-xs text-text-muted flex items-center">
+            Use placeholders like {'{run_id}'} and{' '}
+            {'{reason}'}.
+          </div>
+        </div>
+        <textarea
+          {...register(`actions.${index}.config.webhookBody`)}
+          placeholder="Optional JSON payload template"
+          rows={4}
+          className={`${inputClass} font-mono text-xs`}
+        />
       </div>
     );
   }

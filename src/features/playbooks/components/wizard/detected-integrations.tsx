@@ -1,23 +1,26 @@
 import { Link } from 'react-router-dom';
+import {
+  formatIntegrationLabel,
+  IntegrationBadgeIcon,
+  normalizeIntegrationKey,
+} from './integration-visuals';
 
 type DetectedIntegrationsProps = {
   connectedProviders: string[];
 };
 
-const providerLabelMap: Record<string, string> = {
-  stripe: 'Stripe',
-  hubspot: 'HubSpot',
-  posthog: 'PostHog',
-};
-
-const formatProviderLabel = (provider: string) =>
-  providerLabelMap[provider] ??
-  provider.charAt(0).toUpperCase() + provider.slice(1);
-
 export const DetectedIntegrations = ({
   connectedProviders,
 }: DetectedIntegrationsProps) => {
-  if (connectedProviders.length === 0) {
+  const normalizedProviders = Array.from(
+    new Set(
+      connectedProviders
+        .map(normalizeIntegrationKey)
+        .filter(Boolean),
+    ),
+  );
+
+  if (normalizedProviders.length === 0) {
     return (
       <p className="text-xs text-text-muted">
         No integrations detected. Connect an integration to
@@ -33,21 +36,35 @@ export const DetectedIntegrations = ({
   }
 
   return (
-    <p className="text-xs text-text-muted">
-      Connected integrations:{' '}
-      <span className="text-text-primary">
-        {connectedProviders
-          .map(formatProviderLabel)
-          .join(', ')}
-      </span>{' '}
-      {'\u00B7'}{' '}
-      <Link
-        to="/app/integrations"
-        className="text-accent-primary hover:underline"
-      >
-        Manage
-      </Link>
-    </p>
+    <div className="space-y-2">
+      <div className="text-xs font-medium text-text-secondary">
+        Connected integrations
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {normalizedProviders.map((provider) => (
+          <span
+            key={provider}
+            className="inline-flex items-center gap-2 rounded-full border border-border-primary/35 bg-surface-secondary/60 px-2.5 py-1 text-xs text-text-primary"
+          >
+            <IntegrationBadgeIcon
+              integration={provider}
+              size="sm"
+              className="h-6 w-6 rounded-lg text-[10px]"
+            />
+            {formatIntegrationLabel(provider)}
+          </span>
+        ))}
+      </div>
+      <p className="text-xs text-text-muted">
+        Recommendations use connected integrations as
+        context.{' '}
+        <Link
+          to="/app/integrations"
+          className="text-accent-primary hover:underline"
+        >
+          Manage
+        </Link>
+      </p>
+    </div>
   );
 };
-

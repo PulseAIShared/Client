@@ -19,6 +19,11 @@ import type {
 } from '@/features/playbooks/schemas/playbook-form-schema';
 import { RecommendationHint } from './recommendation-hint';
 import { ImpactPreview } from './impact-preview';
+import {
+  formatIntegrationLabel,
+  IntegrationBadgeIcon,
+  normalizeIntegrationKey,
+} from './integration-visuals';
 
 const inputClass =
   'w-full px-4 py-3 bg-surface-primary/60 border border-border-primary/30 rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/50 transition-all duration-200';
@@ -192,6 +197,26 @@ export const TriggerStep = ({
         (provider) =>
           `Missing company integration: ${provider}`,
       ) ?? [];
+  const recommendedIntegrations = Array.from(
+    new Set(
+      (
+        confidenceRecommendation?.requiredIntegrations ??
+        []
+      )
+        .map(normalizeIntegrationKey)
+        .filter(Boolean),
+    ),
+  );
+  const missingRecommendedIntegrations = Array.from(
+    new Set(
+      (
+        confidenceRecommendation?.missingCompanyIntegrations ??
+        []
+      )
+        .map(normalizeIntegrationKey)
+        .filter(Boolean),
+    ),
+  );
 
   const impactWarnings = [
     ...(impactSummary?.warnings ?? []),
@@ -392,21 +417,59 @@ export const TriggerStep = ({
                     .join(', ')}
                 </div>
                 <div className="text-text-muted text-xs">
-                  Required integrations:{' '}
-                  {confidenceRecommendation.requiredIntegrations
-                    .length > 0
-                    ? confidenceRecommendation.requiredIntegrations.join(
-                        ', ',
-                      )
-                    : 'None'}
+                  <div className="mb-2 text-text-muted text-xs">
+                    Required integrations
+                  </div>
+                  {recommendedIntegrations.length >
+                  0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {recommendedIntegrations.map(
+                        (provider) => (
+                          <span
+                            key={provider}
+                            className="inline-flex items-center gap-2 rounded-full border border-border-primary/35 bg-surface-primary/70 px-2.5 py-1 text-[11px] text-text-primary"
+                          >
+                            <IntegrationBadgeIcon
+                              integration={provider}
+                              size="sm"
+                              className="h-5 w-5 rounded-md"
+                            />
+                            {formatIntegrationLabel(
+                              provider,
+                            )}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    'None'
+                  )}
                 </div>
                 {confidenceRecommendation
                   .missingCompanyIntegrations.length > 0 && (
                   <div className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-warning text-xs">
-                    Missing integrations for this company:{' '}
-                    {confidenceRecommendation.missingCompanyIntegrations.join(
-                      ', ',
-                    )}
+                    <div className="mb-2 text-[11px] font-medium uppercase tracking-wide text-warning">
+                      Missing integrations for this company
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {missingRecommendedIntegrations.map(
+                        (provider) => (
+                          <span
+                            key={provider}
+                            className="inline-flex items-center gap-2 rounded-full border border-warning/35 bg-warning/10 px-2.5 py-1 text-[11px] text-warning"
+                          >
+                            <IntegrationBadgeIcon
+                              integration={provider}
+                              size="sm"
+                              className="h-5 w-5 rounded-md"
+                            />
+                            {formatIntegrationLabel(
+                              provider,
+                            )}
+                          </span>
+                        ),
+                      )}
+                    </div>
                   </div>
                 )}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -617,6 +680,11 @@ export const TriggerStep = ({
                         checked={field.value}
                         onChange={field.onChange}
                         className="h-4 w-4 rounded border-border-primary/40"
+                      />
+                      <IntegrationBadgeIcon
+                        integration={source.key}
+                        size="sm"
+                        className="h-6 w-6 rounded-md text-[10px]"
                       />
                       {source.label}
                     </label>

@@ -4,6 +4,8 @@ import { MutationConfig, QueryConfig } from '@/lib/react-query';
 import {
   ConflictLogEntry,
   PagedResult,
+  PlaybookActionChannel,
+  PlaybookActionChannelsResponse,
   PlaybookBlueprintRecommendation,
   PlaybookConfidenceRecommendation,
   PlaybookDetail,
@@ -326,6 +328,27 @@ const mapPagedResult = <T,>(raw: any, mapper: (item: any) => T): PagedResult<T> 
   hasPreviousPage: raw.hasPreviousPage ?? raw.HasPreviousPage ?? false,
 });
 
+const mapPlaybookActionChannel = (
+  raw: any,
+): PlaybookActionChannel => ({
+  key: raw.key ?? raw.Key ?? '',
+  label: raw.label ?? raw.Label ?? '',
+  actionType: raw.actionType ?? raw.ActionType ?? '',
+  isConnected:
+    raw.isConnected ?? raw.IsConnected ?? false,
+  status: raw.status ?? raw.Status ?? '',
+  integrationId:
+    raw.integrationId ?? raw.IntegrationId ?? null,
+});
+
+const mapPlaybookActionChannelsResponse = (
+  raw: any,
+): PlaybookActionChannelsResponse => ({
+  channels: (
+    raw?.channels ?? raw?.Channels ?? []
+  ).map(mapPlaybookActionChannel),
+});
+
 const mapWorkQueueItem = (raw: any): WorkQueueItem => ({
   runId: raw.runId ?? raw.RunId,
   customerId: raw.customerId ?? raw.CustomerId,
@@ -353,6 +376,11 @@ const mapWorkQueueResponse = (raw: any): WorkQueueResponse => ({
 export const getPlaybooks = async (params?: PlaybookListParams): Promise<PlaybookSummary[]> => {
   const response = await api.get('/playbooks', { params });
   return ((response as unknown as any[]) ?? []).map(mapPlaybookSummary);
+};
+
+export const getPlaybookActionChannels = async (): Promise<PlaybookActionChannelsResponse> => {
+  const response = await api.get('/playbooks/action-channels');
+  return mapPlaybookActionChannelsResponse(response);
 };
 
 export const getPlaybookConnectedIntegrations = async (): Promise<PlaybookConnectedIntegrations> => {
@@ -409,6 +437,12 @@ export const getPlaybookConnectedIntegrationsQueryOptions =
     queryFn: getPlaybookConnectedIntegrations,
   });
 
+export const getPlaybookActionChannelsQueryOptions =
+  () => ({
+    queryKey: ['playbooks', 'action-channels'],
+    queryFn: getPlaybookActionChannels,
+  });
+
 export const useGetPlaybookConnectedIntegrations = (
   queryConfig?: QueryConfig<
     typeof getPlaybookConnectedIntegrationsQueryOptions
@@ -416,6 +450,17 @@ export const useGetPlaybookConnectedIntegrations = (
 ) => {
   return useQuery({
     ...getPlaybookConnectedIntegrationsQueryOptions(),
+    ...queryConfig,
+  });
+};
+
+export const useGetPlaybookActionChannels = (
+  queryConfig?: QueryConfig<
+    typeof getPlaybookActionChannelsQueryOptions
+  >,
+) => {
+  return useQuery({
+    ...getPlaybookActionChannelsQueryOptions(),
     ...queryConfig,
   });
 };

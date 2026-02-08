@@ -1073,6 +1073,7 @@ export enum IntegrationType {
   HubSpot = 'HubSpot',
   Stripe = 'Stripe',
   PostHog = 'PostHog',
+  Slack = 'Slack',
 }
 
 export enum IntegrationStatus {
@@ -1081,6 +1082,12 @@ export enum IntegrationStatus {
   Error = 'Error',
   Syncing = 'Syncing',
   TokenExpired = 'TokenExpired'
+}
+
+export enum IntegrationPurpose {
+  DataSource = 'data_source',
+  ActionChannel = 'action_channel',
+  Hybrid = 'hybrid',
 }
 
 export enum SyncFrequency {
@@ -1097,6 +1104,8 @@ export interface IntegrationApiItem {
   type: IntegrationType | string;
   name: string;
   status: 'Connected' | 'Disconnected' | 'Error' | string;
+  purpose?: IntegrationPurpose | string | null;
+  supportedActionTypes?: string[] | null;
   connectedAt: string;
   lastSyncAt: string | null;
   nextSyncAt: string | null;
@@ -1114,6 +1123,8 @@ export interface IntegrationStatusResponse {
   type: IntegrationType | string;
   name: string;
   status: IntegrationStatus;
+  purpose: IntegrationPurpose;
+  supportedActionTypes: string[];
   isConnected: boolean;
   lastSyncedAt?: string;
   nextSyncAt?: string;

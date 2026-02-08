@@ -8,6 +8,7 @@ import {
   IntegrationStatusResponse,
   IntegrationType,
   IntegrationStatus,
+  IntegrationPurpose,
   IntegrationApiItem,
   ConfigurationOptions,
   IntegrationConfigurationMap,
@@ -24,6 +25,37 @@ import {
   ProblemDetails,
   IntegrationSyncJobSummary
 } from '@/types/api';
+
+const inferPurposeFromType = (type: IntegrationType | string): IntegrationPurpose => {
+  const normalizedType = String(type).trim().toLowerCase();
+  if (normalizedType === 'hubspot' || normalizedType === 'stripe') {
+    return IntegrationPurpose.Hybrid;
+  }
+
+  if (normalizedType === 'slack') {
+    return IntegrationPurpose.ActionChannel;
+  }
+
+  return IntegrationPurpose.DataSource;
+};
+
+const normalizePurpose = (
+  purpose: IntegrationApiItem['purpose'],
+  type: IntegrationType | string
+): IntegrationPurpose => {
+  const normalized = String(purpose ?? '').trim().toLowerCase();
+
+  switch (normalized) {
+    case IntegrationPurpose.ActionChannel:
+      return IntegrationPurpose.ActionChannel;
+    case IntegrationPurpose.Hybrid:
+      return IntegrationPurpose.Hybrid;
+    case IntegrationPurpose.DataSource:
+      return IntegrationPurpose.DataSource;
+    default:
+      return inferPurposeFromType(type);
+  }
+};
 
 export const parseIntegrationProblem = (error: unknown): ProblemDetails => {
   if (isAxiosError(error)) {
@@ -65,6 +97,10 @@ const mapIntegrationFromApi = (item: IntegrationApiItem): IntegrationStatusRespo
     type: item.type as IntegrationType | string,
     name: item.name,
     status: mappedStatus,
+    purpose: normalizePurpose(item.purpose, item.type),
+    supportedActionTypes: Array.isArray(item.supportedActionTypes)
+      ? item.supportedActionTypes.filter((actionType): actionType is string => typeof actionType === 'string')
+      : [],
     isConnected,
     lastSyncedAt: item.lastSyncAt || undefined,
     nextSyncAt: item.nextSyncAt || undefined,
