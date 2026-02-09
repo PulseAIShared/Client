@@ -1,6 +1,6 @@
 import Axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { env } from '@/config/env';
-import { AUTH_CLEARED_EVENT } from './auth-constants';
+import { AUTH_CLEARED_EVENT, AUTH_SESSION_EXPIRED_KEY } from './auth-constants';
 
 let accessToken: string | null = null;
 
@@ -113,21 +113,17 @@ api.interceptors.response.use(
         // but something else went wrong - don't retry
         return Promise.reject(error);
       } catch (refreshError) {
-        // Refresh failed - clear token, reject queued requests
+        // Refresh failed - clear auth state and let route guards handle navigation.
         clearToken();
         if (typeof window !== 'undefined') {
+          try {
+            window.sessionStorage.setItem(AUTH_SESSION_EXPIRED_KEY, 'true');
+          } catch {
+            // Ignore storage write failures (private mode / restricted storage).
+          }
           window.dispatchEvent(new Event(AUTH_CLEARED_EVENT));
         }
         onRefreshFailed(refreshError);
-
-        // Only redirect if not already on an auth page to prevent loops
-        const path = window.location.pathname;
-        if (
-          !path.startsWith('/login') &&
-          !path.startsWith('/register')
-        ) {
-          window.location.href = '/login?sessionExpired=true';
-        }
         return Promise.reject(error);
       } finally {
         isRefreshing = false;

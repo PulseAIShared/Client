@@ -5,7 +5,8 @@ import { AuthLayout } from '@/components/layouts';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearToken, setToken } from '@/lib/api-client';
-import { AUTH_USER_QUERY_KEY } from '@/lib/auth-constants';
+import { AUTH_SESSION_EXPIRED_KEY, AUTH_USER_QUERY_KEY } from '@/lib/auth-constants';
+import { resolveReturnPath } from '@/lib/auth-redirect';
 
 export const LoginRoute = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export const LoginRoute = () => {
   const queryClient = useQueryClient();
   const messageHandlerRef = useRef<((event: MessageEvent) => void) | null>(null);
   const checkClosedRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const returnTo = resolveReturnPath(searchParams.get('returnTo')) ?? '/app';
 
   const cleanupPopupListeners = useCallback(() => {
     if (messageHandlerRef.current) {
@@ -28,16 +30,32 @@ export const LoginRoute = () => {
   }, []);
 
   useEffect(() => {
-    if (searchParams.get('sessionExpired') === 'true') {
+    const expiredFromQuery = searchParams.get('sessionExpired') === 'true';
+    let expiredFromStorage = false;
+    try {
+      expiredFromStorage = window.sessionStorage.getItem(AUTH_SESSION_EXPIRED_KEY) === 'true';
+    } catch {
+      // Ignore storage read failures.
+    }
+
+    if (expiredFromQuery || expiredFromStorage) {
       clearToken();
       queryClient.setQueryData(AUTH_USER_QUERY_KEY, null);
       setError(
         'Your session has expired. Please sign in again.',
       );
-      // Clean up the URL parameter
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.delete('sessionExpired');
-      setSearchParams(nextParams, { replace: true });
+      try {
+        window.sessionStorage.removeItem(AUTH_SESSION_EXPIRED_KEY);
+      } catch {
+        // Ignore storage remove failures.
+      }
+
+      if (expiredFromQuery) {
+        // Clean up legacy URL parameter if present.
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('sessionExpired');
+        setSearchParams(nextParams, { replace: true });
+      }
     }
   }, [queryClient, searchParams, setSearchParams]);
 
@@ -87,7 +105,7 @@ export const LoginRoute = () => {
         }
 
         queryClient.invalidateQueries();
-        navigate('/app');
+        navigate(returnTo);
       } else if (event.data.type === 'OAUTH_ERROR') {
         cleanupPopupListeners();
         popup.close();
@@ -118,7 +136,7 @@ export const LoginRoute = () => {
 
   const handleLoginSuccess = () => {
     queryClient.invalidateQueries();
-    navigate('/app');
+    navigate(returnTo);
   };
 
   return (

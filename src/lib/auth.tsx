@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { api, clearToken, getToken, setToken} from './api-client';
 import { AuthResponse, User, CompanyCreationRequest, VerifyCodeResponse, PlatformRole, CompanyRole, isPlatformAdmin, isPlatformModerator, isCompanyOwner, hasCompanyEditAccess, canAccessPlatformAdmin } from '@/types/api';
 import { AUTH_USER_QUERY_KEY } from './auth-constants';
+import { currentPathWithQuery, resolveReturnPath } from './auth-redirect';
 
 const getUser = async (): Promise<User | null> => {
   try {
@@ -212,8 +213,15 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user.data || !getToken()) {
+    const returnTo = resolveReturnPath(
+      currentPathWithQuery(location.pathname, location.search, location.hash),
+    );
+    const loginUrl = returnTo
+      ? `/login?returnTo=${encodeURIComponent(returnTo)}`
+      : '/login';
+
     return (
-      <Navigate to='/login' replace />
+      <Navigate to={loginUrl} replace />
     );
   }
 

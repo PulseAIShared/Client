@@ -388,10 +388,11 @@ export const useCreateSupportSession = () => {
   });
 };
 
-export const useGetActiveSupportSession = () => {
+export const useGetActiveSupportSession = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ['support', 'active-session'],
     queryFn: getActiveSupportSession,
+    enabled,
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // 1 minute
   });

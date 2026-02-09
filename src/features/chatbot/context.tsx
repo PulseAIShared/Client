@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useChatbotStore, ChatbotContext, QuickAction } from './store';
 import { useGetActiveSupportSession, ChatContextType } from './api/chatbot';
+import { useUser } from '@/lib/auth';
+import { getToken } from '@/lib/api-client';
 
 interface ChatbotProviderProps {
   children: React.ReactNode;
@@ -165,6 +167,13 @@ const getContextFromRoute = (pathname: string, params: Record<string, string | u
 export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) => {
   const location = useLocation();
   const params = useParams();
+  const isAppRoute = location.pathname.startsWith('/app');
+  const authUser = useUser({
+    enabled: isAppRoute,
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
+  });
   const { 
     updatePageContext, 
     setPageQuickActions, 
@@ -175,7 +184,8 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) =>
   } = useChatbotStore();
 
   // Load active support session on mount
-  const { data: activeSession } = useGetActiveSupportSession();
+  const shouldLoadSupportSession = isAppRoute && Boolean(authUser.data) && Boolean(getToken());
+  const { data: activeSession } = useGetActiveSupportSession(shouldLoadSupportSession);
 
   const updateContextFromRoute = React.useCallback(() => {
     const { context, quickActions } = getContextFromRoute(location.pathname, params);
@@ -183,14 +193,13 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) =>
     setPageQuickActions(quickActions);
     
     // Set whether this is an app route or not
-    const isApp = location.pathname.startsWith('/app');
-    setIsAppRoute(isApp);
+    setIsAppRoute(isAppRoute);
     
     // Auto-close chat when visiting conversations page
     if (location.pathname === '/app/conversations') {
       closeChat();
     }
-  }, [location.pathname, params, updatePageContext, setPageQuickActions, setIsAppRoute, closeChat]);
+  }, [location.pathname, params, updatePageContext, setPageQuickActions, setIsAppRoute, isAppRoute, closeChat]);
 
   // Update page context when route changes
   useEffect(() => {
