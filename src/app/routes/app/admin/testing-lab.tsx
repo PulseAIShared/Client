@@ -19,13 +19,20 @@ import {
   useSimulateSyncs,
   useGetCustomerProfiles,
   useGetEventProfiles,
+  useTestAction,
   DryRunResult,
   TestEventResult,
   TimeSimulationResult,
   TestingLabSyncResult,
   TestingLabIntegrationDetailResponse,
+  TestActionResponse,
   IntegrationTypeLabels,
   ScenarioOptions,
+  supportsDataSync,
+  supportsActions,
+  getIntegrationPurpose,
+  getActionTypesForIntegration,
+  getDefaultActionConfig,
 } from '@/features/admin/api/testing-lab';
 import { PlatformAuthorization, useAuthorization } from '@/lib/authorization';
 
@@ -54,6 +61,11 @@ const integrationTypeOptions = [
   { value: 4, label: 'Stripe' },
   { value: 1, label: 'HubSpot' },
   { value: 5, label: 'PostHog' },
+  { value: 2, label: 'Pipedrive' },
+  { value: 12, label: 'Chargebee' },
+  { value: 9, label: 'Zendesk' },
+  { value: 8, label: 'Intercom' },
+  { value: 11, label: 'Microsoft Teams' },
 ];
 
 const formatDate = (value?: string | null) => {
@@ -348,6 +360,20 @@ const IntegrationCard = ({
   isPipelineRunning: boolean;
 }) => {
   const { addNotification } = useNotifications();
+  const hasDataSync = supportsDataSync(integration.integrationType);
+  const hasActions = supportsActions(integration.integrationType);
+  const purpose = getIntegrationPurpose(integration.integrationType);
+  const actionTypes = getActionTypesForIntegration(integration.integrationType);
+
+  const [selectedActionType, setSelectedActionType] = useState(
+    actionTypes[0]?.value ?? ''
+  );
+  const [actionConfigJson, setActionConfigJson] = useState(() =>
+    getDefaultActionConfig(actionTypes[0]?.value ?? '')
+  );
+  const [actionResult, setActionResult] = useState<TestActionResponse | null>(
+    null
+  );
 
   const generateCustomersMutation = useGenerateCustomers({
     mutationConfig: {
@@ -425,13 +451,51 @@ const IntegrationCard = ({
     },
   });
 
+  const testActionMutation = useTestAction({
+    mutationConfig: {
+      onSuccess: (data) => {
+        setActionResult(data);
+        addNotification({
+          type: data.success ? 'success' : 'error',
+          title: data.success ? 'Action Sent' : 'Action Failed',
+          message: data.success
+            ? `External ID: ${data.externalId ?? 'N/A'}`
+            : data.error ?? 'Unknown error',
+        });
+      },
+      onError: (error) => {
+        addNotification({
+          type: 'error',
+          title: 'Test Action Failed',
+          message:
+            error instanceof Error ? error.message : 'Failed to test action',
+        });
+      },
+    },
+  });
+
   const isAnyActionPending =
     isSyncing ||
     isPipelineRunning ||
     generateCustomersMutation.isPending ||
     generateEventsMutation.isPending ||
     backfillMutation.isPending ||
-    simulateSyncsMutation.isPending;
+    simulateSyncsMutation.isPending ||
+    testActionMutation.isPending;
+
+  const purposeLabel =
+    purpose === 'hybrid'
+      ? 'Hybrid'
+      : purpose === 'action_channel'
+        ? 'Action'
+        : 'Data';
+
+  const purposeColor =
+    purpose === 'hybrid'
+      ? 'bg-info/20 text-info'
+      : purpose === 'action_channel'
+        ? 'bg-warning/20 text-warning'
+        : 'bg-success/20 text-success';
 
   return (
     <div className="bg-surface-secondary/40 border border-border-primary/40 rounded-xl overflow-hidden">
@@ -443,8 +507,13 @@ const IntegrationCard = ({
         <div className="flex items-center gap-3">
           <div className={`w-2.5 h-2.5 rounded-full ${integration.status === 'Connected' ? 'bg-success-muted' : 'bg-warning-muted'}`} />
           <div>
-            <div className="font-medium text-text-primary">
-              {IntegrationTypeLabels[integration.integrationType] ?? 'Unknown'}
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-text-primary">
+                {IntegrationTypeLabels[integration.integrationType] ?? 'Unknown'}
+              </span>
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${purposeColor}`}>
+                {purposeLabel}
+              </span>
             </div>
             <div className="text-xs text-text-secondary">
               {integration.scenario ?? 'No scenario'} &middot; Seed {integration.seed ?? '\u2014'}
@@ -452,9 +521,13 @@ const IntegrationCard = ({
           </div>
         </div>
         <div className="flex items-center gap-4 text-xs text-text-secondary">
-          <span>{integration.customerProfileCount} customers</span>
-          <span>{integration.eventProfileCount} events</span>
-          <span>{integration.totalSyncCycles} syncs</span>
+          {hasDataSync ? (
+            <>
+              <span>{integration.customerProfileCount} customers</span>
+              <span>{integration.eventProfileCount} events</span>
+              <span>{integration.totalSyncCycles} syncs</span>
+            </>
+          ) : null}
           <svg
             className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
             fill="none"
@@ -478,110 +551,225 @@ const IntegrationCard = ({
               <span className="text-text-secondary">Created</span>
               <div className="text-text-primary font-medium">{formatDate(integration.createdAt)}</div>
             </div>
-            <div>
-              <span className="text-text-secondary">Last Synced</span>
-              <div className="text-text-primary font-medium">{formatDate(integration.lastSyncedAt)}</div>
-            </div>
-            <div>
-              <span className="text-text-secondary">Sync Cycles</span>
-              <div className="text-text-primary font-medium">{integration.totalSyncCycles}</div>
-            </div>
+            {hasDataSync ? (
+              <>
+                <div>
+                  <span className="text-text-secondary">Last Synced</span>
+                  <div className="text-text-primary font-medium">{formatDate(integration.lastSyncedAt)}</div>
+                </div>
+                <div>
+                  <span className="text-text-secondary">Sync Cycles</span>
+                  <div className="text-text-primary font-medium">{integration.totalSyncCycles}</div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <span className="text-text-secondary">Purpose</span>
+                <div className="text-text-primary font-medium">Action Channel</div>
+              </div>
+            )}
           </div>
 
-          {/* Actions */}
-          <div className="space-y-2">
-            <div className="text-xs text-text-secondary">
-              Suggested: <span className="text-text-primary font-medium">Run Pipeline</span>.
-              For custom datasets: <span className="text-text-primary font-medium">Generate Customers</span> → <span className="text-text-primary font-medium">Generate Events</span> → <span className="text-text-primary font-medium">Sync</span>.
+          {/* Sync Actions */}
+          {hasDataSync ? (
+            <div className="space-y-2">
+              <div className="text-xs text-text-secondary">
+                Suggested: <span className="text-text-primary font-medium">Run Pipeline</span>.
+                For custom datasets: <span className="text-text-primary font-medium">Generate Customers</span> → <span className="text-text-primary font-medium">Generate Events</span> → <span className="text-text-primary font-medium">Sync</span>.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={onSync}
+                  disabled={isAnyActionPending}
+                  title="Create ~10 customers + ~2 events/customer (last 30 days) if needed, then sync the pipeline."
+                  className="px-3 py-1.5 bg-accent-primary/80 text-white rounded-lg hover:bg-accent-primary transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {isSyncing ? <Spinner size="sm" /> : null}
+                  Sync
+                </button>
+                <button
+                  onClick={onRunPipeline}
+                  disabled={isAnyActionPending}
+                  title="Create ~10 customers + ~2 events/customer (last 30 days), sync, and trigger churn."
+                  className="px-3 py-1.5 bg-accent-secondary/80 text-white rounded-lg hover:bg-accent-secondary transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {isPipelineRunning ? <Spinner size="sm" /> : null}
+                  Run Pipeline
+                </button>
+                <button
+                  onClick={() =>
+                    generateCustomersMutation.mutate({
+                      integrationId: integration.integrationId,
+                      request: { customerCount: 10 },
+                    })
+                  }
+                  disabled={isAnyActionPending}
+                  title="Create only synthetic customers (no events). Preview under Customer Profiles."
+                  className="px-3 py-1.5 bg-surface-primary text-text-primary border border-border-primary rounded-lg hover:bg-surface-primary/80 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {generateCustomersMutation.isPending ? <Spinner size="sm" /> : null}
+                  Generate Customers
+                </button>
+                <button
+                  onClick={() =>
+                    generateEventsMutation.mutate({
+                      integrationId: integration.integrationId,
+                      request: { eventsPerCustomerPerMonth: 2 },
+                    })
+                  }
+                  disabled={isAnyActionPending}
+                  title="Create provider events for the current integration; click Sync afterward to persist/extract/aggregate."
+                  className="px-3 py-1.5 bg-surface-primary text-text-primary border border-border-primary rounded-lg hover:bg-surface-primary/80 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {generateEventsMutation.isPending ? <Spinner size="sm" /> : null}
+                  Generate Events
+                </button>
+                <button
+                  onClick={() => {
+                    const now = new Date();
+                    const start = new Date(now);
+                    start.setMonth(start.getMonth() - 12);
+                    backfillMutation.mutate({
+                      integrationId: integration.integrationId,
+                      request: {
+                        startDate: start.toISOString(),
+                        endDate: now.toISOString(),
+                        customerCount: 10,
+                        eventsPerCustomerPerMonth: 2,
+                      },
+                    });
+                  }}
+                  disabled={isAnyActionPending}
+                  title="Create ~12 months of events, run sync, and build a snapshot at the end date."
+                  className="px-3 py-1.5 bg-surface-primary text-text-primary border border-border-primary rounded-lg hover:bg-surface-primary/80 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {backfillMutation.isPending ? <Spinner size="sm" /> : null}
+                  Backfill 12mo
+                </button>
+                <button
+                  onClick={() =>
+                    simulateSyncsMutation.mutate({
+                      integrationId: integration.integrationId,
+                      request: { cycles: 6, daysPerCycle: 30 },
+                    })
+                  }
+                  disabled={isAnyActionPending}
+                  title="Run 6 monthly cycles; each cycle runs sync and creates a snapshot."
+                  className="px-3 py-1.5 bg-surface-primary text-text-primary border border-border-primary rounded-lg hover:bg-surface-primary/80 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {simulateSyncsMutation.isPending ? <Spinner size="sm" /> : null}
+                  Simulate 6 Syncs
+                </button>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={onSync}
-                disabled={isAnyActionPending}
-                title="Create ~10 customers + ~2 events/customer (last 30 days) if needed, then sync the pipeline."
-                className="px-3 py-1.5 bg-accent-primary/80 text-white rounded-lg hover:bg-accent-primary transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
-              >
-                {isSyncing ? <Spinner size="sm" /> : null}
-                Sync
-              </button>
-              <button
-                onClick={onRunPipeline}
-                disabled={isAnyActionPending}
-                title="Create ~10 customers + ~2 events/customer (last 30 days), sync, and trigger churn."
-                className="px-3 py-1.5 bg-accent-secondary/80 text-white rounded-lg hover:bg-accent-secondary transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
-              >
-                {isPipelineRunning ? <Spinner size="sm" /> : null}
-                Run Pipeline
-              </button>
-              <button
-                onClick={() =>
-                  generateCustomersMutation.mutate({
-                    integrationId: integration.integrationId,
-                    request: { customerCount: 10 },
-                  })
-                }
-                disabled={isAnyActionPending}
-                title="Create only synthetic customers (no events). Preview under Customer Profiles."
-                className="px-3 py-1.5 bg-surface-primary text-text-primary border border-border-primary rounded-lg hover:bg-surface-primary/80 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
-              >
-                {generateCustomersMutation.isPending ? <Spinner size="sm" /> : null}
-                Generate Customers
-              </button>
-              <button
-                onClick={() =>
-                  generateEventsMutation.mutate({
-                    integrationId: integration.integrationId,
-                    request: { eventsPerCustomerPerMonth: 2 },
-                  })
-                }
-                disabled={isAnyActionPending}
-                title="Create provider events for the current integration; click Sync afterward to persist/extract/aggregate."
-                className="px-3 py-1.5 bg-surface-primary text-text-primary border border-border-primary rounded-lg hover:bg-surface-primary/80 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
-              >
-                {generateEventsMutation.isPending ? <Spinner size="sm" /> : null}
-                Generate Events
-              </button>
-              <button
-                onClick={() => {
-                  const now = new Date();
-                  const start = new Date(now);
-                  start.setMonth(start.getMonth() - 12);
-                  backfillMutation.mutate({
-                    integrationId: integration.integrationId,
-                    request: {
-                      startDate: start.toISOString(),
-                      endDate: now.toISOString(),
-                      customerCount: 10,
-                      eventsPerCustomerPerMonth: 2,
-                    },
-                  });
-                }}
-                disabled={isAnyActionPending}
-                title="Create ~12 months of events, run sync, and build a snapshot at the end date."
-                className="px-3 py-1.5 bg-surface-primary text-text-primary border border-border-primary rounded-lg hover:bg-surface-primary/80 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
-              >
-                {backfillMutation.isPending ? <Spinner size="sm" /> : null}
-                Backfill 12mo
-              </button>
-              <button
-                onClick={() =>
-                  simulateSyncsMutation.mutate({
-                    integrationId: integration.integrationId,
-                    request: { cycles: 6, daysPerCycle: 30 },
-                  })
-                }
-                disabled={isAnyActionPending}
-                title="Run 6 monthly cycles; each cycle runs sync and creates a snapshot."
-                className="px-3 py-1.5 bg-surface-primary text-text-primary border border-border-primary rounded-lg hover:bg-surface-primary/80 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
-              >
-                {simulateSyncsMutation.isPending ? <Spinner size="sm" /> : null}
-                Simulate 6 Syncs
-              </button>
+          ) : null}
+
+          {/* Action Testing */}
+          {hasActions && actionTypes.length > 0 ? (
+            <div className="space-y-3">
+              {hasDataSync ? (
+                <div className="border-t border-border-primary/30 pt-3" />
+              ) : null}
+              <h4 className="text-sm font-semibold text-text-primary">
+                Action Testing
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-text-secondary">
+                    Action Type
+                  </label>
+                  <select
+                    className="w-full mt-1 bg-surface-secondary border border-border-primary rounded-lg px-3 py-2 text-text-primary text-sm"
+                    value={selectedActionType}
+                    onChange={(e) => {
+                      setSelectedActionType(e.target.value);
+                      setActionConfigJson(
+                        getDefaultActionConfig(e.target.value)
+                      );
+                      setActionResult(null);
+                    }}
+                  >
+                    {actionTypes.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={() =>
+                      testActionMutation.mutate({
+                        integrationId: integration.integrationId,
+                        request: {
+                          actionType: selectedActionType,
+                          configJson: actionConfigJson,
+                        },
+                      })
+                    }
+                    disabled={isAnyActionPending || !selectedActionType}
+                    className="w-full px-3 py-2 bg-accent-primary/80 text-white rounded-lg hover:bg-accent-primary transition-colors text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  >
+                    {testActionMutation.isPending ? (
+                      <Spinner size="sm" />
+                    ) : null}
+                    Send Test
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-text-secondary">
+                  Config JSON
+                </label>
+                <textarea
+                  className="w-full mt-1 bg-surface-secondary border border-border-primary rounded-lg px-3 py-2 text-text-primary text-sm font-mono h-24 resize-y"
+                  value={actionConfigJson}
+                  onChange={(e) => setActionConfigJson(e.target.value)}
+                />
+              </div>
+              {actionResult ? (
+                <div
+                  className={`rounded-lg border p-3 text-xs space-y-1 ${
+                    actionResult.success
+                      ? 'border-success-muted/40 bg-success-muted/10'
+                      : 'border-error-muted/40 bg-error-muted/10'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`font-semibold ${
+                        actionResult.success
+                          ? 'text-success-muted'
+                          : 'text-error-muted'
+                      }`}
+                    >
+                      {actionResult.success ? 'Success' : 'Failed'}
+                    </span>
+                    {actionResult.externalId ? (
+                      <span className="text-text-secondary">
+                        ID: {actionResult.externalId}
+                      </span>
+                    ) : null}
+                  </div>
+                  {actionResult.error ? (
+                    <div className="text-error-muted">
+                      {actionResult.error}
+                    </div>
+                  ) : null}
+                  {actionResult.responseJson ? (
+                    <pre className="text-text-muted whitespace-pre-wrap break-all max-h-32 overflow-y-auto">
+                      {actionResult.responseJson}
+                    </pre>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
-          </div>
+          ) : null}
 
           {/* Profiles preview */}
-          <IntegrationProfiles integrationId={integration.integrationId} />
+          {hasDataSync ? (
+            <IntegrationProfiles integrationId={integration.integrationId} />
+          ) : null}
         </div>
       )}
     </div>

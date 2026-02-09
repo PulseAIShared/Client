@@ -1,29 +1,58 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 import { AuthLayout } from '@/components/layouts';
 import { LoginForm } from '@/features/auth/components/login-form';
-import { useUser } from '@/lib/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { setToken } from '@/lib/api-client';
 
 export const LoginRoute = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [ssoLoading, setSsoLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const user = useUser();
   const queryClient = useQueryClient();
+  const messageHandlerRef = useRef<((event: MessageEvent) => void) | null>(null);
+  const checkClosedRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-      
+  const cleanupPopupListeners = useCallback(() => {
+    if (messageHandlerRef.current) {
+      window.removeEventListener('message', messageHandlerRef.current);
+      messageHandlerRef.current = null;
+    }
+    if (checkClosedRef.current) {
+      clearInterval(checkClosedRef.current);
+      checkClosedRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get('sessionExpired') === 'true') {
+      setError(
+        'Your session has expired. Please sign in again.',
+      );
+      // Clean up the URL parameter
+      searchParams.delete('sessionExpired');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
+
+  // Clean up popup listeners on unmount
+  useEffect(() => {
+    return cleanupPopupListeners;
+  }, [cleanupPopupListeners]);
+
   const handleSSOLogin = (provider: 'google' | 'facebook' | 'apple') => {
+    // Clean up any previous popup listeners
+    cleanupPopupListeners();
+
     setSsoLoading(provider);
     setError(null);
-    
+
     const baseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
     const frontendOrigin = window.location.origin;
-    // Use the new login endpoint
     const popupUrl = `${baseUrl}auth/${provider}/login?popup=true&redirectOrigin=${encodeURIComponent(frontendOrigin)}`;
-    
+
     const popup = window.open(
       popupUrl,
       'oauth-popup',
@@ -37,37 +66,29 @@ export const LoginRoute = () => {
     }
 
     const messageHandler = async (event: MessageEvent) => {
-      // Accept messages from the API origin (where the SSO popup comes from)
-      const baseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
       const apiOrigin = new URL(baseUrl).origin;
-      
+
       if (event.origin !== apiOrigin) {
         return;
       }
-      
+
       if (event.data.type === 'OAUTH_SUCCESS') {
+        cleanupPopupListeners();
         popup.close();
         setSsoLoading(null);
-        
-        // Handle authentication data from SSO popup
+
         const authData = event.data.payload;
-        
         if (authData?.token) {
           setToken(authData.token);
         }
-        
-        // Clear all queries and let the app re-authenticate
-        queryClient.clear();
-        
-        // Small delay to ensure token is set, then navigate
-        setTimeout(() => {
-          navigate('/app');
-        }, 100);
+
+        queryClient.invalidateQueries();
+        navigate('/app');
       } else if (event.data.type === 'OAUTH_ERROR') {
+        cleanupPopupListeners();
         popup.close();
         setSsoLoading(null);
-        
-        // Handle specific error for no account found
+
         if (event.data.error?.includes('SsoAccountNotFound') || event.data.error?.includes('no account') || event.data.error?.includes('not found')) {
           setError('No account found for this provider. Please register first or use a different sign-in method.');
         } else {
@@ -76,27 +97,24 @@ export const LoginRoute = () => {
       }
     };
 
+    messageHandlerRef.current = messageHandler;
     window.addEventListener('message', messageHandler);
-    
-    const checkClosed = setInterval(() => {
+
+    checkClosedRef.current = setInterval(() => {
       try {
         if (popup.closed) {
-          window.removeEventListener('message', messageHandler);
+          cleanupPopupListeners();
           setSsoLoading(null);
-          clearInterval(checkClosed);
         }
-      } catch (error) {
+      } catch {
         // Cross-origin policy blocks popup.closed check
-        // The popup is probably still open, continue checking
       }
     }, 1000);
   };
 
   const handleLoginSuccess = () => {
-        queryClient.clear();
-        setTimeout(() => {
-          navigate('/app');
-        }, 100);
+    queryClient.invalidateQueries();
+    navigate('/app');
   };
 
   return (

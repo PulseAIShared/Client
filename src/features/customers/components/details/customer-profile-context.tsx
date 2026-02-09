@@ -252,7 +252,26 @@ interface CustomerProfileProviderProps {
   children: React.ReactNode;
 }
 
-const CustomerProfileContext = createContext<CustomerProfileContextValue | undefined>(undefined);
+const CUSTOMER_PROFILE_CONTEXT_KEY =
+  '__pulse_customer_profile_context__';
+
+const globalCustomerProfileContext = globalThis as typeof globalThis & {
+  [CUSTOMER_PROFILE_CONTEXT_KEY]?: React.Context<
+    CustomerProfileContextValue | undefined
+  >;
+};
+
+const CustomerProfileContext =
+  globalCustomerProfileContext[
+    CUSTOMER_PROFILE_CONTEXT_KEY
+  ] ??
+  createContext<
+    CustomerProfileContextValue | undefined
+  >(undefined);
+
+globalCustomerProfileContext[
+  CUSTOMER_PROFILE_CONTEXT_KEY
+] = CustomerProfileContext;
 
 const getWeekKey = (timestamp: string): string => {
   const parsed = new Date(timestamp);

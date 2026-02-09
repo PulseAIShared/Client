@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import type { IconType } from 'react-icons';
-import { SiHubspot, SiPosthog, SiSlack, SiStripe } from 'react-icons/si';
+import {
+  SiHubspot,
+  SiIntercom,
+  SiPosthog,
+  SiSlack,
+  SiStripe,
+  SiZendesk,
+} from 'react-icons/si';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
@@ -19,16 +26,14 @@ import {
   useTestConnection,
   useConfigureIntegration,
   useDeleteIntegrationPermanent,
-  useGetAllConfigurationOptions,
-  useGetConfigurationOptions,
   useGetSyncJobs,
   useInspectIntegration,
   inspectIntegration,
   parseIntegrationProblem,
+  useSaveActionConfig,
 } from '../api/integrations';
 import { IntegrationPurpose, IntegrationStatus } from '@/types/api';
 import type {
-  ConfigurationOptions,
   IntegrationStatusResponse,
   IntegrationInspection,
   IntegrationSyncJobSummary,
@@ -115,6 +120,54 @@ const PROVIDER_CATALOG: Record<string, ProviderMetadata> = {
     initials: 'SL',
     icon: SiSlack,
     accentGradient: 'from-[#611f69] to-[#36c5f0]',
+  },
+  Pipedrive: {
+    type: 'Pipedrive',
+    name: 'Pipedrive',
+    description: 'Sync persons, organizations, deals, and activity data from Pipedrive CRM.',
+    category: 'crm',
+    features: ['Persons', 'Organizations', 'Deals', 'Activities'],
+    initials: 'PD',
+
+    accentGradient: 'from-[#25292c] to-[#017737]',
+  },
+  Chargebee: {
+    type: 'Chargebee',
+    name: 'Chargebee',
+    description: 'Stream subscription billing, invoices, and revenue metrics from Chargebee.',
+    category: 'payment',
+    features: ['Subscriptions', 'Invoices', 'MRR/LTV'],
+    initials: 'CB',
+    accentGradient: 'from-[#ff6633] to-[#ef4123]',
+  },
+  Zendesk: {
+    type: 'Zendesk',
+    name: 'Zendesk',
+    description: 'Import support tickets, CSAT scores, and create tickets via playbook actions.',
+    category: 'support',
+    features: ['Tickets', 'CSAT', 'Ticket Creation'],
+    initials: 'ZD',
+    icon: SiZendesk,
+    accentGradient: 'from-[#03363d] to-[#78a300]',
+  },
+  Intercom: {
+    type: 'Intercom',
+    name: 'Intercom',
+    description: 'Sync conversations, contacts, and CSAT data. Send messages and notes via playbooks.',
+    category: 'support',
+    features: ['Conversations', 'CSAT', 'Messaging', 'Notes'],
+    initials: 'IC',
+    icon: SiIntercom,
+    accentGradient: 'from-[#286efa] to-[#1b4ddb]',
+  },
+  MicrosoftTeams: {
+    type: 'MicrosoftTeams',
+    name: 'Microsoft Teams',
+    description: 'Send playbook alerts to Teams channels via webhooks or Graph API.',
+    category: 'other',
+    features: ['Channel Alerts', 'Adaptive Cards'],
+    initials: 'MT',
+    accentGradient: 'from-[#5b5fc7] to-[#4b53bc]',
   },
 };
 
@@ -210,11 +263,20 @@ const normalizeIntegrationPurpose = (
   }
 
   const normalizedType = String(integrationType ?? '').trim().toLowerCase();
-  if (normalizedType === 'hubspot' || normalizedType === 'stripe') {
+  if (
+    normalizedType === 'hubspot' ||
+    normalizedType === 'stripe' ||
+    normalizedType === 'intercom' ||
+    normalizedType === 'zendesk'
+  ) {
     return IntegrationPurpose.Hybrid;
   }
 
-  if (normalizedType === 'email' || normalizedType === 'slack') {
+  if (
+    normalizedType === 'email' ||
+    normalizedType === 'slack' ||
+    normalizedType === 'microsoftteams'
+  ) {
     return IntegrationPurpose.ActionChannel;
   }
 
@@ -657,30 +719,28 @@ const SyncJobsSection: React.FC<SyncJobsSectionProps> = ({
 
 type IntegrationConfigModalContainerProps = {
   integration: IntegrationStatusResponse;
+  mode: 'sync' | 'action';
   onClose: () => void;
   onConfigured: () => void;
 };
 
 const IntegrationConfigModalContainer: React.FC<IntegrationConfigModalContainerProps> = ({
   integration,
+  mode,
   onClose,
   onConfigured,
 }) => {
   const { addNotification } = useNotifications();
+  const queryClient = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const {
-    data: configOptions,
-    isLoading: isConfigOptionsLoading,
-  } = useGetConfigurationOptions(integration.type, {
-    enabled: Boolean(integration.type),
-  });
+  const showSyncConfig = mode === 'sync';
 
   const {
     data: inspection,
     isLoading: isInspectionLoading,
   } = useInspectIntegration(integration.id, {
-    enabled: Boolean(integration.id),
+    enabled: Boolean(integration.id) && showSyncConfig,
   });
 
   const configureMutation = useConfigureIntegration({
@@ -709,21 +769,48 @@ const IntegrationConfigModalContainer: React.FC<IntegrationConfigModalContainerP
     },
   });
 
+  const actionConfigMutation = useSaveActionConfig({
+    onSuccess: () => {
+      addNotification({
+        type: 'success',
+        title: 'Action settings saved',
+        message: 'Action channel defaults updated successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+      setErrorMessage(null);
+      onConfigured();
+      onClose();
+    },
+    onError: (error) => {
+      const problem = parseIntegrationProblem(error);
+      setErrorMessage(problem.detail ?? 'Unable to save action configuration.');
+    },
+  });
+
   const handleSubmit = async (config: SyncConfigRequest) => {
     await configureMutation.mutateAsync({ integrationId: integration.id, config });
+  };
+
+  const handleSaveActionConfig = async (defaults: Record<string, string>) => {
+    await actionConfigMutation.mutateAsync({
+      integrationId: integration.id,
+      defaults,
+    });
   };
 
   return (
     <IntegrationConfigModal
       open
+      mode={mode}
       integration={integration}
-      options={configOptions}
       inspection={inspection}
-      isLoading={isConfigOptionsLoading || isInspectionLoading}
+      isLoading={showSyncConfig && isInspectionLoading}
       isSaving={configureMutation.isPending}
+      isSavingAction={actionConfigMutation.isPending}
       errorMessage={errorMessage}
       onClose={onClose}
       onSubmit={handleSubmit}
+      onSaveActionConfig={handleSaveActionConfig}
     />
   );
 };
@@ -1577,6 +1664,19 @@ export const IntegrationsSection: React.FC = () => {
   const [reconnectingIntegrationId, setReconnectingIntegrationId] = useState<string | null>(null);
   const [connectingType, setConnectingType] = useState<string | null>(null);
   const [jobFilterIntegrationId, setJobFilterIntegrationId] = useState<string>('all');
+  const [expandedCardIds, setExpandedCardIds] = useState<Set<string>>(new Set());
+
+  const toggleCardExpanded = useCallback((id: string) => {
+    setExpandedCardIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     cleanupExpiredOAuthSessions();
@@ -1596,8 +1696,6 @@ export const IntegrationsSection: React.FC = () => {
     isFetching,
     refetch,
   } = useGetIntegrations(integrationQueryParams);
-
-  const { data: configurationOptionsMap } = useGetAllConfigurationOptions();
 
   const {
     data: syncJobs = [],
@@ -1662,7 +1760,11 @@ export const IntegrationsSection: React.FC = () => {
         if (existingId) {
           const target = integrations.find((item) => item.id === existingId);
           if (target) {
-            handleOpenConfig(target);
+            const defaultMode =
+              target.purpose === IntegrationPurpose.ActionChannel
+                ? 'action' as const
+                : 'sync' as const;
+            handleOpenConfig(target, defaultMode);
           }
         }
       } else {
@@ -1895,12 +1997,8 @@ export const IntegrationsSection: React.FC = () => {
     const set = new Set<string>();
     Object.keys(PROVIDER_CATALOG).forEach((type) => set.add(type));
     integrations.forEach((integration) => set.add(integration.type));
-    if (configurationOptionsMap) {
-      Object.keys(configurationOptionsMap).forEach((type) => set.add(type));
-    }
-    Object.keys(PROVIDER_CATALOG).forEach((type) => set.add(type));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [integrations, configurationOptionsMap]);
+  }, [integrations]);
 
   const typeFilterOptions = useMemo(() => ['all', ...integrationTypes], [integrationTypes]);
 
@@ -2011,11 +2109,12 @@ export const IntegrationsSection: React.FC = () => {
   );
 
   const handleOpenConfig = useCallback(
-    (integration: IntegrationStatusResponse) => {
+    (integration: IntegrationStatusResponse, mode: 'sync' | 'action') => {
       openModal(
         <IntegrationConfigModalContainer
-          key={`config-${integration.id}`}
+          key={`config-${mode}-${integration.id}`}
           integration={integration}
+          mode={mode}
           onClose={closeModal}
           onConfigured={() => {
             refetch();
@@ -2049,7 +2148,11 @@ export const IntegrationsSection: React.FC = () => {
 
       const targetIntegration = integrations.find((item) => item.id === integrationId);
       if (targetIntegration) {
-        handleOpenConfig(targetIntegration);
+        const defaultMode =
+          targetIntegration.purpose === IntegrationPurpose.ActionChannel
+            ? 'action' as const
+            : 'sync' as const;
+        handleOpenConfig(targetIntegration, defaultMode);
         return;
       }
 
@@ -2183,7 +2286,11 @@ export const IntegrationsSection: React.FC = () => {
       handleOpenInspect(targetIntegration);
     } else {
       // Default action: open configuration, especially when needsConfiguration is flagged
-      handleOpenConfig(targetIntegration);
+      const defaultMode =
+        targetIntegration.purpose === IntegrationPurpose.ActionChannel
+          ? 'action' as const
+          : 'sync' as const;
+      handleOpenConfig(targetIntegration, defaultMode);
     }
 
     const next = new URLSearchParams(searchParams);
@@ -2399,8 +2506,9 @@ export const IntegrationsSection: React.FC = () => {
       syncingIntegrationId === integration.id || integration.status === IntegrationStatus.Syncing;
     const connectedAt = integration.connectionDetails?.connectedAt;
     const syncConfig = integration.syncConfiguration;
-    const requiresConfiguration = integration.needsConfiguration || !syncConfig;
-    const configOptions = configurationOptionsMap?.[integration.type] as ConfigurationOptions | undefined;
+    const hasActionConfig = integration.actionDefaults && Object.keys(integration.actionDefaults).length > 0;
+    const requiresConfiguration = integration.needsConfiguration ||
+      (purpose === IntegrationPurpose.ActionChannel ? !hasActionConfig : !syncConfig);
     const actionTypes = integration.supportedActionTypes ?? [];
     const actionReadiness = !integration.isConnected
       ? 'Disconnected'
@@ -2419,18 +2527,19 @@ export const IntegrationsSection: React.FC = () => {
       ? 'Configuration required'
       : 'Healthy';
 
-    const actionButtonLabel =
-      purpose === IntegrationPurpose.ActionChannel
-        ? requiresConfiguration
-          ? 'Complete channel setup'
-          : 'Configure channel'
-        : purpose === IntegrationPurpose.Hybrid
-        ? requiresConfiguration
-          ? 'Complete setup'
-          : 'Configure sync + channel'
-        : requiresConfiguration
-        ? 'Complete sync configuration'
-        : 'Configure sync';
+    const syncButtonLabel = requiresConfiguration
+      ? 'Complete sync configuration'
+      : 'Configure sync';
+    const channelButtonLabel = requiresConfiguration
+      ? 'Complete channel setup'
+      : 'Configure channel';
+
+    const needsAttention =
+      !integration.isConnected ||
+      requiresConfiguration ||
+      showReconnect ||
+      Boolean(integration.errorMessage);
+    const isExpanded = needsAttention || expandedCardIds.has(integration.id);
 
     const helperText = integration.isConnected
       ? requiresConfiguration
@@ -2462,7 +2571,18 @@ export const IntegrationsSection: React.FC = () => {
           aria-hidden="true"
         />
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div
+            className={`flex flex-col gap-4 md:flex-row md:items-start md:justify-between ${integration.isConnected ? 'cursor-pointer select-none' : ''}`}
+            onClick={integration.isConnected ? () => toggleCardExpanded(integration.id) : undefined}
+            role={integration.isConnected ? 'button' : undefined}
+            tabIndex={integration.isConnected ? 0 : undefined}
+            onKeyDown={integration.isConnected ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleCardExpanded(integration.id);
+              }
+            } : undefined}
+          >
             <div className="flex items-start gap-4">
               <ProviderIcon provider={meta} size="lg" />
               <div>
@@ -2493,20 +2613,44 @@ export const IntegrationsSection: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-2 text-xs">
-              {integration.tokenExpiresAt && (
-                <span className="rounded-full bg-warning/15 px-3 py-1 font-medium text-warning">
-                  Token expires {formatRelativeTime(integration.tokenExpiresAt)} (
-                  {formatAbsolute(integration.tokenExpiresAt)})
-                </span>
-              )}
-              {integration.needsTokenRefresh && (
-                <span className="rounded-full bg-warning/10 px-3 py-1 text-warning-muted">
-                  Refresh recommended
-                </span>
+            <div className="flex items-start gap-3">
+              <div className="flex flex-col gap-2 text-xs">
+                {integration.tokenExpiresAt && (
+                  <span className="rounded-full bg-warning/15 px-3 py-1 font-medium text-warning">
+                    Token expires {formatRelativeTime(integration.tokenExpiresAt)} (
+                    {formatAbsolute(integration.tokenExpiresAt)})
+                  </span>
+                )}
+                {integration.needsTokenRefresh && (
+                  <span className="rounded-full bg-warning/10 px-3 py-1 text-warning-muted">
+                    Refresh recommended
+                  </span>
+                )}
+              </div>
+              {integration.isConnected && (
+                <div
+                  className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-secondary/60 hover:text-text-primary"
+                  aria-hidden="true"
+                >
+                  <svg
+                    className={`h-5 w-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               )}
             </div>
           </div>
+
+          <div
+            className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+            style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}
+          >
+            <div className="overflow-hidden">
+              <div className="flex flex-col gap-6 pt-2">
 
           {purpose === IntegrationPurpose.DataSource && (
             <>
@@ -2600,13 +2744,6 @@ export const IntegrationsSection: React.FC = () => {
                 ) : (
                   <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-warning-muted">
                     Sync configuration not supplied yet.
-                  </div>
-                )}
-                {configOptions && (
-                  <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-text-muted">
-                    <span>Default cadence: {configOptions.syncFrequencyOptions[0]?.label ?? 'Manual'}</span>
-                    <span>Max range: {configOptions.maxHistoricalSyncDays} days</span>
-                    <span>Max batch size: {configOptions.maxBatchSize}</span>
                   </div>
                 )}
               </div>
@@ -2733,9 +2870,33 @@ export const IntegrationsSection: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3">
                 {integration.isConnected ? (
                   <>
-                    <Button onClick={() => handleOpenConfig(integration)} className={primaryActionClass}>
-                      {actionButtonLabel}
-                    </Button>
+                    {(purpose === IntegrationPurpose.DataSource ||
+                      purpose === IntegrationPurpose.Hybrid) && (
+                      <Button
+                        onClick={() => handleOpenConfig(integration, 'sync')}
+                        className={primaryActionClass}
+                      >
+                        {syncButtonLabel}
+                      </Button>
+                    )}
+                    {(purpose === IntegrationPurpose.ActionChannel ||
+                      purpose === IntegrationPurpose.Hybrid) && (
+                      <Button
+                        onClick={() => handleOpenConfig(integration, 'action')}
+                        className={
+                          purpose === IntegrationPurpose.ActionChannel
+                            ? primaryActionClass
+                            : undefined
+                        }
+                        variant={
+                          purpose === IntegrationPurpose.Hybrid
+                            ? 'outline'
+                            : undefined
+                        }
+                      >
+                        {channelButtonLabel}
+                      </Button>
+                    )}
                     {purpose !== IntegrationPurpose.ActionChannel && (
                       <Button
                         variant="outline"
@@ -2817,6 +2978,10 @@ export const IntegrationsSection: React.FC = () => {
               </div>
             </div>
           </CompanyAuthorization>
+
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

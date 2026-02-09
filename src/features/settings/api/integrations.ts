@@ -3,15 +3,13 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { api } from '@/lib/api-client';
 import { MutationConfig, QueryConfig } from '@/lib/react-query';
-import { 
-  IntegrationStats, 
+import {
+  IntegrationStats,
   IntegrationStatusResponse,
   IntegrationType,
   IntegrationStatus,
   IntegrationPurpose,
   IntegrationApiItem,
-  ConfigurationOptions,
-  IntegrationConfigurationMap,
   StartConnectionResult,
   OAuthCallbackRequest,
   HandleCallbackResult,
@@ -28,15 +26,19 @@ import {
 
 const inferPurposeFromType = (type: IntegrationType | string): IntegrationPurpose => {
   const normalizedType = String(type).trim().toLowerCase();
-  if (normalizedType === 'hubspot' || normalizedType === 'stripe') {
-    return IntegrationPurpose.Hybrid;
-  }
 
-  if (normalizedType === 'slack') {
-    return IntegrationPurpose.ActionChannel;
+  switch (normalizedType) {
+    case 'hubspot':
+    case 'stripe':
+    case 'intercom':
+    case 'zendesk':
+      return IntegrationPurpose.Hybrid;
+    case 'slack':
+    case 'microsoftteams':
+      return IntegrationPurpose.ActionChannel;
+    default:
+      return IntegrationPurpose.DataSource;
   }
-
-  return IntegrationPurpose.DataSource;
 };
 
 const normalizePurpose = (
@@ -118,6 +120,7 @@ const mapIntegrationFromApi = (item: IntegrationApiItem): IntegrationStatusRespo
           permissions: [],
         }
       : undefined,
+    actionDefaults: item.actionDefaults ?? undefined,
   };
 };
 
@@ -165,14 +168,6 @@ export const getIntegrations = async ({
 export const getIntegrationById = async (integrationId: string): Promise<IntegrationStatusResponse> => {
   const raw: IntegrationApiItem = await api.get(`/integrations/${integrationId}`);
   return mapIntegrationFromApi(raw);
-};
-
-export const getConfigurationOptions = async (type: IntegrationType | string): Promise<ConfigurationOptions> => {
-  return await api.get(`/integrations/${type}/config-options`);
-};
-
-export const getAllConfigurationOptions = async (): Promise<IntegrationConfigurationMap> => {
-  return await api.get('/integrations/config-options');
 };
 
 export const getSyncJobs = async (
@@ -265,17 +260,6 @@ export const getIntegrationByIdQueryOptions = (integrationId: string) => ({
   enabled: !!integrationId,
 });
 
-export const getConfigurationOptionsQueryOptions = (type: IntegrationType | string) => ({
-  queryKey: ['integrations', 'config-options', type],
-  queryFn: () => getConfigurationOptions(type),
-  enabled: !!type,
-});
-
-export const getAllConfigurationOptionsQueryOptions = () => ({
-  queryKey: ['integrations', 'config-options', 'all'],
-  queryFn: () => getAllConfigurationOptions(),
-});
-
 export const getSyncJobsQueryOptions = (integrationId?: string) => ({
   queryKey: ['integrations', 'sync-jobs', integrationId ?? 'all'],
   queryFn: () => getSyncJobs({ integrationId }),
@@ -300,20 +284,6 @@ export const useGetIntegrations = (
 export const useGetIntegrationById = (integrationId: string, queryConfig?: QueryConfig<typeof getIntegrationByIdQueryOptions>) => {
   return useQuery({
     ...getIntegrationByIdQueryOptions(integrationId),
-    ...queryConfig,
-  });
-};
-
-export const useGetConfigurationOptions = (type: IntegrationType | string, queryConfig?: QueryConfig<typeof getConfigurationOptionsQueryOptions>) => {
-  return useQuery({
-    ...getConfigurationOptionsQueryOptions(type),
-    ...queryConfig,
-  });
-};
-
-export const useGetAllConfigurationOptions = (queryConfig?: QueryConfig<typeof getAllConfigurationOptionsQueryOptions>) => {
-  return useQuery({
-    ...getAllConfigurationOptionsQueryOptions(),
     ...queryConfig,
   });
 };
@@ -423,4 +393,111 @@ export const useSyncIntegration = (mutationConfig?: MutationConfig<(params: { in
     mutationFn: ({ integrationId }: { integrationId: string }) => triggerSync(integrationId),
     ...mutationConfig,
   });
+};
+
+// Action config
+export const saveActionConfig = async (
+  integrationId: string,
+  defaults: Record<string, string>
+): Promise<{ integrationId: string; actionDefaults: Record<string, string> }> => {
+  return await api.put(`/integrations/${integrationId}/action-config`, {
+    actionDefaults: defaults,
+  });
+};
+
+export const useSaveActionConfig = (
+  mutationConfig?: MutationConfig<
+    (params: {
+      integrationId: string;
+      defaults: Record<string, string>;
+    }) => Promise<{ integrationId: string; actionDefaults: Record<string, string> }>
+  >
+) => {
+  return useMutation({
+    mutationFn: ({
+      integrationId,
+      defaults,
+    }: {
+      integrationId: string;
+      defaults: Record<string, string>;
+    }) => saveActionConfig(integrationId, defaults),
+    ...mutationConfig,
+  });
+};
+
+// Action config field definitions per integration type
+export type ActionConfigFieldType = 'text' | 'url' | 'select';
+
+export interface ActionConfigField {
+  key: string;
+  label: string;
+  type: ActionConfigFieldType;
+  required?: boolean;
+  description?: string;
+  options?: string[];
+}
+
+export const ACTION_CONFIG_FIELDS: Record<string, ActionConfigField[]> = {
+  Slack: [
+    {
+      key: 'webhookUrl',
+      label: 'Webhook URL',
+      type: 'url',
+      required: true,
+      description: 'Incoming webhook URL for your Slack workspace',
+    },
+    {
+      key: 'channel',
+      label: 'Default channel',
+      type: 'text',
+      description: 'e.g. #alerts',
+    },
+    {
+      key: 'username',
+      label: 'Bot username',
+      type: 'text',
+      description: 'Display name for messages',
+    },
+  ],
+  MicrosoftTeams: [
+    {
+      key: 'webhookUrl',
+      label: 'Webhook URL',
+      type: 'url',
+      required: true,
+      description: 'Incoming webhook URL for your Teams channel',
+    },
+    { key: 'teamId', label: 'Team ID', type: 'text' },
+    { key: 'channelId', label: 'Channel ID', type: 'text' },
+  ],
+  Intercom: [
+    {
+      key: 'adminId',
+      label: 'Admin ID',
+      type: 'text',
+      description: 'Intercom admin user ID for sending messages',
+    },
+  ],
+  Zendesk: [
+    {
+      key: 'defaultPriority',
+      label: 'Default priority',
+      type: 'select',
+      options: ['low', 'normal', 'high', 'urgent'],
+    },
+    {
+      key: 'defaultTags',
+      label: 'Default tags',
+      type: 'text',
+      description: 'Comma-separated tags applied to tickets',
+    },
+  ],
+  HubSpot: [
+    {
+      key: 'assignToOwnerId',
+      label: 'Default task owner ID',
+      type: 'text',
+      description: 'HubSpot owner ID for CRM tasks',
+    },
+  ],
 };

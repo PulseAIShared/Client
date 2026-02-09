@@ -11,8 +11,6 @@ import { MantineProvider } from '@mantine/core';
 import { MainErrorFallback } from '@/components/errors/main';
 import { ModalProvider } from './modal-provider';
 import { ThemeProvider } from '@/lib/theme-context';
-import { RealTimeNotificationStatusProvider } from '@/hooks/real-time-notification-status';
-
 type AppProviderProps = {
   children: React.ReactNode;
 };
@@ -39,10 +37,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             <QueryClientProvider client={queryClient}>
               <ModalProvider>
                 {import.meta.env.DEV && <ReactQueryDevtools />}
-                <RealTimeNotificationStatusProvider>
-                  <Notifications />
-                  {children}
-                </RealTimeNotificationStatusProvider>
+                <Notifications />
+                {children}
               </ModalProvider>
             </QueryClientProvider>
           </MantineProvider>

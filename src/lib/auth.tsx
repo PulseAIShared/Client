@@ -9,14 +9,19 @@ import { Spinner } from '@/components/ui/spinner';
 import { api, clearToken, setToken} from './api-client';
 import { AuthResponse, User, CompanyCreationRequest, VerifyCodeResponse, PlatformRole, CompanyRole, isPlatformAdmin, isPlatformModerator, isCompanyOwner, hasCompanyEditAccess, canAccessPlatformAdmin } from '@/types/api';
 
-const getUser = async (): Promise<User> => {
-  const response = await api.get('/auth/me') as AuthResponse;
-  console.log(response)
-  if (response.token) {
-    setToken(response.token);
+const getUser = async (): Promise<User | null> => {
+  try {
+    const response = (await api.get('/auth/me')) as AuthResponse;
+    if (response.token) {
+      setToken(response.token);
+    }
+    return response.user;
+  } catch {
+    // 401 or network error means not authenticated - return null
+    // instead of throwing so react-query enters "no data" state
+    // rather than "error" state (which can trigger retry/loop behavior)
+    return null;
   }
-  
-  return response.user;
 };
 
 const logout = async (): Promise<void> => {

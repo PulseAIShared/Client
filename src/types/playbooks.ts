@@ -32,6 +32,10 @@ export enum ActionType {
   HubspotWorkflow = 3,
   Email = 4,
   Webhook = 5,
+  IntercomMessage = 6,
+  IntercomNote = 7,
+  ZendeskCreateTicket = 8,
+  TeamsAlert = 9,
 }
 
 export enum ConfidenceLevel {

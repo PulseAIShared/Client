@@ -203,6 +203,122 @@ export const IntegrationTypeLabels: Record<number, string> = {
   4: 'Stripe',
   1: 'HubSpot',
   5: 'PostHog',
+  2: 'Pipedrive',
+  12: 'Chargebee',
+  9: 'Zendesk',
+  8: 'Intercom',
+  11: 'Microsoft Teams',
+};
+
+// Integration purpose helpers
+type IntegrationPurposeInfo = 'data_source' | 'action_channel' | 'hybrid';
+
+const INTEGRATION_PURPOSE_MAP: Record<number, IntegrationPurposeInfo> = {
+  4: 'hybrid',        // Stripe
+  1: 'hybrid',        // HubSpot
+  8: 'hybrid',        // Intercom
+  9: 'hybrid',        // Zendesk
+  10: 'action_channel', // Slack
+  11: 'action_channel', // Microsoft Teams
+  5: 'data_source',   // PostHog
+  2: 'data_source',   // Pipedrive
+  12: 'data_source',  // Chargebee
+};
+
+export const getIntegrationPurpose = (
+  integrationType: number
+): IntegrationPurposeInfo => {
+  return INTEGRATION_PURPOSE_MAP[integrationType] ?? 'data_source';
+};
+
+export const supportsDataSync = (integrationType: number): boolean => {
+  const purpose = getIntegrationPurpose(integrationType);
+  return purpose === 'data_source' || purpose === 'hybrid';
+};
+
+export const supportsActions = (integrationType: number): boolean => {
+  const purpose = getIntegrationPurpose(integrationType);
+  return purpose === 'action_channel' || purpose === 'hybrid';
+};
+
+// Action types per integration for testing
+export interface ActionTypeOption {
+  value: string;
+  label: string;
+}
+
+const ACTION_TYPES_BY_INTEGRATION: Record<number, ActionTypeOption[]> = {
+  4: [{ value: 'StripeRetry', label: 'Retry Payment' }],
+  1: [
+    { value: 'CrmTask', label: 'Create CRM Task' },
+    { value: 'HubspotWorkflow', label: 'Trigger Workflow' },
+  ],
+  8: [
+    { value: 'IntercomMessage', label: 'Send Message' },
+    { value: 'IntercomNote', label: 'Add Note' },
+  ],
+  9: [{ value: 'ZendeskCreateTicket', label: 'Create Ticket' }],
+  10: [{ value: 'SlackAlert', label: 'Send Alert' }],
+  11: [{ value: 'TeamsAlert', label: 'Send Alert' }],
+};
+
+export const getActionTypesForIntegration = (
+  integrationType: number
+): ActionTypeOption[] => {
+  return ACTION_TYPES_BY_INTEGRATION[integrationType] ?? [];
+};
+
+export const getDefaultActionConfig = (actionType: string): string => {
+  const templates: Record<string, object> = {
+    SlackAlert: { channel: '#alerts', message: 'Test alert from PulseLTV' },
+    TeamsAlert: { message: 'Test alert from PulseLTV' },
+    IntercomMessage: { body: 'Test message from PulseLTV' },
+    IntercomNote: { body: 'Test note from PulseLTV' },
+    ZendeskCreateTicket: {
+      subject: 'Test ticket',
+      description: 'Created by PulseLTV Testing Lab',
+      priority: 'normal',
+    },
+    CrmTask: { subject: 'Follow up', notes: 'Testing Lab task' },
+    HubspotWorkflow: { workflowId: '' },
+    StripeRetry: {},
+  };
+  return JSON.stringify(templates[actionType] ?? {}, null, 2);
+};
+
+// Test action API
+export interface TestActionRequest {
+  actionType: string;
+  configJson: string;
+}
+
+export interface TestActionResponse {
+  success: boolean;
+  externalId?: string | null;
+  responseJson?: string | null;
+  error?: string | null;
+}
+
+export const testAction = async ({
+  integrationId,
+  request,
+}: {
+  integrationId: string;
+  request: TestActionRequest;
+}): Promise<TestActionResponse> => {
+  return api.post(
+    `/admin/testing-lab/integrations/${integrationId}/test-action`,
+    request
+  );
+};
+
+export const useTestAction = (options?: {
+  mutationConfig?: MutationConfig<typeof testAction>;
+}) => {
+  return useMutation({
+    mutationFn: testAction,
+    ...options?.mutationConfig,
+  });
 };
 
 export const ScenarioOptions = [

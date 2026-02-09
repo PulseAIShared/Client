@@ -7,18 +7,25 @@ import type {
   IntegrationStatusResponse,
   SyncConfigRequest,
 } from '@/types/api';
-import { SyncFrequency } from '@/types/api';
+import { IntegrationPurpose, SyncFrequency } from '@/types/api';
+import type { ActionConfigField } from '../api/integrations';
+import { ACTION_CONFIG_FIELDS } from '../api/integrations';
+
+export type ConfigModalMode = 'sync' | 'action';
 
 type IntegrationConfigModalProps = {
   open: boolean;
+  mode: ConfigModalMode;
   integration: IntegrationStatusResponse | null;
   options?: ConfigurationOptions;
   inspection?: IntegrationInspection | null;
   isLoading?: boolean;
   isSaving?: boolean;
+  isSavingAction?: boolean;
   errorMessage?: string | null;
   onClose: () => void;
   onSubmit: (config: SyncConfigRequest) => Promise<void>;
+  onSaveActionConfig?: (defaults: Record<string, string>) => Promise<void>;
 };
 
 type ResolvedDataTypeOption = {
@@ -125,18 +132,31 @@ const buildDefaultConfig = (
 
 export const IntegrationConfigModal: React.FC<IntegrationConfigModalProps> = ({
   open,
+  mode,
   integration,
   options,
   inspection,
   isLoading = false,
   isSaving = false,
+  isSavingAction = false,
   errorMessage,
   onClose,
   onSubmit,
+  onSaveActionConfig,
 }) => {
+  const showSyncSection = mode === 'sync';
+  const showActionSection = mode === 'action' && !!onSaveActionConfig;
+
+  const integrationTypeKey = String(integration?.type ?? '');
+  const actionFields: ActionConfigField[] =
+    ACTION_CONFIG_FIELDS[integrationTypeKey] ?? [];
+
   const [formState, setFormState] = useState<SyncConfigRequest>(() =>
     buildDefaultConfig(integration, options, inspection)
   );
+  const [actionFormState, setActionFormState] = useState<
+    Record<string, string>
+  >(() => integration?.actionDefaults ?? {});
   const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -145,6 +165,7 @@ export const IntegrationConfigModal: React.FC<IntegrationConfigModalProps> = ({
     }
 
     setFormState(buildDefaultConfig(integration, options, inspection));
+    setActionFormState(integration?.actionDefaults ?? {});
     setLocalError(null);
   }, [open, integration, options, inspection]);
 
@@ -217,40 +238,50 @@ export const IntegrationConfigModal: React.FC<IntegrationConfigModalProps> = ({
       return;
     }
 
-    const boundedHistorical = Math.min(
-      Math.max(formState.historicalSyncDays || defaultHistoricalDays, 1),
-      maxHistoricalDays
-    );
-    const boundedBatchSize = Math.min(
-      Math.max(formState.batchSize || defaultBatchSize, 1),
-      maxBatchSize
-    );
+    if (showSyncSection) {
+      const boundedHistorical = Math.min(
+        Math.max(formState.historicalSyncDays || defaultHistoricalDays, 1),
+        maxHistoricalDays
+      );
+      const boundedBatchSize = Math.min(
+        Math.max(formState.batchSize || defaultBatchSize, 1),
+        maxBatchSize
+      );
 
-    const payload: SyncConfigRequest = {
-      ...formState,
-      historicalSyncDays: boundedHistorical,
-      batchSize: boundedBatchSize,
-    };
+      const payload: SyncConfigRequest = {
+        ...formState,
+        historicalSyncDays: boundedHistorical,
+        batchSize: boundedBatchSize,
+      };
 
-    // Ensure required data types are always included.
-    const dataTypeSet = new Set(payload.dataTypes);
-    for (const required of requiredDataTypes) {
-      dataTypeSet.add(required);
-    }
-    payload.dataTypes = Array.from(dataTypeSet);
-
-    if (options?.availableCustomFields?.length) {
-      const allowed = new Set(options.availableCustomFields.map((field) => field.id));
-      const filtered: Record<string, string> = {};
-      for (const [key, value] of Object.entries(payload.customFields ?? {})) {
-        if (allowed.has(key)) {
-          filtered[key] = value;
-        }
+      // Ensure required data types are always included.
+      const dataTypeSet = new Set(payload.dataTypes);
+      for (const required of requiredDataTypes) {
+        dataTypeSet.add(required);
       }
-      payload.customFields = filtered;
+      payload.dataTypes = Array.from(dataTypeSet);
+
+      if (options?.availableCustomFields?.length) {
+        const allowed = new Set(options.availableCustomFields.map((field) => field.id));
+        const filtered: Record<string, string> = {};
+        for (const [key, value] of Object.entries(payload.customFields ?? {})) {
+          if (allowed.has(key)) {
+            filtered[key] = value;
+          }
+        }
+        payload.customFields = filtered;
+      }
+
+      await onSubmit(payload);
     }
 
-    await onSubmit(payload);
+    if (showActionSection && onSaveActionConfig) {
+      await onSaveActionConfig(actionFormState);
+    }
+  };
+
+  const handleActionFieldChange = (key: string, value: string) => {
+    setActionFormState((prev) => ({ ...prev, [key]: value }));
   };
 
   if (!open || !integration) {
@@ -271,7 +302,9 @@ export const IntegrationConfigModal: React.FC<IntegrationConfigModalProps> = ({
               Configure {integration.name}
             </h2>
             <p className="text-sm text-text-secondary">
-              Control sync cadence, data coverage, and historical imports before running your first sync.
+              {mode === 'action'
+                ? 'Configure action channel settings for playbook delivery.'
+                : 'Control sync cadence, data coverage, and historical imports before running your first sync.'}
             </p>
           </div>
           <button
@@ -293,6 +326,8 @@ export const IntegrationConfigModal: React.FC<IntegrationConfigModalProps> = ({
             </div>
           ) : null}
 
+          {showSyncSection ? (
+          <>
           <section>
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="text-base font-semibold text-text-primary">Sync Settings</h3>
@@ -505,6 +540,62 @@ export const IntegrationConfigModal: React.FC<IntegrationConfigModalProps> = ({
               </div>
             </section>
           ) : null}
+          </>
+          ) : null}
+
+          {showActionSection && actionFields.length > 0 ? (
+            <section>
+              {showSyncSection ? (
+                <div className="border-t border-border-primary/30 pt-4 mb-4" />
+              ) : null}
+              <h3 className="mb-3 text-base font-semibold text-text-primary">
+                Action Channel Settings
+              </h3>
+              <div className="grid gap-4">
+                {actionFields.map((field) => (
+                  <label key={field.key} className="flex flex-col gap-2 text-sm">
+                    <span className="font-medium text-text-secondary">
+                      {field.label}
+                      {field.required ? (
+                        <span className="ml-1 text-error-muted">*</span>
+                      ) : null}
+                    </span>
+                    {field.type === 'select' && field.options ? (
+                      <select
+                        className="rounded-lg border border-border-primary/50 bg-surface-secondary/80 px-3 py-2 text-text-primary focus:border-accent-primary focus:outline-none"
+                        value={actionFormState[field.key] ?? ''}
+                        onChange={(e) =>
+                          handleActionFieldChange(field.key, e.target.value)
+                        }
+                      >
+                        <option value="">Select...</option>
+                        {field.options.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type={field.type === 'url' ? 'url' : 'text'}
+                        value={actionFormState[field.key] ?? ''}
+                        onChange={(e) =>
+                          handleActionFieldChange(field.key, e.target.value)
+                        }
+                        placeholder={field.description ?? ''}
+                        className="rounded-lg border border-border-primary/50 bg-surface-secondary/80 px-3 py-2 text-text-primary focus:border-accent-primary focus:outline-none"
+                      />
+                    )}
+                    {field.description ? (
+                      <span className="text-xs text-text-muted">
+                        {field.description}
+                      </span>
+                    ) : null}
+                  </label>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
 
         <div className="mt-6 flex flex-shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -515,7 +606,9 @@ export const IntegrationConfigModal: React.FC<IntegrationConfigModalProps> = ({
               <p className="text-error-muted">{errorMessage}</p>
             ) : (
               <p className="text-text-muted">
-                Changes apply immediately after saving and affect the next scheduled sync run.
+                {mode === 'action'
+                  ? 'Changes apply immediately and affect future playbook actions.'
+                  : 'Changes apply immediately after saving and affect the next scheduled sync run.'}
               </p>
             )}
           </div>
@@ -527,10 +620,12 @@ export const IntegrationConfigModal: React.FC<IntegrationConfigModalProps> = ({
             <Button
               className="bg-gradient-to-r from-accent-primary to-accent-secondary text-white hover:from-accent-primary hover:to-accent-secondary"
               onClick={handleSubmit}
-              disabled={isSaving || isLoading}
-              isLoading={isSaving}
+              disabled={isSaving || isSavingAction || isLoading}
+              isLoading={isSaving || isSavingAction}
             >
-              Save configuration
+              {mode === 'action'
+                ? 'Save channel settings'
+                : 'Save sync configuration'}
             </Button>
           </div>
         </div>

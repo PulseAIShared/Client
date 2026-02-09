@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useGetIntegrationById, useInspectIntegration, useGetConfigurationOptions, useConfigureIntegration, useTriggerSync } from '@/features/settings/api/integrations';
-import { IntegrationType, SyncFrequency, IntegrationInspection } from '@/types/api';
+import { useGetIntegrationById, useInspectIntegration, useConfigureIntegration, useTriggerSync } from '@/features/settings/api/integrations';
+import { SyncFrequency, IntegrationInspection } from '@/types/api';
 import { useNotifications } from '@/components/ui/notifications';
 import { AppPageHeader, ContentLayout } from '@/components/layouts';
 
@@ -13,12 +13,11 @@ export const IntegrationConfigureRoute: React.FC = () => {
 
   const { data: integration, isLoading: loadingIntegration } = useGetIntegrationById(integrationId);
   const { data: inspection, isLoading: loadingInspect } = useInspectIntegration(integrationId);
-  const { data: configOptions } = useGetConfigurationOptions((integration?.type as IntegrationType) ?? IntegrationType.Stripe, { enabled: !!integration?.type } as any);
 
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [syncFrequency, setSyncFrequency] = useState<SyncFrequency>(SyncFrequency.Daily);
-  const [historicalDays, setHistoricalDays] = useState<number>(configOptions?.defaultHistoricalSyncDays ?? 90);
-  const [batchSize, setBatchSize] = useState<number>(configOptions?.defaultBatchSize ?? 500);
+  const [historicalDays, setHistoricalDays] = useState<number>(90);
+  const [batchSize, setBatchSize] = useState<number>(500);
 
   const configureMutation = useConfigureIntegration({
     onSuccess: () => {
@@ -139,7 +138,7 @@ export const IntegrationConfigureRoute: React.FC = () => {
                 <input
                   type="number"
                   min={1}
-                  max={configOptions?.maxHistoricalSyncDays ?? 365}
+                  max={365}
                   value={historicalDays}
                   onChange={(e) => setHistoricalDays(Number(e.target.value))}
                   className="w-full bg-surface-secondary/50 border border-border-primary/50 rounded-lg px-3 py-2"
@@ -150,7 +149,7 @@ export const IntegrationConfigureRoute: React.FC = () => {
                 <input
                   type="number"
                   min={100}
-                  max={configOptions?.maxBatchSize ?? 5000}
+                  max={5000}
                   step={100}
                   value={batchSize}
                   onChange={(e) => setBatchSize(Number(e.target.value))}

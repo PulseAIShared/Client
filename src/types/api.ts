@@ -1074,6 +1074,11 @@ export enum IntegrationType {
   Stripe = 'Stripe',
   PostHog = 'PostHog',
   Slack = 'Slack',
+  Intercom = 'Intercom',
+  Zendesk = 'Zendesk',
+  Pipedrive = 'Pipedrive',
+  Chargebee = 'Chargebee',
+  MicrosoftTeams = 'MicrosoftTeams',
 }
 
 export enum IntegrationStatus {
@@ -1116,6 +1121,7 @@ export interface IntegrationApiItem {
   needsConfiguration: boolean;
   syncConfiguration: SyncConfiguration | null;
   tokenExpiresAt?: string | null;
+  actionDefaults?: Record<string, string> | null;
 }
 
 export interface IntegrationStatusResponse {
@@ -1136,6 +1142,7 @@ export interface IntegrationStatusResponse {
   needsConfiguration?: boolean;
   isTokenExpired?: boolean;
   tokenExpiresAt?: string | null;
+  actionDefaults?: Record<string, string>;
 }
 
 export interface ConnectionDetails {
@@ -2220,6 +2227,114 @@ export interface AcceptTeamInvitationResponse {
   companyName?: string | null;
   inviterName?: string | null;
   inviterEmail?: string | null;
+}
+
+// Settings
+export interface AccountSettingsResponse {
+  userId: string;
+  companyId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string | null;
+  companyName: string;
+  canEdit: boolean;
+}
+
+export interface UpdateAccountSettingsRequest {
+  firstName: string;
+  lastName: string;
+}
+
+export interface PersonalNotificationSettingsResponse {
+  churnRiskAlerts: boolean;
+  weeklyReports: boolean;
+  integrationStatus: boolean;
+}
+
+export interface CompanyNotificationSettingsResponse {
+  defaultNotificationPreferences: boolean;
+  criticalAlertEscalation: boolean;
+  digestFrequency: 'daily' | 'weekly' | 'monthly';
+}
+
+export interface NotificationSettingsResponse {
+  personal: PersonalNotificationSettingsResponse;
+  company: CompanyNotificationSettingsResponse;
+  canManageCompanySettings: boolean;
+}
+
+export interface UpdatePersonalNotificationSettingsRequest {
+  churnRiskAlerts?: boolean;
+  weeklyReports?: boolean;
+  integrationStatus?: boolean;
+}
+
+export interface UpdateCompanyNotificationSettingsRequest {
+  defaultNotificationPreferences?: boolean;
+  criticalAlertEscalation?: boolean;
+  digestFrequency?: 'daily' | 'weekly' | 'monthly';
+}
+
+export interface UpdateNotificationSettingsRequest {
+  personal?: UpdatePersonalNotificationSettingsRequest;
+  company?: UpdateCompanyNotificationSettingsRequest;
+}
+
+export interface BillingSummaryResponse {
+  companyId: string;
+  companyName: string;
+  plan: string;
+  memberCount: number;
+  seatLimit: number;
+  pendingInvitationCount: number;
+  seatUtilizationPercentage?: number | null;
+  canManageBilling: boolean;
+  isBillingPortalConfigured: boolean;
+}
+
+export interface BillingPortalSessionResponse {
+  url: string;
+  expiresAtUtc: string;
+}
+
+export interface SecurityCapabilitiesResponse {
+  passwordChangeEnabled: boolean;
+  sessionManagementEnabled: boolean;
+  twoFactorEnabled: boolean;
+  singleSignOnEnabled: boolean;
+  ipAllowlistEnabled: boolean;
+  auditLogsEnabled: boolean;
+}
+
+export interface SecuritySessionResponse {
+  sessionId: string;
+  label: string;
+  isCurrent: boolean;
+  canRevoke: boolean;
+  expiresAtUtc?: string | null;
+}
+
+export interface SecuritySessionsResponse {
+  canManageCompanySecurity: boolean;
+  canChangePassword: boolean;
+  isSsoAccount: boolean;
+  capabilities: SecurityCapabilitiesResponse;
+  sessions: SecuritySessionResponse[];
+}
+
+export interface UpdateSecurityPasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface SecurityPasswordUpdateResponse {
+  success: boolean;
+  reauthenticationRequired: boolean;
+}
+
+export interface SecuritySessionRevokeResponse {
+  revoked: boolean;
 }
 
 // Helper functions for role system

@@ -3,6 +3,4 @@ export * from './account-section';
 export * from './notification-settings';
 export * from './billing-section';
 export * from './security-section';
-export * from './email-sender-settings';
-export * from './email-action-defaults-settings';
 export * from './integration-config-modal';

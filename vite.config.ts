@@ -34,6 +34,11 @@ export default defineConfig({
     port: 3000,
   },
   optimizeDeps: { exclude: ['fsevents'] },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.ts',
+  },
   build: {
     rollupOptions: {
       external: ['fs', 'fs/promises'],

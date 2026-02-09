@@ -15,6 +15,8 @@ type SettingsTab = 'account' | 'notifications' | 'billing' | 'security';
 export const SettingsRoute = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { checkCompanyPolicy } = useAuthorization();
+  const readOnlyTabMessage: Partial<Record<SettingsTab, string>> = {
+  };
 
   const allTabs = [
     { 
@@ -26,7 +28,8 @@ export const SettingsRoute = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
-      requiredPolicy: 'settings:read' as const
+      requiredPolicy: 'settings:read' as const,
+      readOnly: false,
     },
     { 
       id: 'notifications' as const, 
@@ -37,7 +40,8 @@ export const SettingsRoute = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5v3a6 6 0 10-12 0v3l-5 5h5m7 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
       ),
-      requiredPolicy: 'settings:read' as const
+      requiredPolicy: 'settings:read' as const,
+      readOnly: false,
     },
     { 
       id: 'billing' as const, 
@@ -48,7 +52,8 @@ export const SettingsRoute = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
         </svg>
       ),
-      requiredPolicy: 'company:billing' as const
+      requiredPolicy: 'company:billing' as const,
+      readOnly: false,
     },
     { 
       id: 'security' as const, 
@@ -59,7 +64,8 @@ export const SettingsRoute = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
       ),
-      requiredPolicy: 'company:manage' as const
+      requiredPolicy: 'settings:read' as const,
+      readOnly: false,
     }
   ];
 
@@ -113,23 +119,6 @@ export const SettingsRoute = () => {
         <AppPageHeader
           title="Settings"
           description="Configure your PulseLTV workspace preferences, billing, and security controls."
-          actions={(
-            <>
-              <button className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-accent-primary to-accent-secondary px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-secondary/25 sm:px-8 sm:py-4 sm:text-base">
-                <div className="absolute inset-0 bg-gradient-to-r from-accent-secondary to-accent-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100"></div>
-                <svg className="relative h-4 w-4 transition-transform duration-200 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="relative">Save Changes</span>
-              </button>
-              <button className="group flex items-center justify-center gap-2 rounded-xl border border-border-primary/30 bg-surface-secondary/50 px-6 py-3 text-sm font-medium text-text-primary transition-all duration-200 hover:bg-surface-primary/50 hover:shadow-md sm:px-8 sm:py-4 sm:text-base">
-                <svg className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Reset to Default
-              </button>
-            </>
-          )}
         />
 
         {/* Enhanced Settings Navigation */}
@@ -154,7 +143,14 @@ export const SettingsRoute = () => {
                   {tab.icon}
                 </div>
                 <div className="text-center sm:text-left">
-                  <div className="font-semibold">{tab.label}</div>
+                  <div className="flex items-center gap-2 font-semibold">
+                    <span>{tab.label}</span>
+                    {tab.readOnly && (
+                      <span className="rounded-full bg-surface-secondary/70 px-2 py-0.5 text-[10px] uppercase tracking-wide text-text-muted">
+                        Read-only
+                      </span>
+                    )}
+                  </div>
                   <div className={`text-xs mt-1 transition-colors duration-300 ${
                     activeTab === tab.id ? 'text-accent-primary/70' : 'text-text-muted'
                   }`}>
@@ -174,6 +170,12 @@ export const SettingsRoute = () => {
               {/* Content background with subtle gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-surface-secondary/20 to-transparent rounded-2xl"></div>
               <div className="relative">
+                {tabs.find((tab) => tab.id === activeTab)?.readOnly &&
+                readOnlyTabMessage[activeTab] ? (
+                  <div className="mb-6 rounded-xl border border-info/30 bg-info/15 px-4 py-3 text-sm text-info-muted">
+                    {readOnlyTabMessage[activeTab]}
+                  </div>
+                ) : null}
                 {renderContent()}
               </div>
             </div>

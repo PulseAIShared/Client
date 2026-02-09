@@ -2,10 +2,12 @@ import type { ComponentType } from 'react';
 import { Mail, Send, Webhook } from 'lucide-react';
 import {
   SiHubspot,
+  SiIntercom,
   SiMailchimp,
   SiPosthog,
   SiSlack,
   SiStripe,
+  SiZendesk,
 } from 'react-icons/si';
 import { cn } from '@/utils/cn';
 import { ActionType } from '@/types/playbooks';
@@ -103,6 +105,39 @@ const VISUAL_CATALOG: Record<string, IntegrationVisual> = {
     accentGradient: 'from-[#64748b] to-[#334155]',
     icon: Send,
   },
+  pipedrive: {
+    key: 'pipedrive',
+    label: 'Pipedrive',
+    shortLabel: 'PD',
+    accentGradient: 'from-[#25292c] to-[#017737]',
+
+  },
+  chargebee: {
+    key: 'chargebee',
+    label: 'Chargebee',
+    shortLabel: 'CB',
+    accentGradient: 'from-[#ff6633] to-[#ef4123]',
+  },
+  zendesk: {
+    key: 'zendesk',
+    label: 'Zendesk',
+    shortLabel: 'ZD',
+    accentGradient: 'from-[#03363d] to-[#78a300]',
+    icon: SiZendesk,
+  },
+  intercom: {
+    key: 'intercom',
+    label: 'Intercom',
+    shortLabel: 'IC',
+    accentGradient: 'from-[#286efa] to-[#1b4ddb]',
+    icon: SiIntercom,
+  },
+  microsoftteams: {
+    key: 'microsoftteams',
+    label: 'Microsoft Teams',
+    shortLabel: 'MT',
+    accentGradient: 'from-[#5b5fc7] to-[#4b53bc]',
+  },
 };
 
 const titleCase = (value: string) =>
@@ -158,6 +193,24 @@ export const normalizeIntegrationKey = (value: string) => {
   if (normalized.includes('email')) {
     return 'email';
   }
+  if (normalized.includes('pipedrive')) {
+    return 'pipedrive';
+  }
+  if (normalized.includes('chargebee')) {
+    return 'chargebee';
+  }
+  if (normalized.includes('zendesk')) {
+    return 'zendesk';
+  }
+  if (normalized.includes('intercom')) {
+    return 'intercom';
+  }
+  if (
+    normalized.includes('microsoftteams') ||
+    normalized.includes('teams')
+  ) {
+    return 'microsoftteams';
+  }
 
   return normalized;
 };
@@ -177,6 +230,13 @@ export const getActionTypeIntegrationKey = (
       return 'email';
     case ActionType.Webhook:
       return 'webhook';
+    case ActionType.IntercomMessage:
+    case ActionType.IntercomNote:
+      return 'intercom';
+    case ActionType.ZendeskCreateTicket:
+      return 'zendesk';
+    case ActionType.TeamsAlert:
+      return 'microsoftteams';
     default:
       return 'integration';
   }
