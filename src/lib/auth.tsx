@@ -6,8 +6,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { Spinner } from '@/components/ui/spinner';
 
-import { api, clearToken, setToken} from './api-client';
+import { api, clearToken, getToken, setToken} from './api-client';
 import { AuthResponse, User, CompanyCreationRequest, VerifyCodeResponse, PlatformRole, CompanyRole, isPlatformAdmin, isPlatformModerator, isCompanyOwner, hasCompanyEditAccess, canAccessPlatformAdmin } from '@/types/api';
+import { AUTH_USER_QUERY_KEY } from './auth-constants';
 
 const getUser = async (): Promise<User | null> => {
   try {
@@ -15,7 +16,7 @@ const getUser = async (): Promise<User | null> => {
     if (response.token) {
       setToken(response.token);
     }
-    return response.user;
+    return response.user ?? null;
   } catch {
     // 401 or network error means not authenticated - return null
     // instead of throwing so react-query enters "no data" state
@@ -123,9 +124,15 @@ export const canViewAdminPanel = (user: User): boolean => {
 
 const authConfig = {
   userFn: getUser,
+  userKey: AUTH_USER_QUERY_KEY,
   loginFn: async (data: LoginInput) => {
-    const response = await loginWithEmailAndPassword(data);
-    return response.user;
+    await loginWithEmailAndPassword(data);
+    const user = await getUser();
+    if (!user) {
+      throw new Error('Unable to load user profile after login.');
+    }
+
+    return user;
   },
   logoutFn: logout,
   registerFn: async (data: any) => {
@@ -190,7 +197,10 @@ export const useVerifyCode = (options?: {
 };
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const user = useUser();
+  const user = useUser({
+    refetchOnMount: 'always',
+    retry: false,
+  });
   const location = useLocation();
 
   if (user.isLoading) {
@@ -201,7 +211,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!user.data) {
+  if (!user.data || !getToken()) {
     return (
       <Navigate to='/login' replace />
     );

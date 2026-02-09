@@ -45,7 +45,11 @@ const getCurrentUser = async (): Promise<User> => {
   if (response.token) {
     setToken(response.token);
   }
-  
+
+  if (!response.user) {
+    throw new Error('User profile is unavailable.');
+  }
+
   return response.user;
 };
 

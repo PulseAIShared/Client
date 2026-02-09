@@ -11,6 +11,7 @@ import { MantineProvider } from '@mantine/core';
 import { MainErrorFallback } from '@/components/errors/main';
 import { ModalProvider } from './modal-provider';
 import { ThemeProvider } from '@/lib/theme-context';
+import { AUTH_CLEARED_EVENT, AUTH_USER_QUERY_KEY } from '@/lib/auth-constants';
 type AppProviderProps = {
   children: React.ReactNode;
 };
@@ -22,6 +23,17 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         defaultOptions: queryConfig,
       }),
   );
+
+  React.useEffect(() => {
+    const handleAuthCleared = () => {
+      queryClient.setQueryData(AUTH_USER_QUERY_KEY, null);
+    };
+
+    window.addEventListener(AUTH_CLEARED_EVENT, handleAuthCleared);
+    return () => {
+      window.removeEventListener(AUTH_CLEARED_EVENT, handleAuthCleared);
+    };
+  }, [queryClient]);
 
   return (
     <React.Suspense

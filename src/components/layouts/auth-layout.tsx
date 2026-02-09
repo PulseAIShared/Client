@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useUser } from '@/lib/auth';
+import { getToken } from '@/lib/api-client';
 
 
 type LayoutProps = {
@@ -12,18 +13,20 @@ type LayoutProps = {
 export const AuthLayout = ({ children }: LayoutProps) => {
 
   const user = useUser({
-
+    refetchOnMount: 'always',
+    retry: false,
   });
 
   const navigate = useNavigate();
+  const hasToken = Boolean(getToken());
 
   useEffect(() => {
-    if (user.data) {
+    if (user.data && hasToken) {
       navigate('/app', {
         replace: true,
       });
     }
-  }, [user.data, navigate]);
+  }, [hasToken, user.data, navigate]);
 
   return (
   <> {children} </>

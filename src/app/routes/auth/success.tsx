@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { needsOnboarding } from '@/lib/auth';
+import { setToken } from '@/lib/api-client';
 import { Spinner } from '@/components/ui/spinner';
 import { AuthLayout } from '@/components/layouts';
 import { User } from '@/types/api';
@@ -21,10 +22,10 @@ export const AuthSuccessRoute = () => {
           return;
         }
 
-        // Call /users/me to verify authentication (cookies should be set by backend)
+        // Call /auth/me to verify authentication (cookies should be set by backend)
         setStatus('Checking authentication status...');
         
-        const response = await fetch(`${import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'}/users/me`, {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'}/auth/me`, {
           credentials: 'include' // Important: Include cookies for authentication
         });
         
@@ -38,6 +39,10 @@ export const AuthSuccessRoute = () => {
         }
         
         const authResponse = await response.json();
+        if (authResponse.token) {
+          setToken(authResponse.token);
+        }
+
         const user: User = authResponse.user || authResponse;
         
         setStatus('Setting up your account...');

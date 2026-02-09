@@ -1,5 +1,6 @@
 import Axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { env } from '@/config/env';
+import { AUTH_CLEARED_EVENT } from './auth-constants';
 
 let accessToken: string | null = null;
 
@@ -114,6 +115,9 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh failed - clear token, reject queued requests
         clearToken();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event(AUTH_CLEARED_EVENT));
+        }
         onRefreshFailed(refreshError);
 
         // Only redirect if not already on an auth page to prevent loops

@@ -63,8 +63,8 @@ export type UserProfile = Entity<{
 }>;
 
 export type AuthResponse = {
-  token: string;
-  user: User;
+  token?: string;
+  user?: User;
 };
 
 export type VerifyCodeResponse = {

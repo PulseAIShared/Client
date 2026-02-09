@@ -4,7 +4,8 @@ import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 import { AuthLayout } from '@/components/layouts';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { useQueryClient } from '@tanstack/react-query';
-import { setToken } from '@/lib/api-client';
+import { clearToken, setToken } from '@/lib/api-client';
+import { AUTH_USER_QUERY_KEY } from '@/lib/auth-constants';
 
 export const LoginRoute = () => {
   const navigate = useNavigate();
@@ -28,14 +29,17 @@ export const LoginRoute = () => {
 
   useEffect(() => {
     if (searchParams.get('sessionExpired') === 'true') {
+      clearToken();
+      queryClient.setQueryData(AUTH_USER_QUERY_KEY, null);
       setError(
         'Your session has expired. Please sign in again.',
       );
       // Clean up the URL parameter
-      searchParams.delete('sessionExpired');
-      setSearchParams(searchParams, { replace: true });
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('sessionExpired');
+      setSearchParams(nextParams, { replace: true });
     }
-  }, []);
+  }, [queryClient, searchParams, setSearchParams]);
 
   // Clean up popup listeners on unmount
   useEffect(() => {
