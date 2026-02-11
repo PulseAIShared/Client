@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useChatbotStore } from '../store';
 import { useNavigate } from 'react-router-dom';
+import type { ChatConversation } from '../api/chatbot';
 
 export const ConversationSwitcher: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,36 +12,11 @@ export const ConversationSwitcher: React.FC = () => {
     currentConversation,
     currentContextKey,
     switchToConversation,
-    generateContextKey,
-    pageContext,
   } = useChatbotStore();
 
-  const handleConversationSwitch = (conversation: any) => {
+  const handleConversationSwitch = (conversation: ChatConversation) => {
     // Always switch to the conversation directly, no navigation required
     switchToConversation(conversation);
-    setIsOpen(false);
-  };
-
-  const navigateToContext = (contextKey: string | undefined, conversation: any) => {
-    if (!contextKey) return;
-    
-    if (contextKey.startsWith('customer-')) {
-      const customerId = contextKey.split('-')[1];
-      navigate(`/app/customers/${customerId}`);
-    } else if (contextKey.startsWith('analytics-')) {
-      const analysisId = contextKey.split('-')[1];
-      navigate(`/app/analytics/churn-analysis/${analysisId}`);
-    } else if (contextKey === 'dashboard') {
-      navigate('/app/dashboard');
-    } else if (contextKey === 'integrations') {
-      navigate('/app/settings');
-    } else if (contextKey.startsWith('segments-')) {
-      navigate('/app/segments');
-    } else {
-      navigate('/app/dashboard');
-    }
-    
-    // The conversation will be loaded by the context change
     setIsOpen(false);
   };
 
@@ -67,7 +43,7 @@ export const ConversationSwitcher: React.FC = () => {
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  const getConversationOrigin = (conversation: any) => {
+  const getConversationOrigin = (conversation: ChatConversation) => {
     const state = useChatbotStore.getState();
     const contextKey = Object.keys(state.conversationsByContext).find(
       key => state.conversationsByContext[key].id === conversation.id
@@ -75,18 +51,22 @@ export const ConversationSwitcher: React.FC = () => {
     
     if (!contextKey) return 'Unknown';
     
-    if (contextKey.startsWith('customer-')) {
+    if (contextKey.startsWith('customer:')) {
       return 'Customer Detail';
-    } else if (contextKey.startsWith('analytics-')) {
+    } else if (contextKey.startsWith('analytics:') || contextKey === 'analytics') {
       return 'Analytics';
-    } else if (contextKey.startsWith('segments-')) {
+    } else if (contextKey.startsWith('segments:')) {
       return 'Segments';
-    } else if (contextKey.startsWith('import-')) {
+    } else if (contextKey.startsWith('import:')) {
       return 'Import';
     } else if (contextKey === 'dashboard') {
       return 'Dashboard';
-    } else if (contextKey === 'integrations') {
+    } else if (contextKey.startsWith('integrations')) {
       return 'Integrations';
+    } else if (contextKey.startsWith('campaigns')) {
+      return 'Playbooks';
+    } else if (contextKey.startsWith('general:')) {
+      return 'General';
     } else {
       return 'General';
     }
@@ -146,15 +126,7 @@ export const ConversationSwitcher: React.FC = () => {
                           {conversation.title}
                         </h6>
                         <p className="text-xs text-text-muted truncate">
-                          {(() => {
-                            if (typeof conversation.lastMessage === 'string') {
-                              return conversation.lastMessage;
-                            } else if (conversation.lastMessage && typeof conversation.lastMessage === 'object' && 'content' in conversation.lastMessage) {
-                              return (conversation.lastMessage as any).content;
-                            } else {
-                              return 'No messages yet';
-                            }
-                          })()}
+                          {conversation.lastMessage || 'No messages yet'}
                         </p>
                       </div>
                       <div className="text-xs text-text-muted ml-2">
@@ -184,15 +156,7 @@ export const ConversationSwitcher: React.FC = () => {
                           {conversation.title}
                         </h6>
                         <p className="text-xs text-text-muted truncate">
-                          {(() => {
-                            if (typeof conversation.lastMessage === 'string') {
-                              return conversation.lastMessage;
-                            } else if (conversation.lastMessage && typeof conversation.lastMessage === 'object' && 'content' in conversation.lastMessage) {
-                              return (conversation.lastMessage as any).content;
-                            } else {
-                              return 'No messages yet';
-                            }
-                          })()}
+                          {conversation.lastMessage || 'No messages yet'}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-accent-primary">📍 {getConversationOrigin(conversation)}</span>

@@ -18,6 +18,7 @@ export interface ChatbotContext {
   userId?: string;
   segmentId?: string;
   routePath: string;
+  additionalContext?: Record<string, string>;
 }
 
 export interface QuickAction {
@@ -200,11 +201,7 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
           if (conversation) {
             const updatedConversation: ChatConversation = {
               ...conversation,
-              lastMessage: typeof newMessage.content === 'string' 
-                ? newMessage.content 
-                : (newMessage.content && typeof newMessage.content === 'object' && 'content' in newMessage.content)
-                  ? (newMessage.content as any).content
-                  : JSON.stringify(newMessage.content),
+              lastMessage: newMessage.content,
               lastMessageAt: new Date().toISOString(),
               messageCount: updatedMessages.length,
             };
@@ -315,28 +312,39 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
 
       // Context-based Conversation Management
       generateContextKey: (context: ChatbotContext) => {
-        const { type, customerId, analysisId, segmentId } = context;
+        const { type, customerId, analysisId, segmentId, routePath, additionalContext } = context;
+        const pageName = additionalContext?.pageName;
+        const integrationId = additionalContext?.integrationId;
+        const playbookId = additionalContext?.playbookId;
 
         switch (type) {
           case ChatContextType.CustomerDetail:
-            return `customer-${customerId}`;
+            return customerId ? `customer:${customerId}` : 'customer';
           case ChatContextType.Analytics:
-            return `analytics-${analysisId}`;
+            return analysisId
+              ? `analytics:${analysisId}`
+              : `analytics:${pageName || routePath || 'overview'}`;
           case ChatContextType.Segments:
-            return `segments-${segmentId}`;
+            return segmentId
+              ? `segments:${segmentId}`
+              : `segments:${pageName || routePath || 'overview'}`;
           case ChatContextType.Dashboard:
             return 'dashboard';
           case ChatContextType.Integrations:
-            return 'integrations';
+            return integrationId
+              ? `integrations:${integrationId}`
+              : `integrations:${pageName || routePath || 'overview'}`;
           case ChatContextType.Customers:
             return 'customers';
           case ChatContextType.Campaigns:
-            return 'campaigns';
+            return playbookId
+              ? `campaigns:${playbookId}`
+              : `campaigns:${pageName || routePath || 'overview'}`;
           case ChatContextType.Support:
             return 'support';
           case ChatContextType.General:
           default:
-            return 'general';
+            return `general:${routePath || 'home'}`;
         }
       },
 
@@ -372,7 +380,7 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
             case ChatContextType.CustomerDetail:
               return `Customer: ${context.customerId}`;
             case ChatContextType.Analytics:
-              return `Analytics: ${context.analysisId}`;
+              return context.analysisId ? `Analytics: ${context.analysisId}` : 'Insights';
             case ChatContextType.Segments:
               return `Segments: ${context.segmentId}`;
             case ChatContextType.Dashboard:
@@ -441,28 +449,46 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
           
           // Generate the context from the contextKey
           const context = (() => {
-            if (contextKey.startsWith('customer-')) {
+            if (contextKey.startsWith('customer:')) {
+              const customerId = contextKey.substring('customer:'.length);
               return {
                 type: ChatContextType.CustomerDetail,
-                customerId: contextKey.split('-')[1],
-                routePath: `/app/customers/${contextKey.split('-')[1]}`
+                customerId,
+                routePath: `/app/customers/${customerId}`
               };
-            } else if (contextKey.startsWith('analytics-')) {
+            } else if (contextKey.startsWith('analytics:')) {
+              const analysisOrPage = contextKey.substring('analytics:'.length);
+              const analyticsRoute = analysisOrPage.includes('impact') ? '/app/impact' : '/app/insights';
               return {
                 type: ChatContextType.Analytics,
-                analysisId: contextKey.split('-')[1],
-                routePath: `/app/analytics/churn-analysis/${contextKey.split('-')[1]}`
+                analysisId: analysisOrPage.length === 36 ? analysisOrPage : undefined,
+                routePath: analyticsRoute,
+                additionalContext: analysisOrPage.length === 36 ? undefined : { pageName: analysisOrPage }
               };
-            } else if (contextKey.startsWith('segments-')) {
+            } else if (contextKey.startsWith('segments:')) {
+              const segmentOrPage = contextKey.substring('segments:'.length);
               return {
                 type: ChatContextType.Segments,
-                segmentId: contextKey.split('-')[1],
-                routePath: '/app/segments'
+                segmentId: segmentOrPage.length === 36 ? segmentOrPage : undefined,
+                routePath: '/app/segments',
+                additionalContext: segmentOrPage.length === 36 ? undefined : { pageName: segmentOrPage }
               };
             } else if (contextKey === 'dashboard') {
               return {
                 type: ChatContextType.Dashboard,
                 routePath: '/app/dashboard'
+              };
+            } else if (contextKey.startsWith('integrations:')) {
+              const integrationOrPage = contextKey.substring('integrations:'.length);
+              const hasIntegrationId = integrationOrPage.length === 36;
+              return {
+                type: ChatContextType.Integrations,
+                routePath: hasIntegrationId
+                  ? `/app/settings/integrations/${integrationOrPage}/configure`
+                  : '/app/settings',
+                additionalContext: hasIntegrationId
+                  ? { integrationId: integrationOrPage }
+                  : { pageName: integrationOrPage }
               };
             } else if (contextKey === 'integrations') {
               return {
@@ -474,6 +500,18 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
                 type: ChatContextType.Customers,
                 routePath: '/app/customers'
               };
+            } else if (contextKey.startsWith('campaigns:')) {
+              const campaignOrPage = contextKey.substring('campaigns:'.length);
+              const hasPlaybookId = campaignOrPage.length === 36;
+              return {
+                type: ChatContextType.Campaigns,
+                routePath: hasPlaybookId
+                  ? `/app/playbooks/${campaignOrPage}`
+                  : '/app/playbooks',
+                additionalContext: hasPlaybookId
+                  ? { playbookId: campaignOrPage }
+                  : { pageName: campaignOrPage }
+              };
             } else if (contextKey === 'campaigns') {
               return {
                 type: ChatContextType.Campaigns,
@@ -484,13 +522,18 @@ export const useChatbotStore = create<ChatbotState & ChatbotActions>()(
                 type: ChatContextType.Support,
                 routePath: '/app/support'
               };
+            } else if (contextKey.startsWith('general:')) {
+              return {
+                type: ChatContextType.General,
+                routePath: contextKey.substring('general:'.length)
+              };
             } else {
               return {
                 type: ChatContextType.General,
                 routePath: '/'
               };
             }
-          })();
+          })() as ChatbotContext;
           
           set({ 
             currentConversation: conversation,

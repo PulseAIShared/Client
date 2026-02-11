@@ -5,14 +5,15 @@ import { ChatMessages } from './chat-messages';
 import { ChatInput } from './chat-input';
 import { QuickActions } from './quick-actions';
 import { useSendChatMessage, useCreateSupportSession, useGetChatHistory, useGetUserConversations, type ChatbotContext, ChatContextType } from '../api/chatbot';
+import { useGetCustomerOverview } from '@/features/customers/api/customers';
 
-const generateConversationTitle = (message: string, context: ChatbotContext): string => {
+const generateConversationTitle = (_message: string, context: ChatbotContext, customerName?: string): string => {
   // Just use the context name as the title - much simpler and clearer
   switch (context.type) {
     case ChatContextType.Dashboard:
       return 'Dashboard';
     case ChatContextType.CustomerDetail:
-      return `Customer ${context.customerId}`;
+      return customerName || `Customer ${context.customerId}`;
     case ChatContextType.Customers:
       return 'Customers';
     case ChatContextType.Campaigns:
@@ -60,6 +61,13 @@ export const PageHelpInterface: React.FC = () => {
   const createSupportSession = useCreateSupportSession();
   const { data: chatHistory, refetch: refetchHistory } = useGetChatHistory(currentConversation?.id || '', 1, 50);
   const { data: userConversations } = useGetUserConversations();
+  const customerOverviewQuery = useGetCustomerOverview(pageContext.customerId || '', {
+    enabled: pageContext.type === ChatContextType.CustomerDetail && Boolean(pageContext.customerId),
+  });
+  const customerName = [
+    customerOverviewQuery.data?.firstName,
+    customerOverviewQuery.data?.lastName,
+  ].filter(Boolean).join(' ').trim();
 
   // Sync user conversations from API with store
   useEffect(() => {
@@ -140,7 +148,12 @@ export const PageHelpInterface: React.FC = () => {
           type: pageContext.type,
           customerId: pageContext.customerId,
           analysisId: pageContext.analysisId,
+          segmentId: pageContext.segmentId,
           routePath: pageContext.routePath,
+          additionalContext: {
+            ...(pageContext.additionalContext || {}),
+            ...(customerName ? { customerName } : {}),
+          },
         },
         conversationId: currentConversation?.id || undefined,
       };
@@ -151,7 +164,7 @@ export const PageHelpInterface: React.FC = () => {
       if (response.conversationId) {
         const updatedConversation = {
           id: response.conversationId,
-          title: generateConversationTitle(content, pageContext),
+          title: generateConversationTitle(content, pageContext, customerName || undefined),
           lastMessage: typeof response.message.content === 'string' 
             ? response.message.content 
             : (response.message.content && typeof response.message.content === 'object' && 'content' in response.message.content)
@@ -239,14 +252,16 @@ export const PageHelpInterface: React.FC = () => {
           routePath: pageContext.routePath,
           customerId: pageContext.customerId,
           analysisId: pageContext.analysisId,
-          additionalContext: {}
+          segmentId: pageContext.segmentId,
+          additionalContext: pageContext.additionalContext || {}
         },
         currentContext: {
           type: pageContext.type,
           routePath: pageContext.routePath,
           customerId: pageContext.customerId,
           analysisId: pageContext.analysisId,
-          additionalContext: {}
+          segmentId: pageContext.segmentId,
+          additionalContext: pageContext.additionalContext || {}
         }
       });
 
@@ -307,17 +322,25 @@ export const PageHelpInterface: React.FC = () => {
   const getContextTitle = () => {
     switch (pageContext.type) {
       case ChatContextType.CustomerDetail:
-        return `Customer ${pageContext.customerId} Assistant`;
+        return customerName
+          ? `${customerName} Assistant`
+          : `Customer ${pageContext.customerId} Assistant`;
       case ChatContextType.Dashboard:
         return 'Dashboard Assistant';
       case ChatContextType.Customers:
         return 'Customer Management Assistant';
     case ChatContextType.Campaigns:
-        return 'Playbook Management Assistant';
+        return pageContext.additionalContext?.pageName === 'work_queue'
+          ? 'Work Queue Assistant'
+          : 'Playbook Management Assistant';
       case ChatContextType.Segments:
-        return 'Segmentation Assistant';
+        return pageContext.segmentId
+          ? 'Segment Detail Assistant'
+          : 'Segmentation Assistant';
       case ChatContextType.Analytics:
-        return 'Analytics Assistant';
+        return pageContext.additionalContext?.pageName === 'impact'
+          ? 'Impact Assistant'
+          : 'Analytics Assistant';
       case ChatContextType.Integrations:
         return 'Integrations Assistant';
       case ChatContextType.Import:
@@ -327,6 +350,31 @@ export const PageHelpInterface: React.FC = () => {
       case ChatContextType.General:
       default:
         return 'PulseAI Assistant';
+    }
+  };
+
+  const getEmptyStateMessage = () => {
+    switch (pageContext.type) {
+      case ChatContextType.CustomerDetail:
+        return customerName
+          ? `I have ${customerName}'s profile in context. Ask about churn risk, revenue, engagement, support, or retention steps.`
+          : 'I have this customer profile in context. Ask about churn risk, revenue, engagement, support, or retention steps.';
+      case ChatContextType.Segments:
+        return pageContext.segmentId
+          ? 'I can help analyze this segment, explain criteria, and suggest next actions.'
+          : 'I can help create segments, compare performance, and recommend targeting strategies.';
+      case ChatContextType.Campaigns:
+        return pageContext.additionalContext?.pageName === 'work_queue'
+          ? 'I can help prioritize queued actions, explain run health, and suggest approvals.'
+          : 'I can help with playbook strategy, run performance, and target selection.';
+      case ChatContextType.Analytics:
+        return pageContext.additionalContext?.pageName === 'impact'
+          ? 'I can explain impact trends, recovery funnel movement, and what changed.'
+          : 'I can explain churn analysis, risk drivers, and portfolio trends.';
+      case ChatContextType.Integrations:
+        return 'I can help troubleshoot sync issues, connection status, and integration configuration.';
+      default:
+        return 'I am here to help with this page context. Ask anything about the current view.';
     }
   };
 
@@ -345,6 +393,7 @@ export const PageHelpInterface: React.FC = () => {
         <ChatMessages 
           messages={pageMessages} 
           isTyping={isLoading}
+          emptyStateMessage={getEmptyStateMessage()}
         />
       </div>
 

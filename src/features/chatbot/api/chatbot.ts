@@ -8,7 +8,9 @@ export interface ChatRequest {
     type: ChatContextType;
     customerId?: string;
     analysisId?: string;
+    segmentId?: string;
     routePath: string;
+    additionalContext?: Record<string, string>;
   };
   conversationId?: string;
 }

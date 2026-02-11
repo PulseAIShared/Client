@@ -2,7 +2,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppPageHeader, ContentLayout } from '@/components/layouts';
-import { CustomerProfileProvider } from '@/features/customers/components/details/customer-profile-context';
 import { CustomerDetailView } from '@/features/customers/components/details/customer-detail-view';
 
 export const CustomerDetailRoute = () => {
@@ -33,9 +32,7 @@ export const CustomerDetailRoute = () => {
 
   return (
     <ContentLayout>
-      <CustomerProfileProvider customerId={customerId}>
-        <CustomerDetailView />
-      </CustomerProfileProvider>
+      <CustomerDetailView customerId={customerId} />
     </ContentLayout>
   );
 };

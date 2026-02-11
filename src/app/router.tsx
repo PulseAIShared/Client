@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import {
   RouterProvider,
   createBrowserRouter,
-  Navigate,
 } from 'react-router-dom';
 
 import { ProtectedRoute } from '@/lib/auth';
@@ -179,18 +178,6 @@ export const createAppRouter = () =>
           },
         },
         {
-          path: 'campaigns',
-          element: <Navigate to="/app/playbooks" replace />,
-        },
-        {
-          path: 'campaigns/create',
-          element: <Navigate to="/app/playbooks/create" replace />,
-        },
-        {
-          path: 'campaigns/*',
-          element: <Navigate to="/app/playbooks" replace />,
-        },
-        {
           path: 'work-queue',
           lazy: async () => {
             const { WorkQueueRoute } = await import('./routes/app/work-queue/work-queue');
@@ -247,10 +234,6 @@ export const createAppRouter = () =>
           },
         },
         {
-          path: 'recovery',
-          element: <Navigate to="/app/work-queue" replace />,
-        },
-        {
           path: 'settings',
           lazy: async () => {
             const { SettingsRoute } = await import('./routes/app/settings/settings');
@@ -285,20 +268,6 @@ export const createAppRouter = () =>
             return { Component: ConversationsRoute };
           },
         },
-        {
-        path: 'analytics/run-churn-analysis',
-        lazy: async () => {
-          const { RunChurnAnalysisRoute } = await import('./routes/app/analytics/run-churn-analysis');
-          return { Component: RunChurnAnalysisRoute };
-        },
-      },
-      {
-        path: 'analytics/churn-analysis/:analysisId',
-        lazy: async () => {
-          const { ChurnAnalysisResultsRoute } = await import('./routes/app/analytics/churn-analysis-results');
-          return { Component: ChurnAnalysisResultsRoute };
-        },
-      },
       {
         path: 'admin/users',
         lazy: async () => {

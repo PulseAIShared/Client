@@ -149,7 +149,7 @@ export const GettingStartedDocsRoute = () => {
           </div>
         </div>
 
-        {/* Enhanced Step 2: Run Analysis */}
+        {/* Enhanced Step 2: Automatic Analysis */}
         <div className="bg-surface-primary/90 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border-primary/30 shadow-xl hover:shadow-2xl transition-all duration-300">
           <div className="flex items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="p-3 sm:p-4 bg-gradient-to-r from-warning to-error rounded-xl shadow-lg">
@@ -159,40 +159,40 @@ export const GettingStartedDocsRoute = () => {
             </div>
             <div>
               <h3 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-warning to-error mb-2">
-                Step 2: Run Your First Churn Analysis
+                Step 2: Verify Automatic Churn Insights
               </h3>
-              <p className="text-text-secondary text-lg">Let AI analyze your customer data for churn risk</p>
+              <p className="text-text-secondary text-lg">Churn scoring runs after each successful integration sync</p>
             </div>
           </div>
 
           <p className="text-text-secondary mb-6 sm:mb-8 text-lg leading-relaxed">
-            Once you have customer data in the system, run a churn analysis to identify at-risk customers. 
-            Our AI model evaluates multiple factors to predict which customers are likely to churn.
+            Once data is connected, PulseLTV automatically refreshes churn predictions in the background.
+            Use Insights and Customer Details to validate scores and recommended actions.
           </p>
 
           <div className="space-y-3 sm:space-y-4 mb-8 sm:mb-10">
             <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-surface-secondary/30 rounded-xl hover:bg-surface-secondary/50 transition-all duration-300">
               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-accent-primary rounded-full"></div>
-              <span className="text-text-primary font-medium">AI analyzes customer behavior patterns</span>
+              <span className="text-text-primary font-medium">Sync jobs trigger risk recalculation automatically</span>
             </div>
             <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-surface-secondary/30 rounded-xl hover:bg-surface-secondary/50 transition-all duration-300">
               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-success rounded-full"></div>
-              <span className="text-text-primary font-medium">Assigns risk scores (Low, Medium, High, Critical)</span>
+              <span className="text-text-primary font-medium">Risk scores refresh with each completed sync cycle</span>
             </div>
             <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-surface-secondary/30 rounded-xl hover:bg-surface-secondary/50 transition-all duration-300">
               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-accent-secondary rounded-full"></div>
-              <span className="text-text-primary font-medium">Provides actionable recommendations</span>
+              <span className="text-text-primary font-medium">Recommendations update as new telemetry arrives</span>
             </div>
           </div>
 
           <Link
-            to="/app/analytics/run-churn-analysis"
+            to="/app/insights"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-warning to-error text-white rounded-xl hover:shadow-lg hover:shadow-warning/25 transform hover:-translate-y-0.5 transition-all duration-300 font-semibold"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            Run Churn Analysis
+            Open Insights
           </Link>
         </div>
 

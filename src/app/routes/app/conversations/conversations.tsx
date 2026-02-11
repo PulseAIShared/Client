@@ -91,6 +91,7 @@ export const ConversationsRoute: React.FC = () => {
       customerId: (conversation as { contextData?: { customerId?: string } }).contextData?.customerId,
       analysisId: (conversation as { contextData?: { analysisId?: string } }).contextData?.analysisId,
       segmentId: (conversation as { contextData?: { segmentId?: string } }).contextData?.segmentId,
+      additionalContext: (conversation as { contextData?: Record<string, string> }).contextData,
     };
 
     console.log('🔍 Generated context:', conversationContext);

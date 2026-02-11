@@ -8,7 +8,6 @@ import {
   CustomersListApiResponse,
   CustomersPageApiResponse,
   CustomerSummaryStats,
-  CustomerDetailData,
   CustomerOverviewResponse,
   CustomerPaymentHistoryResponse,
   CustomerEngagementHistoryResponse,
@@ -86,28 +85,6 @@ export const useGetCustomers = (
 ) => {
   return useQuery({
     ...getCustomersQueryOptions(params),
-    ...queryConfig,
-  });
-};
-
-// Get customer by ID
-export const getCustomerById = async ({ customerId }: { customerId: string }): Promise<CustomerDetailData> => {
-  const response = await api.get(`/customers/${customerId}`) as CustomerDetailData;
-
-  return response;
-};
-
-export const getCustomerByIdQueryOptions = (customerId: string) => {
-  return {
-    queryKey: ['customers', customerId],
-    queryFn: () => getCustomerById({ customerId }),
-    enabled: !!customerId,
-  };
-};
-
-export const useGetCustomerById = (customerId: string, queryConfig?: QueryConfig<typeof getCustomerByIdQueryOptions>) => {
-  return useQuery({
-    ...getCustomerByIdQueryOptions(customerId),
     ...queryConfig,
   });
 };
@@ -242,10 +219,14 @@ export const getSegmentsList = async (): Promise<SegmentListItem[]> => {
   }));
 };
 
-export const useGetSegmentsList = (queryConfig?: QueryConfig<any>) => {
+export const getSegmentsListQueryOptions = () => ({
+  queryKey: ['customers', 'segment-list'],
+  queryFn: getSegmentsList,
+});
+
+export const useGetSegmentsList = (queryConfig?: QueryConfig<typeof getSegmentsListQueryOptions>) => {
   return useQuery({
-    queryKey: ['customers', 'segment-list'],
-    queryFn: getSegmentsList,
+    ...getSegmentsListQueryOptions(),
     ...queryConfig,
   });
 };
@@ -259,10 +240,14 @@ export const getPlaybooksList = async (): Promise<PlaybookListItem[]> => {
   }));
 };
 
-export const useGetPlaybooksList = (queryConfig?: QueryConfig<any>) => {
+export const getPlaybooksListQueryOptions = () => ({
+  queryKey: ['customers', 'playbook-list'],
+  queryFn: getPlaybooksList,
+});
+
+export const useGetPlaybooksList = (queryConfig?: QueryConfig<typeof getPlaybooksListQueryOptions>) => {
   return useQuery({
-    queryKey: ['customers', 'playbook-list'],
-    queryFn: getPlaybooksList,
+    ...getPlaybooksListQueryOptions(),
     ...queryConfig,
   });
 };
@@ -274,6 +259,17 @@ export type CustomerDetailSectionsSpec = {
   aiInsights?: boolean;
   playbooks?: { summary?: boolean; runs?: { page?: number; pageSize?: number; status?: string; since?: string } };
   dataSources?: boolean;
+  v2?: {
+    summary?: boolean;
+    risk?: boolean;
+    revenue?: boolean;
+    engagement?: boolean;
+    operations?: boolean;
+    dataQuality?: boolean;
+    timeline?: boolean;
+    timelineDays?: number;
+    timelinePageSize?: number;
+  };
 };
 
 export type CustomerDetailQueryResponse = {
@@ -313,9 +309,10 @@ export type CustomerDetailQueryResponse = {
         playbookName?: string;
         status?: string;
         outcome?: string;
-        confidence?: number;
+        confidence?: string | number;
         potentialValue?: number;
         reasonShort?: string;
+        decisionSummaryJson?: string;
         startedAt?: string;
         completedAt?: string | null;
       }>;
@@ -326,6 +323,209 @@ export type CustomerDetailQueryResponse = {
     };
   };
   dataSources?: CustomerDataSourcesResponse;
+  v2?: {
+    summary?: {
+      meta?: {
+        asOf?: string | null;
+        freshness?: string;
+        sources?: string[];
+        confidence?: string | null;
+      };
+      customerName?: string;
+      email?: string;
+      company?: string | null;
+      riskScore?: number;
+      riskLevel?: { code?: string; label?: string };
+      mrr?: number | null;
+      ltv?: number | null;
+      daysUntilRenewal?: number | null;
+      openTickets?: number;
+      urgentTickets?: number;
+      lastSyncedAt?: string | null;
+      recommendations?: Array<{
+        id: string;
+        label: string;
+        priority?: string;
+        category?: string;
+      }>;
+      topRiskFactors?: Record<string, number>;
+    };
+    risk?: {
+      meta?: {
+        asOf?: string | null;
+        freshness?: string;
+        sources?: string[];
+        confidence?: string | null;
+      };
+      riskScore?: number;
+      riskLevel?: { code?: string; label?: string };
+      modelVersion?: string | null;
+      lastPredictionAt?: string | null;
+      riskFactors?: Record<string, number>;
+      history?: Array<{
+        predictionDate?: string;
+        predictionDateDisplay?: string;
+        riskScore?: number;
+        riskLevel?: string;
+        confidence?: string;
+        dataAsOf?: string;
+        connectedSources?: string[];
+        recommendations?: string[];
+        riskFactors?: Record<string, number>;
+        modelVersion?: string | null;
+      }>;
+      recommendations?: Array<{
+        id: string;
+        label: string;
+        priority?: string;
+        category?: string;
+      }>;
+    };
+    revenue?: {
+      meta?: {
+        asOf?: string | null;
+        freshness?: string;
+        sources?: string[];
+        confidence?: string | null;
+      };
+      subscriptionStatus?: { code?: string; label?: string };
+      plan?: { code?: string; label?: string };
+      paymentStatus?: { code?: string; label?: string };
+      monthlyRecurringRevenue?: number | null;
+      lifetimeValue?: number | null;
+      currentBalance?: number | null;
+      failedPaymentsLast30d?: number;
+      failedPaymentsPrevious30d?: number;
+      mrrChangePercent?: number | null;
+      mrrTrajectory?: string | null;
+      nextBillingDate?: string | null;
+      lastPaymentDate?: string | null;
+      daysUntilRenewal?: number | null;
+      isInRenewalWindow?: boolean;
+      crmOwner?: string | null;
+      crmLifecycleStage?: string | null;
+      dealCount?: number;
+      totalDealValue?: number;
+    };
+    engagement?: {
+      meta?: {
+        asOf?: string | null;
+        freshness?: string;
+        sources?: string[];
+        confidence?: string | null;
+      };
+      activeLoginsLast30d?: number;
+      activeLoginsLast90d?: number;
+      weeklyLoginFrequency?: number;
+      monthlyLoginFrequency?: number;
+      featureUsagePercentage?: number | null;
+      engagementScore?: number | null;
+      engagementTrajectory?: string | null;
+      engagementChangePercent?: number | null;
+      lastLoginDate?: string | null;
+      lastEventAt?: string | null;
+      lastEventProvider?: string | null;
+    };
+    operations?: {
+      meta?: {
+        asOf?: string | null;
+        freshness?: string;
+        sources?: string[];
+        confidence?: string | null;
+      };
+      openTickets?: number;
+      urgentTickets?: number;
+      ticketsLast30d?: number;
+      averageResolutionTimeHours?: number | null;
+      customerSatisfactionScore?: number | null;
+      marketingOpenRate?: number | null;
+      marketingClickRate?: number | null;
+      isSubscribedToMarketing?: boolean | null;
+      playbooksSummary?: {
+        totalRuns?: number;
+        successRate?: number;
+        lastRunAt?: string;
+        pendingApprovals?: number;
+        recoveredRevenue?: number;
+      };
+      recentPlaybookRuns?: Array<{
+        runId?: string;
+        playbookId?: string;
+        playbookName?: string;
+        status?: string;
+        outcome?: string;
+        confidence?: string | number;
+        potentialValue?: number;
+        reasonShort?: string;
+        decisionSummaryJson?: string;
+        startedAt?: string;
+        completedAt?: string | null;
+      }>;
+    };
+    dataQuality?: {
+      meta?: {
+        asOf?: string | null;
+        freshness?: string;
+        sources?: string[];
+        confidence?: string | null;
+      };
+      completeness?: {
+        coreProfile?: number;
+        paymentData?: number;
+        engagementData?: number;
+        supportData?: number;
+        crmData?: number;
+        marketingData?: number;
+        historicalData?: number;
+        overall?: number;
+        isEligibleForChurnAnalysis?: boolean;
+        missingCategories?: string[];
+      };
+      missingCategories?: string[];
+      sources?: Array<{
+        source?: string;
+        categories?: string[] | null;
+        isPrimary?: boolean;
+        lastSync?: string | null;
+        syncStatus?: string | null;
+      }>;
+      anomalies?: Array<{
+        occurredAt?: string;
+        category?: string;
+        description?: string;
+        severity?: string;
+        type?: string;
+        details?: Record<string, unknown>;
+      }>;
+    };
+    timeline?: {
+      meta?: {
+        asOf?: string | null;
+        freshness?: string;
+        sources?: string[];
+        confidence?: string | null;
+      };
+      events?: Array<{
+        occurredAt?: string;
+        category?: string;
+        type?: string;
+        description?: string;
+        severity?: string;
+        details?: Record<string, unknown>;
+      }>;
+      summary?: {
+        totalEvents?: number;
+        paymentEventsCount?: number;
+        engagementEventsCount?: number;
+        supportEventsCount?: number;
+        marketingEventsCount?: number;
+        crmEventsCount?: number;
+        mostRecentEventAt?: string | null;
+        highestSeverityLevel?: string;
+        timelinePeriodDays?: number;
+      };
+    };
+  };
   errors?: Record<string, string>;
 };
 
@@ -349,7 +549,7 @@ type CustomerSupportTicketsResponse = {
   tickets: Array<{
     id: string;
     subject: string;
-    severity: 'low' | 'medium' | 'high';
+    severity: string;
     status: string;
     openedAt: string;
     lastUpdatedAt?: string | null;
@@ -357,18 +557,53 @@ type CustomerSupportTicketsResponse = {
   }>;
 };
 
+type CustomerTimelineEvent = {
+  occurredAt: string;
+  category: string;
+  type: string;
+  description: string;
+  severity: string;
+  icon?: string;
+  details?: Record<string, unknown>;
+};
+
+type CustomerTimelineResponse = {
+  events: CustomerTimelineEvent[];
+  summary?: {
+    totalEvents?: number;
+    paymentEventsCount?: number;
+    engagementEventsCount?: number;
+    supportEventsCount?: number;
+    marketingEventsCount?: number;
+    crmEventsCount?: number;
+    mostRecentEventAt?: string | null;
+    highestSeverityLevel?: string;
+    timelinePeriodDays?: number;
+  };
+  paginationInfo?: {
+    totalRecords?: number;
+    pageSize?: number;
+    pageNumber?: number;
+    totalPages?: number;
+  };
+};
+
 export const postCustomerDetailQuery = async (
   customerId: string,
   sections: CustomerDetailSectionsSpec
 ) : Promise<CustomerDetailQueryResponse> => {
+  const shouldRequestHistory = sections.history !== undefined;
+  const shouldRequestPlaybooks = sections.playbooks !== undefined;
+  const shouldRequestV2 = sections.v2 !== undefined;
   const response = await api.post('/customers/detail-query', {
     customerId,
     sections: {
       overview: sections.overview ?? true,
-      history: sections.history ?? { months: 12, domains: ['payment','engagement','support'] },
-      aiInsights: sections.aiInsights ?? true,
-      playbooks: sections.playbooks ?? { summary: true, runs: { page: 1, pageSize: 50 } },
-      dataSources: sections.dataSources ?? true,
+      history: shouldRequestHistory ? sections.history : null,
+      aiInsights: sections.aiInsights ?? false,
+      playbooks: shouldRequestPlaybooks ? sections.playbooks : null,
+      dataSources: sections.dataSources ?? false,
+      v2: shouldRequestV2 ? sections.v2 : null,
     },
   });
   return response as CustomerDetailQueryResponse;
@@ -474,6 +709,72 @@ export const useGetCustomerSupportTickets = (
   return useQuery({
     ...getCustomerSupportTicketsQueryOptions(customerId, openOnly, limit),
     ...queryConfig,
+  });
+};
+
+export const getCustomerTimeline = async (
+  customerId: string,
+  days = 90,
+  pageSize = 50,
+): Promise<CustomerTimelineResponse> => {
+  const response = await api.get(`/customers/${customerId}/timeline?days=${days}&pageSize=${pageSize}`);
+  return response as unknown as CustomerTimelineResponse;
+};
+
+export const getCustomerTimelineQueryOptions = (
+  customerId: string,
+  days = 90,
+  pageSize = 50,
+) => ({
+  queryKey: ['customers', customerId, 'timeline', { days, pageSize }],
+  queryFn: () => getCustomerTimeline(customerId, days, pageSize),
+  enabled: !!customerId,
+});
+
+export const useGetCustomerTimeline = (
+  customerId: string,
+  days = 90,
+  pageSize = 50,
+  queryConfig?: QueryConfig<typeof getCustomerTimelineQueryOptions>,
+) => {
+  return useQuery({
+    ...getCustomerTimelineQueryOptions(customerId, days, pageSize),
+    ...queryConfig,
+  });
+};
+
+export type CustomerDetailUiEventPayload = {
+  eventName: string;
+  tab?: string;
+  context?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export const trackCustomerDetailUiEvent = async (
+  customerId: string,
+  payload: CustomerDetailUiEventPayload,
+): Promise<{ tracked: boolean }> => {
+  const response = await api.post(`/customers/${customerId}/ui-events`, payload);
+  return response as unknown as { tracked: boolean };
+};
+
+type TrackCustomerDetailUiEventMutation = (input: {
+  customerId: string;
+  payload: CustomerDetailUiEventPayload;
+}) => Promise<{ tracked: boolean }>;
+
+export const useTrackCustomerDetailUiEvent = (
+  mutationConfig?: MutationConfig<TrackCustomerDetailUiEventMutation>,
+) => {
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      payload,
+    }: {
+      customerId: string;
+      payload: CustomerDetailUiEventPayload;
+    }) => trackCustomerDetailUiEvent(customerId, payload),
+    ...mutationConfig,
   });
 };
 

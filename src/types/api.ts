@@ -1777,15 +1777,23 @@ export interface CustomerOverviewResponse {
   lastSyncedAt?: string | null;
   churnRiskScore: number;
   churnRiskLevel: string;
+  churnRiskLevelLabel?: string;
   churnPredictionDate?: string | null;
+  churnPredictionDateDisplay?: string | null;
   subscriptionStatus: string;
+  subscriptionStatusLabel?: string;
   plan: string;
+  planLabel?: string;
   paymentStatus: string;
+  paymentStatusLabel?: string;
   monthlyRecurringRevenue?: number | null;
   lifetimeValue?: number | null;
   nextBillingDate?: string | null;
+  nextBillingDateDisplay?: string | null;
   lastPaymentDate?: string | null;
+  lastPaymentDateDisplay?: string | null;
   lastLoginDate?: string | null;
+  lastLoginDateDisplay?: string | null;
   weeklyLoginFrequency?: number | null;
   featureUsagePercentage?: number | null;
   openTickets?: number | null;
@@ -1795,6 +1803,7 @@ export interface CustomerOverviewResponse {
   primaryMarketingSource?: string | null;
   primarySupportSource?: string | null;
   primaryEngagementSource?: string | null;
+  lastSyncedDisplay?: string;
   recentActivities?: Array<{
     id: string;
     type: string;
@@ -1835,8 +1844,12 @@ export interface CustomerSupportHistoryResponse {
 
 export interface CustomerChurnHistoryEntry {
   predictionDate: string;
+  predictionDateDisplay?: string | null;
   riskScore: number;
   riskLevel: string;
+  confidence?: string | null;
+  dataAsOf?: string | null;
+  connectedSources?: string[];
   recommendations: string[];
   riskFactors: Record<string, number>;
   modelVersion?: string | null;

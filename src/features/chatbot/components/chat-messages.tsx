@@ -4,6 +4,7 @@ import { ChatMessage } from '../store';
 interface ChatMessagesProps {
   messages: ChatMessage[];
   isTyping?: boolean;
+  emptyStateMessage?: string;
 }
 
 const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
@@ -54,7 +55,7 @@ const TypingIndicator: React.FC = () => (
   </div>
 );
 
-export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isTyping }) => {
+export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isTyping, emptyStateMessage }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -79,7 +80,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isTyping }
               Welcome to PulseAI Assistant
             </h3>
             <p className="text-text-muted text-xs md:text-sm">
-              I'm here to help you with analytics, customer insights, and platform features.
+              {emptyStateMessage || "I'm here to help you with analytics, customer insights, and platform features."}
               <br className="hidden md:block" />
               <span className="md:hidden"> </span>
               Ask me anything or use the quick actions below!
