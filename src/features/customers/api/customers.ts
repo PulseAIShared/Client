@@ -50,6 +50,17 @@ export const getCustomers = async (params: CustomersQueryParams = {}): Promise<{
   if (params.plan !== undefined) queryParams.append('plan', params.plan.toString());
   if (params.paymentStatus !== undefined) queryParams.append('paymentStatus', params.paymentStatus.toString());
   if (params.churnRiskLevel !== undefined) queryParams.append('churnRiskLevel', params.churnRiskLevel.toString());
+  if (params.hasRecentActivity !== undefined) queryParams.append('hasRecentActivity', params.hasRecentActivity.toString());
+  if (params.hasPaymentIssues !== undefined) queryParams.append('hasPaymentIssues', params.hasPaymentIssues.toString());
+  if (params.isSubscribed !== undefined) queryParams.append('isSubscribed', params.isSubscribed.toString());
+  if (params.mrrMin !== undefined) queryParams.append('mrrMin', params.mrrMin.toString());
+  if (params.mrrMax !== undefined) queryParams.append('mrrMax', params.mrrMax.toString());
+  if (params.industry) queryParams.append('industry', params.industry);
+  if (params.leadSource) queryParams.append('leadSource', params.leadSource);
+  if (params.lifecycleStage) queryParams.append('lifecycleStage', params.lifecycleStage);
+  if (params.companySize) queryParams.append('companySize', params.companySize);
+  if (params.acquisitionChannel) queryParams.append('acquisitionChannel', params.acquisitionChannel);
+  if (params.geo) queryParams.append('geo', params.geo);
   if (params.sortBy) queryParams.append('sortBy', params.sortBy);
   if (params.sortDescending !== undefined) queryParams.append('sortDescending', params.sortDescending.toString());
 

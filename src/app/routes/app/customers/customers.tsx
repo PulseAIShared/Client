@@ -136,6 +136,19 @@ export const CustomersRoute = () => {
   const selectedFilter = (searchParams.get('filter') as FilterKey) ?? 'all';
   const selectedSegmentId = searchParams.get('segmentId') ?? undefined;
   const searchFromUrl = searchParams.get('search') ?? '';
+  const planParam = searchParams.get('plan');
+  const parsedPlan = planParam !== null ? Number(planParam) : NaN;
+  const plan = Number.isNaN(parsedPlan)
+    ? undefined
+    : parsedPlan as CustomersQueryParams['plan'];
+  const churnRiskLevelParam = searchParams.get('churnRiskLevel');
+  const churnRiskLevel = churnRiskLevelParam !== null
+    ? Number(churnRiskLevelParam) as CustomersQueryParams['churnRiskLevel']
+    : undefined;
+  const lifecycleStage = searchParams.get('lifecycleStage') ?? undefined;
+  const companySize = searchParams.get('companySize') ?? undefined;
+  const acquisitionChannel = searchParams.get('acquisitionChannel') ?? undefined;
+  const geo = searchParams.get('geo') ?? undefined;
 
   const [searchInput, setSearchInput] = useState(searchFromUrl);
   const debouncedSearch = useDebounce(searchInput, 300);
@@ -172,9 +185,28 @@ export const CustomersRoute = () => {
     segmentId: selectedSegmentId,
     filter: resolveFilterForApi(selectedFilter),
     search: debouncedSearch || undefined,
+    plan,
+    churnRiskLevel,
+    lifecycleStage,
+    companySize,
+    acquisitionChannel,
+    geo,
     sortBy: sort.sortBy,
     sortDescending: sort.sortDescending,
-  }), [debouncedSearch, page, pageSize, selectedFilter, selectedSegmentId, sort]);
+  }), [
+    acquisitionChannel,
+    churnRiskLevel,
+    companySize,
+    debouncedSearch,
+    geo,
+    lifecycleStage,
+    page,
+    pageSize,
+    plan,
+    selectedFilter,
+    selectedSegmentId,
+    sort,
+  ]);
 
   const { data, isLoading, isFetching, error } = useGetCustomers(queryParams);
   const { data: segments = [] } = useGetSegmentsList();

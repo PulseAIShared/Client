@@ -1,22 +1,12 @@
-// Legacy components (kept for backward compatibility)
-export * from './churn-prediction-card';
-export * from './analytics-overview';
+// Core insights shell components
 export * from './insights-header';
-export * from './demographic-insights';
-export * from './ltv-analytics';
-export * from './recovery-kpis';
-export * from './recovery-timeline';
-export * from './recovery-by-segment';
-export * from './recovery-reasons';
-export * from './missed-payments-table';
 
-// New split insights components
+// Insights sections
 export * from './insights-overview-section';
-export * from './churn-analysis-section';
-export * from './cohort-analysis-section';
-export * from './feature-usage-section';
-export * from './recommendations-section';
-export * from './early-warnings-section';
 export * from './accuracy-metrics-section';
-export * from './recovery-insights-section';
 export * from './segment-insights-section';
+export * from './drivers-section';
+export * from './data-health-section';
+export * from './geo-segment-map';
+export * from './insights-state';
+export * from './insights-info-tooltip';

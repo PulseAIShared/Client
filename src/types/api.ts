@@ -597,6 +597,10 @@ export interface CustomersQueryParams {
   mrrMax?: number;
   industry?: string;
   leadSource?: string;
+  lifecycleStage?: string;
+  companySize?: string;
+  acquisitionChannel?: string;
+  geo?: string;
   sortBy?: string;
   sortDescending?: boolean;
 }

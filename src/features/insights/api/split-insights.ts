@@ -1,200 +1,184 @@
-// API hooks for split insights endpoints
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { QueryConfig } from '@/lib/react-query';
+import { MutationConfig, QueryConfig } from '@/lib/react-query';
 import {
-  InsightsOverviewResponse,
-  ChurnInsightsResponse,
-  CohortInsightsResponse,
-  FeatureInsightsResponse,
-  RecommendationInsightsResponse,
-  EarlyWarningsResponse,
   AccuracyInsightsResponse,
+  DataHealthInsightsResponse,
+  DriverInsightsDetailResponse,
+  DriversInsightsResponse,
+  InsightsOverviewResponse,
+  InsightsQueryFilters,
   SegmentInsightsResponse,
-  RecoveryInsightsResponse,
-  CohortQueryParams,
   SegmentQueryParams,
-  RecoveryQueryParams,
 } from '@/types/insights';
 
-// ==========================================
-// Overview - GET /insights/overview
-// ==========================================
-export const getInsightsOverview = async (): Promise<InsightsOverviewResponse> => {
-  return api.get('/insights/overview');
+const appendInsightsFilters = (
+  queryParams: URLSearchParams,
+  filters?: InsightsQueryFilters,
+) => {
+  if (!filters) {
+    return;
+  }
+
+  if (filters.from) queryParams.append('from', filters.from);
+  if (filters.to) queryParams.append('to', filters.to);
+  if (filters.range) queryParams.append('range', filters.range);
+  if (filters.riskBucket) queryParams.append('riskBucket', filters.riskBucket);
+  if (filters.planTier) queryParams.append('planTier', filters.planTier);
+  if (filters.lifecycleStage) queryParams.append('lifecycleStage', filters.lifecycleStage);
+  if (filters.acquisitionChannel) queryParams.append('acquisitionChannel', filters.acquisitionChannel);
+  if (filters.companySize) queryParams.append('companySize', filters.companySize);
+  if (filters.geo) queryParams.append('geo', filters.geo);
+  if (filters.paymentStatus) queryParams.append('paymentStatus', filters.paymentStatus);
 };
 
-export const getInsightsOverviewQueryOptions = () => ({
-  queryKey: ['insights', 'overview'],
-  queryFn: getInsightsOverview,
-  staleTime: 30 * 1000, // 30 seconds
+const buildQueryString = (queryParams: URLSearchParams) => {
+  const queryString = queryParams.toString();
+  return queryString ? `?${queryString}` : '';
+};
+
+export const getInsightsOverview = async (
+  filters?: InsightsQueryFilters,
+): Promise<InsightsOverviewResponse> => {
+  const queryParams = new URLSearchParams();
+  appendInsightsFilters(queryParams, filters);
+  return api.get(`/insights/overview${buildQueryString(queryParams)}`);
+};
+
+export const getInsightsOverviewQueryOptions = (filters?: InsightsQueryFilters) => ({
+  queryKey: ['insights', 'overview', filters],
+  queryFn: () => getInsightsOverview(filters),
+  staleTime: 30 * 1000,
 });
 
 export const useInsightsOverview = (
-  queryConfig?: QueryConfig<typeof getInsightsOverviewQueryOptions>
+  filters?: InsightsQueryFilters,
+  queryConfig?: QueryConfig<typeof getInsightsOverviewQueryOptions>,
 ) => {
   return useQuery({
-    ...getInsightsOverviewQueryOptions(),
+    ...getInsightsOverviewQueryOptions(filters),
     ...queryConfig,
   });
 };
 
-// ==========================================
-// Churn - GET /insights/churn
-// ==========================================
-export const getChurnInsights = async (): Promise<ChurnInsightsResponse> => {
-  return api.get('/insights/churn');
-};
-
-export const getChurnInsightsQueryOptions = () => ({
-  queryKey: ['insights', 'churn'],
-  queryFn: getChurnInsights,
-  staleTime: 60 * 1000, // 1 minute
-});
-
-export const useChurnInsights = (
-  queryConfig?: QueryConfig<typeof getChurnInsightsQueryOptions>
-) => {
-  return useQuery({
-    ...getChurnInsightsQueryOptions(),
-    ...queryConfig,
-  });
-};
-
-// ==========================================
-// Cohorts - GET /insights/cohorts
-// ==========================================
-export const getCohortInsights = async (params?: CohortQueryParams): Promise<CohortInsightsResponse> => {
+export const getDriversInsights = async (
+  filters?: InsightsQueryFilters,
+): Promise<DriversInsightsResponse> => {
   const queryParams = new URLSearchParams();
-  if (params?.cohortType) queryParams.append('cohortType', params.cohortType);
-  if (params?.period) queryParams.append('period', params.period);
-  const queryString = queryParams.toString();
-  return api.get(`/insights/cohorts${queryString ? `?${queryString}` : ''}`);
+  appendInsightsFilters(queryParams, filters);
+  return api.get(`/insights/drivers${buildQueryString(queryParams)}`);
 };
 
-export const getCohortInsightsQueryOptions = (params?: CohortQueryParams) => ({
-  queryKey: ['insights', 'cohorts', params],
-  queryFn: () => getCohortInsights(params),
-  staleTime: 2 * 60 * 1000, // 2 minutes
+export const getDriversInsightsQueryOptions = (filters?: InsightsQueryFilters) => ({
+  queryKey: ['insights', 'drivers', filters],
+  queryFn: () => getDriversInsights(filters),
+  staleTime: 60 * 1000,
 });
 
-export const useCohortInsights = (
-  params?: CohortQueryParams,
-  queryConfig?: QueryConfig<typeof getCohortInsightsQueryOptions>
+export const useDriversInsights = (
+  filters?: InsightsQueryFilters,
+  queryConfig?: QueryConfig<typeof getDriversInsightsQueryOptions>,
 ) => {
   return useQuery({
-    ...getCohortInsightsQueryOptions(params),
+    ...getDriversInsightsQueryOptions(filters),
     ...queryConfig,
   });
 };
 
-// ==========================================
-// Features - GET /insights/features
-// ==========================================
-export const getFeatureInsights = async (): Promise<FeatureInsightsResponse> => {
-  return api.get('/insights/features');
+export const getDriverInsightsDetail = async (
+  driverKey: string,
+  filters?: InsightsQueryFilters,
+): Promise<DriverInsightsDetailResponse> => {
+  const queryParams = new URLSearchParams();
+  appendInsightsFilters(queryParams, filters);
+  return api.get(`/insights/drivers/${encodeURIComponent(driverKey)}${buildQueryString(queryParams)}`);
 };
 
-export const getFeatureInsightsQueryOptions = () => ({
-  queryKey: ['insights', 'features'],
-  queryFn: getFeatureInsights,
-  staleTime: 2 * 60 * 1000, // 2 minutes
+export const getDriverInsightsDetailQueryOptions = (
+  driverKey: string | null | undefined,
+  filters?: InsightsQueryFilters,
+) => ({
+  queryKey: ['insights', 'drivers', 'detail', driverKey, filters],
+  queryFn: () => getDriverInsightsDetail(driverKey ?? '', filters),
+  enabled: !!driverKey,
+  staleTime: 60 * 1000,
 });
 
-export const useFeatureInsights = (
-  queryConfig?: QueryConfig<typeof getFeatureInsightsQueryOptions>
+export const useDriverInsightsDetail = (
+  driverKey: string | null | undefined,
+  filters?: InsightsQueryFilters,
+  queryConfig?: QueryConfig<typeof getDriverInsightsDetailQueryOptions>,
 ) => {
   return useQuery({
-    ...getFeatureInsightsQueryOptions(),
+    ...getDriverInsightsDetailQueryOptions(driverKey, filters),
     ...queryConfig,
   });
 };
 
-// ==========================================
-// Recommendations - GET /insights/recommendations
-// ==========================================
-export const getRecommendationInsights = async (): Promise<RecommendationInsightsResponse> => {
-  return api.get('/insights/recommendations');
+export const getModelQualityInsights = async (
+  filters?: InsightsQueryFilters,
+): Promise<AccuracyInsightsResponse> => {
+  const queryParams = new URLSearchParams();
+  appendInsightsFilters(queryParams, filters);
+  return api.get(`/insights/model-quality${buildQueryString(queryParams)}`);
 };
 
-export const getRecommendationInsightsQueryOptions = () => ({
-  queryKey: ['insights', 'recommendations'],
-  queryFn: getRecommendationInsights,
-  staleTime: 30 * 1000, // 30 seconds
+export const getModelQualityInsightsQueryOptions = (filters?: InsightsQueryFilters) => ({
+  queryKey: ['insights', 'model-quality', filters],
+  queryFn: () => getModelQualityInsights(filters),
+  staleTime: 5 * 60 * 1000,
 });
 
-export const useRecommendationInsights = (
-  queryConfig?: QueryConfig<typeof getRecommendationInsightsQueryOptions>
+export const useModelQualityInsights = (
+  filters?: InsightsQueryFilters,
+  queryConfig?: QueryConfig<typeof getModelQualityInsightsQueryOptions>,
 ) => {
   return useQuery({
-    ...getRecommendationInsightsQueryOptions(),
+    ...getModelQualityInsightsQueryOptions(filters),
     ...queryConfig,
   });
 };
 
-// ==========================================
-// Early Warnings - GET /insights/early-warnings
-// ==========================================
-export const getEarlyWarnings = async (): Promise<EarlyWarningsResponse> => {
-  return api.get('/insights/early-warnings');
+export const getDataHealthInsights = async (
+  filters?: InsightsQueryFilters,
+): Promise<DataHealthInsightsResponse> => {
+  const queryParams = new URLSearchParams();
+  appendInsightsFilters(queryParams, filters);
+  return api.get(`/insights/data-health${buildQueryString(queryParams)}`);
 };
 
-export const getEarlyWarningsQueryOptions = () => ({
-  queryKey: ['insights', 'early-warnings'],
-  queryFn: getEarlyWarnings,
-  staleTime: 30 * 1000, // 30 seconds
+export const getDataHealthInsightsQueryOptions = (filters?: InsightsQueryFilters) => ({
+  queryKey: ['insights', 'data-health', filters],
+  queryFn: () => getDataHealthInsights(filters),
+  staleTime: 2 * 60 * 1000,
 });
 
-export const useEarlyWarnings = (
-  queryConfig?: QueryConfig<typeof getEarlyWarningsQueryOptions>
+export const useDataHealthInsights = (
+  filters?: InsightsQueryFilters,
+  queryConfig?: QueryConfig<typeof getDataHealthInsightsQueryOptions>,
 ) => {
   return useQuery({
-    ...getEarlyWarningsQueryOptions(),
+    ...getDataHealthInsightsQueryOptions(filters),
     ...queryConfig,
   });
 };
 
-// ==========================================
-// Accuracy - GET /insights/accuracy
-// ==========================================
-export const getAccuracyInsights = async (): Promise<AccuracyInsightsResponse> => {
-  return api.get('/insights/accuracy');
-};
-
-export const getAccuracyInsightsQueryOptions = () => ({
-  queryKey: ['insights', 'accuracy'],
-  queryFn: getAccuracyInsights,
-  staleTime: 5 * 60 * 1000, // 5 minutes
-});
-
-export const useAccuracyInsights = (
-  queryConfig?: QueryConfig<typeof getAccuracyInsightsQueryOptions>
-) => {
-  return useQuery({
-    ...getAccuracyInsightsQueryOptions(),
-    ...queryConfig,
-  });
-};
-
-// ==========================================
-// Segments - GET /insights/segments
-// ==========================================
 export const getSegmentInsights = async (params?: SegmentQueryParams): Promise<SegmentInsightsResponse> => {
   const queryParams = new URLSearchParams();
   if (params?.segment) queryParams.append('segment', params.segment);
-  const queryString = queryParams.toString();
-  return api.get(`/insights/segments${queryString ? `?${queryString}` : ''}`);
+  appendInsightsFilters(queryParams, params);
+  return api.get(`/insights/segments${buildQueryString(queryParams)}`);
 };
 
 export const getSegmentInsightsQueryOptions = (params?: SegmentQueryParams) => ({
   queryKey: ['insights', 'segments', params],
   queryFn: () => getSegmentInsights(params),
-  staleTime: 2 * 60 * 1000, // 2 minutes
+  staleTime: 2 * 60 * 1000,
 });
 
 export const useSegmentInsights = (
   params?: SegmentQueryParams,
-  queryConfig?: QueryConfig<typeof getSegmentInsightsQueryOptions>
+  queryConfig?: QueryConfig<typeof getSegmentInsightsQueryOptions>,
 ) => {
   return useQuery({
     ...getSegmentInsightsQueryOptions(params),
@@ -202,28 +186,29 @@ export const useSegmentInsights = (
   });
 };
 
-// ==========================================
-// Recovery - GET /insights/recovery
-// ==========================================
-export const getRecoveryInsights = async (params?: RecoveryQueryParams): Promise<RecoveryInsightsResponse> => {
-  const queryParams = new URLSearchParams();
-  if (params?.period) queryParams.append('period', params.period);
-  const queryString = queryParams.toString();
-  return api.get(`/insights/recovery${queryString ? `?${queryString}` : ''}`);
+export type InsightsUiEventPayload = {
+  eventName: string;
+  tab?: string;
+  context?: string;
+  metadata?: Record<string, unknown>;
 };
 
-export const getRecoveryInsightsQueryOptions = (params?: RecoveryQueryParams) => ({
-  queryKey: ['insights', 'recovery', params],
-  queryFn: () => getRecoveryInsights(params),
-  staleTime: 60 * 1000, // 1 minute
-});
+export const trackInsightsUiEvent = async (
+  payload: InsightsUiEventPayload,
+): Promise<{ tracked: boolean }> => {
+  const response = await api.post('/insights/ui-events', payload);
+  return response as unknown as { tracked: boolean };
+};
 
-export const useRecoveryInsights = (
-  params?: RecoveryQueryParams,
-  queryConfig?: QueryConfig<typeof getRecoveryInsightsQueryOptions>
+type TrackInsightsUiEventMutation = (
+  payload: InsightsUiEventPayload
+) => Promise<{ tracked: boolean }>;
+
+export const useTrackInsightsUiEvent = (
+  mutationConfig?: MutationConfig<TrackInsightsUiEventMutation>,
 ) => {
-  return useQuery({
-    ...getRecoveryInsightsQueryOptions(params),
-    ...queryConfig,
+  return useMutation({
+    mutationFn: (payload: InsightsUiEventPayload) => trackInsightsUiEvent(payload),
+    ...mutationConfig,
   });
 };

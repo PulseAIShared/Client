@@ -1,5 +1,54 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { useInsightsOverview } from '@/features/insights/api/split-insights';
+import {
+  InsightsPaymentHealthCode,
+  InsightsQueryFilters,
+  InsightsRiskBucketCode,
+} from '@/types/insights';
+import {
+  InsightsEmptyState,
+  InsightsErrorState,
+  InsightsLoadingState,
+} from './insights-state';
+
+const RISK_COLORS: Record<InsightsRiskBucketCode, string> = {
+  Critical: '#ef4444',
+  High: '#f97316',
+  Medium: '#eab308',
+  Low: '#22c55e',
+  Minimal: '#3b82f6',
+};
+
+const PAYMENT_HEALTH_BADGES: Record<InsightsPaymentHealthCode, string> = {
+  Healthy: 'bg-success/15 text-success border-success/30',
+  Watch: 'bg-info/15 text-info border-info/30',
+  AtRisk: 'bg-warning/15 text-warning border-warning/30',
+  PastDue: 'bg-warning/15 text-warning border-warning/30',
+  Failed: 'bg-error/15 text-error border-error/30',
+  Cancelled: 'bg-error/20 text-error border-error/40',
+  Unknown: 'bg-surface-secondary/50 text-text-muted border-border-primary/40',
+};
+
+const CUSTOMER_RISK_LEVEL_BY_BUCKET: Record<InsightsRiskBucketCode, string> = {
+  Minimal: '0',
+  Low: '0',
+  Medium: '1',
+  High: '2',
+  Critical: '3',
+};
 
 const formatCurrency = (value: number) => {
   if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -7,251 +56,437 @@ const formatCurrency = (value: number) => {
   return `$${value.toFixed(0)}`;
 };
 
-const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`;
+const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
-const TrendIcon = ({ trend }: { trend: 'up' | 'down' | 'stable' }) => {
-  if (trend === 'up') {
+const formatSignedPercent = (value: number) => `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
+
+const formatLastActivity = (rawDate?: string | null) => {
+  if (!rawDate) {
+    return 'No activity data';
+  }
+
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) {
+    return 'No activity data';
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 1) {
+    return 'Today';
+  }
+
+  if (diffDays === 1) {
+    return '1 day ago';
+  }
+
+  if (diffDays < 30) {
+    return `${diffDays} days ago`;
+  }
+
+  return date.toLocaleDateString();
+};
+
+const Sparkline = ({ points }: { points: number[] }) => {
+  if (!points || points.length < 2) {
     return (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-      </svg>
+      <div className="mt-2 h-8 text-xs text-text-muted">
+        Trend data pending
+      </div>
     );
   }
-  if (trend === 'down') {
-    return (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-      </svg>
-    );
-  }
+
+  const width = 120;
+  const height = 32;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = Math.max(max - min, 1);
+
+  const coordinates = points
+    .map((value, idx) => {
+      const x = (idx / (points.length - 1)) * width;
+      const y = height - ((value - min) / range) * height;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(' ');
+
   return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+    <svg
+      className="mt-2 h-8 w-full"
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <polyline
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        className="text-accent-primary"
+        points={coordinates}
+      />
     </svg>
   );
 };
 
-export const InsightsOverviewSection: React.FC = () => {
-  const { data, isLoading, error } = useInsightsOverview();
+type InsightsOverviewSectionProps = {
+  filters?: InsightsQueryFilters;
+};
+
+export const InsightsOverviewSection: React.FC<InsightsOverviewSectionProps> = ({ filters }) => {
+  const navigate = useNavigate();
+  const { data, isLoading, error } = useInsightsOverview(filters);
+
+  const buildCustomerListPath = React.useCallback(
+    ({
+      highRiskOnly,
+      riskBucket,
+    }: {
+      highRiskOnly?: boolean;
+      riskBucket?: InsightsRiskBucketCode;
+    } = {}) => {
+      const query = new URLSearchParams();
+      query.set('page', '1');
+      query.set('sortBy', 'churnRiskScore');
+      query.set('sortDescending', 'true');
+
+      if (highRiskOnly) {
+        query.set('filter', 'high-risk');
+      }
+
+      if (riskBucket) {
+        query.set('churnRiskLevel', CUSTOMER_RISK_LEVEL_BY_BUCKET[riskBucket]);
+      }
+
+      if (filters?.lifecycleStage) {
+        query.set('lifecycleStage', filters.lifecycleStage);
+      }
+
+      if (filters?.companySize) {
+        query.set('companySize', filters.companySize);
+      }
+
+      if (filters?.acquisitionChannel) {
+        query.set('acquisitionChannel', filters.acquisitionChannel);
+      }
+
+      if (filters?.geo) {
+        query.set('geo', filters.geo);
+      }
+
+      return `/app/customers?${query.toString()}`;
+    },
+    [filters?.acquisitionChannel, filters?.companySize, filters?.geo, filters?.lifecycleStage],
+  );
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        {/* KPI Cards Skeleton */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="bg-surface-primary/80 backdrop-blur-lg p-5 rounded-2xl border border-border-primary/30 animate-pulse">
-              <div className="h-3 bg-surface-secondary/50 rounded w-20 mb-3" />
-              <div className="h-8 bg-surface-secondary/50 rounded w-24 mb-2" />
-              <div className="h-3 bg-surface-secondary/50 rounded w-16" />
-            </div>
-          ))}
-        </div>
-        {/* Alerts & Risk Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 animate-pulse h-48" />
-          <div className="bg-surface-primary/80 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/30 animate-pulse h-48" />
-        </div>
-      </div>
-    );
+    return <InsightsLoadingState cardCount={5} blockHeights={[320, 420]} />;
   }
 
   if (error || !data) {
     return (
-      <div className="bg-surface-primary/80 backdrop-blur-lg p-8 rounded-2xl border border-border-primary/30 text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-error/20 to-error/5 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-semibold text-text-primary mb-2">Unable to load insights</h3>
-        <p className="text-text-muted text-sm mb-4">There was an error loading your insights data.</p>
-        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-primary/90 transition-colors">
-          Retry
-        </button>
+      <InsightsErrorState
+        title="Unable to load risk command center"
+        description="There was an error loading Insights overview data."
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
+
+  const {
+    kpis,
+    riskDistribution,
+    churnTrend,
+    topAtRiskCustomers,
+    dataAvailability,
+    emptyStateHints,
+  } = data;
+
+  const hasContent = dataAvailability.scoredCustomers > 0
+    || riskDistribution.length > 0
+    || churnTrend.length > 0
+    || topAtRiskCustomers.length > 0;
+
+  if (!hasContent) {
+    return (
+      <div className="space-y-4">
+        {emptyStateHints.map((hint) => (
+          <div
+            key={hint.code}
+            className="rounded-xl border border-warning/25 bg-warning/5 p-4"
+          >
+            <h4 className="text-sm font-semibold text-text-primary">{hint.title}</h4>
+            <p className="mt-1 text-sm text-text-muted">{hint.description}</p>
+          </div>
+        ))}
+        <InsightsEmptyState
+          title="No risk scores available"
+          description="Run churn scoring for the selected scope to populate Insights overview widgets."
+        />
       </div>
     );
   }
 
-  const { kpis, alerts, revenueAtRisk, predictionAccuracy } = data;
-
-  const kpiCards = [
-    {
-      label: 'MRR',
-      value: formatCurrency(kpis.mrr.value),
-      change: kpis.mrr.change,
-      trend: kpis.mrr.trend,
-      isGoodUp: true,
-    },
-    {
-      label: 'Active Customers',
-      value: kpis.activeCustomers.value.toLocaleString(),
-      change: kpis.activeCustomers.change,
-      trend: kpis.activeCustomers.trend,
-      isGoodUp: true,
-    },
-    {
-      label: 'Churn Rate',
-      value: formatPercent(kpis.churnRate.value),
-      change: kpis.churnRate.change,
-      trend: kpis.churnRate.trend,
-      isGoodUp: false,
-    },
-    {
-      label: 'Avg LTV',
-      value: formatCurrency(kpis.avgLtv.value),
-      change: kpis.avgLtv.change,
-      trend: kpis.avgLtv.trend,
-      isGoodUp: true,
-    },
-    {
-      label: 'Health Score',
-      value: kpis.healthScore.value.toFixed(0),
-      change: kpis.healthScore.change,
-      trend: kpis.healthScore.trend,
-      isGoodUp: true,
-    },
-  ];
-
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        {kpiCards.map((kpi) => {
-          const isPositiveChange = kpi.change > 0;
-          const isGoodChange = kpi.isGoodUp ? isPositiveChange : !isPositiveChange;
-
-          return (
+      {emptyStateHints.length > 0 && (
+        <div className="space-y-3">
+          {emptyStateHints.map((hint) => (
             <div
-              key={kpi.label}
-              className="group bg-surface-primary/90 backdrop-blur-xl p-5 rounded-2xl border border-border-primary/30 hover:border-border-secondary/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+              key={hint.code}
+              className="rounded-xl border border-warning/25 bg-warning/5 p-4"
             >
-              <div className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">{kpi.label}</div>
-              <div className="text-2xl font-bold text-text-primary mb-1">{kpi.value}</div>
-              <div className={`flex items-center gap-1 text-sm font-medium ${isGoodChange ? 'text-success' : 'text-error'}`}>
-                <TrendIcon trend={kpi.trend} />
-                <span>{isPositiveChange ? '+' : ''}{(kpi.change * 100).toFixed(1)}%</span>
-              </div>
+              <h4 className="text-sm font-semibold text-text-primary">{hint.title}</h4>
+              <p className="mt-1 text-sm text-text-muted">{hint.description}</p>
             </div>
-          );
-        })}
+          ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <button
+          onClick={() => navigate(buildCustomerListPath({ highRiskOnly: true }))}
+          className="rounded-2xl border border-error/20 bg-error/5 p-4 text-left transition-colors hover:border-error/40"
+        >
+          <div className="text-xs uppercase tracking-wide text-error">MRR at Risk</div>
+          <div className="mt-2 text-2xl font-bold text-text-primary">{formatCurrency(kpis.mrrAtRisk)}</div>
+          <div className="mt-1 text-xs text-text-muted">View high-risk customers</div>
+        </button>
+
+        <button
+          onClick={() => navigate(buildCustomerListPath({ highRiskOnly: true }))}
+          className="rounded-2xl border border-error/20 bg-error/5 p-4 text-left transition-colors hover:border-error/40"
+        >
+          <div className="text-xs uppercase tracking-wide text-error">Customers at Risk</div>
+          <div className="mt-2 text-2xl font-bold text-text-primary">{kpis.customersAtRisk.toLocaleString()}</div>
+          <div className="mt-1 text-xs text-text-muted">{formatPercent(kpis.customersAtRiskPercent)} of scored customers</div>
+        </button>
+
+        <button
+          onClick={() => navigate(buildCustomerListPath({ highRiskOnly: true }))}
+          className="rounded-2xl border border-info/20 bg-info/5 p-4 text-left transition-colors hover:border-info/40"
+        >
+          <div className="text-xs uppercase tracking-wide text-info">Predicted Churn (30d)</div>
+          <div className="mt-2 text-2xl font-bold text-text-primary">{kpis.predictedChurn30d.toFixed(1)}</div>
+          <div className="mt-1 text-xs text-text-muted">Expected churn count</div>
+        </button>
+
+        <button
+          onClick={() => navigate(buildCustomerListPath({ highRiskOnly: true }))}
+          className="rounded-2xl border border-border-primary/30 bg-surface-primary/80 p-4 text-left transition-colors hover:border-border-secondary/50"
+        >
+          <div className="text-xs uppercase tracking-wide text-text-muted">Current Churn Rate</div>
+          <div className="mt-2 text-2xl font-bold text-text-primary">{formatPercent(kpis.currentChurnRate)}</div>
+          <div className="mt-1 text-xs text-text-muted">Actual churn in selected period</div>
+        </button>
+
+        <button
+          onClick={() => navigate(buildCustomerListPath({ highRiskOnly: true }))}
+          className="rounded-2xl border border-border-primary/30 bg-surface-primary/80 p-4 text-left transition-colors hover:border-border-secondary/50"
+        >
+          <div className="text-xs uppercase tracking-wide text-text-muted">Risk Trend</div>
+          <div className={`mt-2 text-2xl font-bold ${kpis.riskTrendChangePercent > 0 ? 'text-error' : kpis.riskTrendChangePercent < 0 ? 'text-success' : 'text-text-primary'}`}>
+            {formatSignedPercent(kpis.riskTrendChangePercent)}
+          </div>
+          <div className="text-xs text-text-muted">vs previous equivalent window</div>
+          <Sparkline points={kpis.riskTrendSparkline} />
+        </button>
       </div>
 
-      {/* Alerts & Revenue at Risk */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Active Alerts */}
-        <div className="bg-surface-primary/90 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-lg">
-          <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            Active Alerts
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-error/10 rounded-xl border border-error/20">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-error rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-text-primary">Critical Risk</span>
-              </div>
-              <span className="text-lg font-bold text-error">{alerts.criticalRisk}</span>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="rounded-2xl border border-border-primary/30 bg-surface-primary/90 p-6 shadow-lg">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-text-primary">Risk Distribution</h3>
+              <p className="text-sm text-text-muted">Counts and MRR by risk bucket</p>
             </div>
-            <div className="flex items-center justify-between p-3 bg-warning/10 rounded-xl border border-warning/20">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-warning rounded-full" />
-                <span className="text-sm font-medium text-text-primary">High Risk</span>
-              </div>
-              <span className="text-lg font-bold text-warning">{alerts.highRisk}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-info/10 rounded-xl border border-info/20">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-info rounded-full" />
-                <span className="text-sm font-medium text-text-primary">Soft Churn Signals</span>
-              </div>
-              <span className="text-lg font-bold text-info">{alerts.softChurnSignals}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-accent-primary/10 rounded-xl border border-accent-primary/20">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-accent-primary rounded-full" />
-                <span className="text-sm font-medium text-text-primary">Pending Recommendations</span>
-              </div>
-              <span className="text-lg font-bold text-accent-primary">{alerts.pendingRecommendations}</span>
-            </div>
+            <button
+              onClick={() => navigate(buildCustomerListPath({ highRiskOnly: true }))}
+              className="rounded-lg border border-border-primary/40 px-3 py-2 text-xs font-medium text-text-primary hover:border-accent-primary/40"
+            >
+              View customer list
+            </button>
           </div>
+
+          {riskDistribution.length === 0 ? (
+            <InsightsEmptyState
+              compact
+              title="No distribution data"
+              description="Risk bucket distribution appears after scoring runs complete."
+            />
+          ) : (
+            <>
+              <div className="h-60">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={riskDistribution} layout="vertical" margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" opacity={0.3} />
+                    <XAxis type="number" stroke="rgb(var(--text-muted))" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis dataKey="bucketLabel" type="category" stroke="rgb(var(--text-muted))" fontSize={12} tickLine={false} axisLine={false} width={80} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgb(var(--surface-primary))',
+                        border: '1px solid rgb(var(--border-primary))',
+                        borderRadius: '12px',
+                        color: 'rgb(var(--text-primary))',
+                      }}
+                      formatter={(value: number, name: string) => [
+                        name === 'count' ? value.toLocaleString() : formatCurrency(value),
+                        name === 'count' ? 'Customers' : 'MRR',
+                      ]}
+                    />
+                    <Bar dataKey="count" radius={[0, 5, 5, 0]}>
+                      {riskDistribution.map((item) => (
+                        <Cell key={item.bucket} fill={RISK_COLORS[item.bucket]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {riskDistribution.map((item) => (
+                  <button
+                    key={item.bucket}
+                    onClick={() => navigate(buildCustomerListPath({ riskBucket: item.bucket }))}
+                    className="flex w-full items-center justify-between rounded-lg border border-border-primary/25 bg-surface-secondary/25 px-3 py-2 text-left hover:border-accent-primary/35"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: RISK_COLORS[item.bucket] }} />
+                      <span className="text-sm text-text-secondary">{item.bucketLabel}</span>
+                    </div>
+                    <div className="text-sm text-text-primary">
+                      <span className="font-semibold">{item.count.toLocaleString()}</span>
+                      <span className="ml-2 text-text-muted">{formatCurrency(item.mrr)}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Revenue at Risk */}
-        <div className="bg-surface-primary/90 backdrop-blur-xl p-6 rounded-2xl border border-border-primary/30 shadow-lg">
-          <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-            </svg>
-            Revenue at Risk
-          </h3>
-          <div className="mb-6">
-            <div className="text-3xl font-bold text-text-primary mb-1">{formatCurrency(revenueAtRisk.total)}</div>
-            <div className="text-sm text-text-muted">Total MRR at risk</div>
+        <div className="rounded-2xl border border-border-primary/30 bg-surface-primary/90 p-6 shadow-lg">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-text-primary">Predicted vs Actual Trend</h3>
+              <p className="text-sm text-text-muted">Predicted high-risk rate compared to observed churn</p>
+            </div>
+            <button
+              onClick={() => navigate(buildCustomerListPath({ highRiskOnly: true }))}
+              className="rounded-lg border border-border-primary/40 px-3 py-2 text-xs font-medium text-text-primary hover:border-accent-primary/40"
+            >
+              View customer list
+            </button>
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-error rounded" />
-                <span className="text-sm text-text-secondary">Critical</span>
-              </div>
-              <span className="font-semibold text-text-primary">{formatCurrency(revenueAtRisk.critical)}</span>
-            </div>
-            <div className="w-full bg-surface-secondary/50 rounded-full h-2">
-              <div className="bg-error h-2 rounded-full" style={{ width: `${(revenueAtRisk.critical / revenueAtRisk.total) * 100}%` }} />
-            </div>
 
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-warning rounded" />
-                <span className="text-sm text-text-secondary">High</span>
-              </div>
-              <span className="font-semibold text-text-primary">{formatCurrency(revenueAtRisk.high)}</span>
+          {churnTrend.length === 0 ? (
+            <InsightsEmptyState
+              compact
+              title="No trend data"
+              description={dataAvailability.hasChurnLabels
+                ? 'Predicted trend points appear after additional scoring windows.'
+                : 'Actual trend requires churn labels in this scope.'}
+            />
+          ) : (
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={churnTrend} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-primary))" opacity={0.3} />
+                  <XAxis dataKey="month" stroke="rgb(var(--text-muted))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis
+                    stroke="rgb(var(--text-muted))"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgb(var(--surface-primary))',
+                      border: '1px solid rgb(var(--border-primary))',
+                      borderRadius: '12px',
+                      color: 'rgb(var(--text-primary))',
+                    }}
+                    formatter={(value: number, name: string) => [
+                      `${(value * 100).toFixed(1)}%`,
+                      name === 'predictedChurnRate' ? 'Predicted' : 'Actual',
+                    ]}
+                  />
+                  <Line type="monotone" dataKey="predictedChurnRate" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="actualChurnRate" stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="6 4" />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-            <div className="w-full bg-surface-secondary/50 rounded-full h-2">
-              <div className="bg-warning h-2 rounded-full" style={{ width: `${(revenueAtRisk.high / revenueAtRisk.total) * 100}%` }} />
-            </div>
-
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-info rounded" />
-                <span className="text-sm text-text-secondary">Medium</span>
-              </div>
-              <span className="font-semibold text-text-primary">{formatCurrency(revenueAtRisk.medium)}</span>
-            </div>
-            <div className="w-full bg-surface-secondary/50 rounded-full h-2">
-              <div className="bg-info h-2 rounded-full" style={{ width: `${(revenueAtRisk.medium / revenueAtRisk.total) * 100}%` }} />
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Prediction Accuracy Summary */}
-      <div className="bg-gradient-to-r from-accent-primary/10 via-accent-secondary/10 to-info/10 backdrop-blur-xl p-6 rounded-2xl border border-accent-primary/20 shadow-lg">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="rounded-2xl border border-border-primary/30 bg-surface-primary/90 p-6 shadow-lg">
+        <div className="mb-4 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-text-primary mb-1">AI Prediction Performance</h3>
-            <p className="text-sm text-text-muted">Model accuracy metrics from the last evaluation period</p>
+            <h3 className="text-lg font-semibold text-text-primary">Top At-Risk Customers</h3>
+            <p className="text-sm text-text-muted">Prioritized by risk score, probability, and MRR exposure</p>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent-primary">{(predictionAccuracy.overall * 100).toFixed(1)}%</div>
-              <div className="text-xs text-text-muted uppercase tracking-wider">Accuracy</div>
-            </div>
-            <div className="h-12 w-px bg-border-primary/30" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-success">{(predictionAccuracy.precision * 100).toFixed(1)}%</div>
-              <div className="text-xs text-text-muted uppercase tracking-wider">Precision</div>
-            </div>
-            <div className="h-12 w-px bg-border-primary/30" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-info">{(predictionAccuracy.recall * 100).toFixed(1)}%</div>
-              <div className="text-xs text-text-muted uppercase tracking-wider">Recall</div>
-            </div>
-          </div>
+          <button
+            onClick={() => navigate(buildCustomerListPath({ highRiskOnly: true }))}
+            className="rounded-lg border border-border-primary/40 px-3 py-2 text-xs font-medium text-text-primary hover:border-accent-primary/40"
+          >
+            View customer list
+          </button>
         </div>
+
+        {topAtRiskCustomers.length === 0 ? (
+          <InsightsEmptyState
+            compact
+            title="No at-risk customers in scope"
+            description="Try expanding the date range or removing restrictive filters."
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px] border-collapse">
+              <thead>
+                <tr className="border-b border-border-primary/30 text-left text-xs uppercase tracking-wide text-text-muted">
+                  <th className="px-3 py-3">Customer / Account</th>
+                  <th className="px-3 py-3">Risk</th>
+                  <th className="px-3 py-3">Primary Driver</th>
+                  <th className="px-3 py-3">Last Activity</th>
+                  <th className="px-3 py-3">Payment Health</th>
+                  <th className="px-3 py-3 text-right">MRR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topAtRiskCustomers.map((customer) => (
+                  <tr
+                    key={customer.customerId}
+                    onClick={() => navigate(`/app/customers/${customer.customerId}`)}
+                    className="cursor-pointer border-b border-border-primary/20 text-sm text-text-primary hover:bg-surface-secondary/25"
+                  >
+                    <td className="px-3 py-3">
+                      <div className="font-medium">{customer.customerName}</div>
+                      <div className="text-xs text-text-muted">{customer.accountName || 'No account name'}</div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold" style={{ borderColor: `${RISK_COLORS[customer.riskBucket]}55`, color: RISK_COLORS[customer.riskBucket] }}>
+                          {customer.riskBucketLabel}
+                        </span>
+                        <span>{customer.riskScore.toFixed(0)}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-text-secondary">{customer.primaryDriver}</td>
+                    <td className="px-3 py-3 text-text-secondary">{formatLastActivity(customer.lastActivityAt)}</td>
+                    <td className="px-3 py-3">
+                      <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${PAYMENT_HEALTH_BADGES[customer.paymentHealth]}`}>
+                        {customer.paymentHealthLabel}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-right font-semibold">{formatCurrency(customer.mrr)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

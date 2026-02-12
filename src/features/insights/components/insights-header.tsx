@@ -1,26 +1,36 @@
-import { useGetInsightsData } from '@/features/insights/api/insights';
+import { useInsightsOverview } from '@/features/insights/api/split-insights';
 import { AppPageHeader } from '@/components/layouts';
 
+const formatCurrency = (value: number) => {
+  if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+  return `$${value.toFixed(0)}`;
+};
+
+const formatPercent = (value?: number) => `${(value ?? 0).toFixed(1)}%`;
+
 export const InsightsHeader = () => {
-  const { data: insights } = useGetInsightsData();
+  const { data: overview } = useInsightsOverview();
 
   return (
     <AppPageHeader
       title="Customer Insights"
-      description="Deep analytics and predictive insights to maximize retention and revenue with AI-powered recommendations."
+      description="Churn risk command center for identifying who is at risk, why, and where risk is concentrated."
       actions={(
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:flex lg:items-center lg:gap-4">
           <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/40 px-4 py-3 text-center lg:text-right">
             <div className="text-xl font-bold text-success-muted lg:text-2xl">
-              {insights?.header.predictionAccuracy ?? 87.3}%
+              {(overview?.kpis.customersAtRisk ?? 0).toLocaleString()}
             </div>
-            <div className="text-xs text-text-muted sm:text-sm">prediction accuracy</div>
+            <div className="text-xs text-text-muted sm:text-sm">
+              at-risk customers ({formatPercent(overview?.kpis.customersAtRiskPercent)})
+            </div>
           </div>
           <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/40 px-4 py-3 text-center lg:text-right">
             <div className="text-xl font-bold text-accent-primary lg:text-2xl">
-              {insights?.header.revenueSaved ?? '$4.2M'}
+              {formatCurrency(overview?.kpis.mrrAtRisk ?? 0)}
             </div>
-            <div className="text-xs text-text-muted sm:text-sm">revenue saved</div>
+            <div className="text-xs text-text-muted sm:text-sm">MRR at risk</div>
           </div>
         </div>
       )}
