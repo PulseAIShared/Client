@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AppPageHeader, ContentLayout } from '@/components/layouts';
 import { Spinner } from '@/components/ui/spinner';
 import { useNotifications } from '@/components/ui/notifications';
@@ -6,8 +7,14 @@ import {
   useEvaluateTriggersDryRun,
   useGetTestingLabCustomers,
   useGetTestingLabPlaybooks,
+  useGetTestingLabProviderSupport,
+  useGetTestingLabOpsSnapshot,
+  useGetSandboxVerificationConfig,
+  useGetSandboxVerificationRuns,
   useGetTestingIntegrations,
   useCreateTestingIntegration,
+  useUpdateSandboxVerificationConfig,
+  useRunSandboxVerificationNow,
   useSyncTestingIntegration,
   useRunTestingPipeline,
   useInjectTestEvent,
@@ -19,6 +26,7 @@ import {
   useSimulateSyncs,
   useGetCustomerProfiles,
   useGetEventProfiles,
+  useGetIntegrationSyncRunDetail,
   useTestAction,
   DryRunResult,
   TestEventResult,
@@ -26,6 +34,8 @@ import {
   TestingLabSyncResult,
   TestingLabIntegrationDetailResponse,
   TestActionResponse,
+  SandboxVerificationTargetMode,
+  SandboxVerificationRunNowResponse,
   IntegrationTypeLabels,
   ScenarioOptions,
   supportsDataSync,
@@ -57,7 +67,7 @@ const timePresets = [
   { label: '+168h (1 week)', hours: 168 },
 ];
 
-const integrationTypeOptions = [
+const fallbackIntegrationTypeOptions = [
   { value: 4, label: 'Stripe' },
   { value: 1, label: 'HubSpot' },
   { value: 5, label: 'PostHog' },
@@ -68,10 +78,87 @@ const integrationTypeOptions = [
   { value: 11, label: 'Microsoft Teams' },
 ];
 
+const sandboxVerificationProviders = [
+  { integrationType: 4, label: 'Stripe' },
+  { integrationType: 1, label: 'HubSpot' },
+  { integrationType: 5, label: 'PostHog' },
+];
+
+const sandboxVerificationModeOptions: SandboxVerificationTargetMode[] = [
+  'Auto',
+  'Sandbox',
+  'TestingLab',
+  'Live',
+];
+
+const defaultSandboxVerificationProviderModes: Record<number, SandboxVerificationTargetMode> = {
+  4: 'Auto',
+  1: 'Auto',
+  5: 'Auto',
+};
+
 const formatDate = (value?: string | null) => {
   if (!value) return '\u2014';
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+};
+
+const formatDuration = (startedAt: string, completedAt?: string | null) => {
+  if (!completedAt) return 'Running';
+
+  const startedAtMs = new Date(startedAt).getTime();
+  const completedAtMs = new Date(completedAt).getTime();
+  if (Number.isNaN(startedAtMs) || Number.isNaN(completedAtMs)) {
+    return '\u2014';
+  }
+
+  const durationSeconds = Math.max(0, Math.floor((completedAtMs - startedAtMs) / 1000));
+  if (durationSeconds < 60) {
+    return `${durationSeconds}s`;
+  }
+
+  const minutes = Math.floor(durationSeconds / 60);
+  const seconds = durationSeconds % 60;
+  if (minutes < 60) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+};
+
+const normalizeQualityStatus = (status?: string | null) => {
+  const normalized = (status ?? '').trim().toLowerCase();
+  if (normalized === 'healthy') return 'healthy';
+  if (normalized === 'critical') return 'critical';
+  return 'warning';
+};
+
+const getQualityStatusPillClass = (status?: string | null) => {
+  const normalized = normalizeQualityStatus(status);
+  if (normalized === 'healthy') {
+    return 'bg-success-muted/20 text-success-muted border-success-muted/40';
+  }
+
+  if (normalized === 'critical') {
+    return 'bg-error-muted/20 text-error-muted border-error-muted/40';
+  }
+
+  return 'bg-warning-muted/20 text-warning-muted border-warning-muted/40';
+};
+
+const getQualityGradeBadgeClass = (grade?: string | null) => {
+  const normalizedGrade = (grade ?? '').trim().toUpperCase();
+  if (normalizedGrade === 'A' || normalizedGrade === 'B') {
+    return 'bg-success-muted/20 text-success-muted border-success-muted/40';
+  }
+
+  if (normalizedGrade === 'C') {
+    return 'bg-warning-muted/20 text-warning-muted border-warning-muted/40';
+  }
+
+  return 'bg-error-muted/20 text-error-muted border-error-muted/40';
 };
 
 const ConfirmationModal = ({
@@ -118,22 +205,109 @@ const ConfirmationModal = ({
 
 const IntegrationManagementSection = () => {
   const { addNotification } = useNotifications();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [createType, setCreateType] = useState(4);
   const [createScenario, setCreateScenario] = useState('stable_growth');
   const [createSeed, setCreateSeed] = useState('42');
   const [expandedIntegrationId, setExpandedIntegrationId] = useState<string | null>(null);
   const [syncResult, setSyncResult] = useState<TestingLabSyncResult | null>(null);
+  const [latestSandboxRunResult, setLatestSandboxRunResult] =
+    useState<SandboxVerificationRunNowResponse | null>(null);
+  const [sandboxVerificationEnabled, setSandboxVerificationEnabled] = useState(false);
+  const [sandboxVerificationAllowFallback, setSandboxVerificationAllowFallback] = useState(true);
+  const [sandboxVerificationAlertOnRegression, setSandboxVerificationAlertOnRegression] = useState(true);
+  const [sandboxVerificationScoreDropThreshold, setSandboxVerificationScoreDropThreshold] = useState(10);
+  const [sandboxVerificationProviderModes, setSandboxVerificationProviderModes] = useState<
+    Record<number, SandboxVerificationTargetMode>
+  >(defaultSandboxVerificationProviderModes);
 
   const { data: integrations, isLoading: integrationsLoading } = useGetTestingIntegrations();
+  const { data: providerSupport } = useGetTestingLabProviderSupport();
+  const { data: opsSnapshot, isLoading: opsSnapshotLoading } = useGetTestingLabOpsSnapshot({
+    refetchInterval: 30000,
+  });
+  const { data: sandboxVerificationConfig, isLoading: sandboxVerificationConfigLoading } =
+    useGetSandboxVerificationConfig();
+  const { data: sandboxVerificationRuns, isLoading: sandboxVerificationRunsLoading } =
+    useGetSandboxVerificationRuns(15, { refetchInterval: 30000 });
+  const providerSupportByType = useMemo(
+    () => new Map((providerSupport ?? []).map((support) => [support.integrationType, support])),
+    [providerSupport]
+  );
+  const createProviderOptions = useMemo(() => {
+    if (!providerSupport || providerSupport.length === 0) {
+      return fallbackIntegrationTypeOptions;
+    }
+
+    return providerSupport
+      .filter((support) => support.canCreateIntegration)
+      .map((support) => ({
+        value: support.integrationType,
+        label: `${IntegrationTypeLabels[support.integrationType] ?? support.provider}${support.parityLevel === 'PartialParity' ? ' (Partial)' : ''}`,
+      }));
+  }, [providerSupport]);
+  const selectedProviderSupport = providerSupportByType.get(createType);
+
+  useEffect(() => {
+    if (createProviderOptions.length === 0) {
+      return;
+    }
+
+    if (!createProviderOptions.some((option) => option.value === createType)) {
+      setCreateType(createProviderOptions[0].value);
+    }
+  }, [createProviderOptions, createType]);
+
+  useEffect(() => {
+    if (!sandboxVerificationConfig) {
+      return;
+    }
+
+    setSandboxVerificationEnabled(sandboxVerificationConfig.enabled);
+    setSandboxVerificationAllowFallback(sandboxVerificationConfig.allowModeFallback);
+    setSandboxVerificationAlertOnRegression(sandboxVerificationConfig.alertOnRegression);
+    setSandboxVerificationScoreDropThreshold(sandboxVerificationConfig.regressionScoreDropThreshold);
+
+    const nextModes: Record<number, SandboxVerificationTargetMode> = {
+      ...defaultSandboxVerificationProviderModes,
+    };
+
+    for (const providerMode of sandboxVerificationConfig.providerModes ?? []) {
+      const mode = providerMode.targetMode as SandboxVerificationTargetMode;
+      if (sandboxVerificationModeOptions.includes(mode)) {
+        nextModes[providerMode.integrationType] = mode;
+      }
+    }
+
+    setSandboxVerificationProviderModes(nextModes);
+  }, [sandboxVerificationConfig]);
+
+  const selectedRunIntegrationId = searchParams.get('integrationId') ?? '';
+  const selectedSyncRunId = searchParams.get('syncRunId') ?? '';
+  const {
+    data: selectedSyncRunDetail,
+    isLoading: selectedSyncRunDetailLoading,
+    isError: selectedSyncRunDetailError,
+  } = useGetIntegrationSyncRunDetail(
+    {
+      integrationId: selectedRunIntegrationId,
+      syncRunId: selectedSyncRunId,
+      logLimit: 150,
+    },
+    {
+      enabled: Boolean(selectedRunIntegrationId && selectedSyncRunId),
+    }
+  );
 
   const createMutation = useCreateTestingIntegration({
     mutationConfig: {
       onSuccess: (data) => {
+        const parityWarning = data.parityWarning ? ` ${data.parityWarning}` : '';
         addNotification({
           type: 'success',
           title: 'Integration Created',
-          message: `${IntegrationTypeLabels[data.integrationType]} testing integration created.`,
+          message: `${IntegrationTypeLabels[data.integrationType]} testing integration created.${parityWarning}`,
         });
       },
       onError: (error) => {
@@ -150,10 +324,14 @@ const IntegrationManagementSection = () => {
     mutationConfig: {
       onSuccess: (data) => {
         setSyncResult(data);
+        const parityWarning = data.parityWarning ? ` ${data.parityWarning}` : '';
+        const syncMessage = data.queued
+          ? `Sync queued. Run ${data.syncRunId} (${data.customersCreated} customers, ${data.eventsCreated} events prepared).${parityWarning}`
+          : `Sync completed. Run ${data.syncRunId} processed ${data.customersCreated} customers and ${data.eventsCreated} events.${parityWarning}`;
         addNotification({
           type: 'success',
-          title: 'Sync Complete',
-          message: `Created ${data.customersCreated} customers and ${data.eventsCreated} events.`,
+          title: data.queued ? 'Sync Queued' : 'Sync Complete',
+          message: syncMessage,
         });
       },
       onError: (error) => {
@@ -173,7 +351,7 @@ const IntegrationManagementSection = () => {
         addNotification({
           type: 'success',
           title: 'Pipeline Complete',
-          message: `Pipeline ran: ${data.customersCreated} customers, ${data.eventsCreated} events created.`,
+          message: `Pipeline run ${data.syncRunId} completed: ${data.customersCreated} customers and ${data.eventsCreated} events.`,
         });
       },
       onError: (error) => {
@@ -181,6 +359,45 @@ const IntegrationManagementSection = () => {
           type: 'error',
           title: 'Pipeline Failed',
           message: error instanceof Error ? error.message : 'Failed to run pipeline',
+        });
+      },
+    },
+  });
+
+  const updateSandboxVerificationConfigMutation = useUpdateSandboxVerificationConfig({
+    mutationConfig: {
+      onSuccess: () => {
+        addNotification({
+          type: 'success',
+          title: 'Sandbox Verification Saved',
+          message: 'Nightly sandbox verification settings were updated.',
+        });
+      },
+      onError: (error) => {
+        addNotification({
+          type: 'error',
+          title: 'Sandbox Verification Save Failed',
+          message: error instanceof Error ? error.message : 'Failed to save sandbox verification settings',
+        });
+      },
+    },
+  });
+
+  const runSandboxVerificationNowMutation = useRunSandboxVerificationNow({
+    mutationConfig: {
+      onSuccess: (data) => {
+        setLatestSandboxRunResult(data);
+        addNotification({
+          type: 'success',
+          title: 'Sandbox Verification Complete',
+          message: `Completed ${data.completedProviders}/${data.attemptedProviders} provider checks.`,
+        });
+      },
+      onError: (error) => {
+        addNotification({
+          type: 'error',
+          title: 'Sandbox Verification Failed',
+          message: error instanceof Error ? error.message : 'Failed to run sandbox verification',
         });
       },
     },
@@ -203,6 +420,7 @@ const IntegrationManagementSection = () => {
         customerCount: 10,
         eventsPerCustomerPerMonth: 2,
         generateCustomers: true,
+        waitForCompletion: false,
       },
     });
   };
@@ -215,9 +433,61 @@ const IntegrationManagementSection = () => {
     });
   };
 
+  const updateSandboxProviderMode = (
+    integrationType: number,
+    mode: SandboxVerificationTargetMode
+  ) => {
+    setSandboxVerificationProviderModes((previous) => ({
+      ...previous,
+      [integrationType]: mode,
+    }));
+  };
+
+  const handleSaveSandboxVerificationConfig = () => {
+    updateSandboxVerificationConfigMutation.mutate({
+      enabled: sandboxVerificationEnabled,
+      allowModeFallback: sandboxVerificationAllowFallback,
+      alertOnRegression: sandboxVerificationAlertOnRegression,
+      regressionScoreDropThreshold: sandboxVerificationScoreDropThreshold,
+      providerModes: sandboxVerificationProviders.map((provider) => ({
+        integrationType: provider.integrationType,
+        targetMode:
+          sandboxVerificationProviderModes[provider.integrationType] ?? 'Auto',
+      })),
+    });
+  };
+
+  const handleRunSandboxVerificationNow = () => {
+    runSandboxVerificationNowMutation.mutate(undefined);
+  };
+
   const toggleExpand = (id: string) => {
     setExpandedIntegrationId((prev) => (prev === id ? null : id));
   };
+
+  const openSyncRunDetail = (result: TestingLabSyncResult) => {
+    setSearchParams({
+      integrationId: result.integrationId,
+      syncRunId: result.syncRunId,
+    });
+  };
+
+  const clearSyncRunDetail = () => {
+    setSearchParams({});
+  };
+
+  const selectedRunMetrics = selectedSyncRunDetail?.metrics ?? null;
+  const selectedRunQuality = selectedSyncRunDetail?.qualityGrade ?? null;
+  const selectedRunIssues = selectedSyncRunDetail?.issues ?? null;
+  const selectedRunDownstream = selectedSyncRunDetail?.downstreamOutcomes ?? null;
+  const selectedRunAffectedCustomers = selectedSyncRunDetail?.affectedCustomers ?? [];
+  const selectedRunWarningAndErrorLogs = useMemo(
+    () =>
+      (selectedSyncRunDetail?.logs ?? [])
+        .filter((log) => log.level === 'Warn' || log.level === 'Error')
+        .slice(-8),
+    [selectedSyncRunDetail]
+  );
 
   return (
     <div className="space-y-6">
@@ -237,7 +507,7 @@ const IntegrationManagementSection = () => {
               value={createType}
               onChange={(e) => setCreateType(Number(e.target.value))}
             >
-              {integrationTypeOptions.map((opt) => (
+              {createProviderOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -271,6 +541,11 @@ const IntegrationManagementSection = () => {
             <p className="text-xs text-text-secondary mt-1">Same scenario + same seed = same dataset. Use the same seed across providers to enrich the same customers.</p>
           </div>
         </div>
+        {selectedProviderSupport?.parityLevel === 'PartialParity' && (
+          <div className="text-xs text-warning bg-warning/10 border border-warning/30 rounded-lg px-3 py-2">
+            Partial parity for this provider. {selectedProviderSupport.warning}
+          </div>
+        )}
         <button
           onClick={handleCreate}
           disabled={createMutation.isPending}
@@ -284,6 +559,322 @@ const IntegrationManagementSection = () => {
             'Create Integration'
           )}
         </button>
+      </div>
+
+      {/* Sandbox Verification */}
+      <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-text-primary">Sandbox Verification</h2>
+          {(sandboxVerificationConfigLoading || sandboxVerificationRunsLoading) && <Spinner size="sm" />}
+        </div>
+
+        <p className="text-sm text-text-secondary">
+          Nightly verification reuses the same sync pipeline and can run each core provider in
+          <span className="text-text-primary font-medium"> Sandbox</span>,
+          <span className="text-text-primary font-medium"> TestingLab</span>, or
+          <span className="text-text-primary font-medium"> Live</span> mode.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <label className="flex items-center gap-2 text-sm text-text-secondary">
+            <input
+              type="checkbox"
+              checked={sandboxVerificationEnabled}
+              onChange={(event) => setSandboxVerificationEnabled(event.target.checked)}
+            />
+            Enable nightly run
+          </label>
+          <label className="flex items-center gap-2 text-sm text-text-secondary">
+            <input
+              type="checkbox"
+              checked={sandboxVerificationAllowFallback}
+              onChange={(event) => setSandboxVerificationAllowFallback(event.target.checked)}
+            />
+            Allow fallback mode
+          </label>
+          <label className="flex items-center gap-2 text-sm text-text-secondary">
+            <input
+              type="checkbox"
+              checked={sandboxVerificationAlertOnRegression}
+              onChange={(event) => setSandboxVerificationAlertOnRegression(event.target.checked)}
+            />
+            Alert on regression
+          </label>
+          <label className="text-sm text-text-secondary">
+            Score drop threshold
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={sandboxVerificationScoreDropThreshold}
+              onChange={(event) =>
+                setSandboxVerificationScoreDropThreshold(
+                  Math.max(1, Math.min(100, Number(event.target.value || 10)))
+                )
+              }
+              className="w-full mt-1 bg-surface-secondary border border-border-primary rounded-lg px-3 py-2 text-text-primary"
+            />
+          </label>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {sandboxVerificationProviders.map((provider) => (
+            <div
+              key={provider.integrationType}
+              className="bg-surface-secondary/40 border border-border-primary/40 rounded-lg p-3"
+            >
+              <div className="text-xs text-text-secondary">{provider.label}</div>
+              <select
+                className="w-full mt-1 bg-surface-secondary border border-border-primary rounded-lg px-3 py-2 text-text-primary"
+                value={sandboxVerificationProviderModes[provider.integrationType] ?? 'Auto'}
+                onChange={(event) =>
+                  updateSandboxProviderMode(
+                    provider.integrationType,
+                    event.target.value as SandboxVerificationTargetMode
+                  )
+                }
+              >
+                {sandboxVerificationModeOptions.map((mode) => (
+                  <option key={mode} value={mode}>
+                    {mode}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={handleSaveSandboxVerificationConfig}
+            disabled={updateSandboxVerificationConfigMutation.isPending}
+            className="px-4 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-primary/90 transition-colors font-medium disabled:opacity-50 flex items-center gap-2"
+          >
+            {updateSandboxVerificationConfigMutation.isPending ? (
+              <>
+                <Spinner size="sm" /> Saving...
+              </>
+            ) : (
+              'Save Verification Settings'
+            )}
+          </button>
+
+          <button
+            onClick={handleRunSandboxVerificationNow}
+            disabled={runSandboxVerificationNowMutation.isPending}
+            className="px-4 py-2 bg-surface-secondary text-text-primary border border-border-primary rounded-lg hover:bg-surface-secondary/70 transition-colors font-medium disabled:opacity-50 flex items-center gap-2"
+          >
+            {runSandboxVerificationNowMutation.isPending ? (
+              <>
+                <Spinner size="sm" /> Running...
+              </>
+            ) : (
+              'Run Verification Now'
+            )}
+          </button>
+        </div>
+
+        <div className="text-xs text-text-secondary">
+          Nightly cron: <span className="text-text-primary">{sandboxVerificationConfig?.nightlyCron ?? '0 3 * * *'}</span>
+          {' | '}
+          Last run: <span className="text-text-primary">{formatDate(sandboxVerificationConfig?.lastRunAt)}</span>
+          {' | '}
+          Last error: <span className="text-text-primary">{sandboxVerificationConfig?.lastRunError ?? '\u2014'}</span>
+        </div>
+
+        {latestSandboxRunResult && (
+          <div className="text-xs text-text-secondary">
+            Latest manual run: completed {latestSandboxRunResult.completedProviders}/
+            {latestSandboxRunResult.attemptedProviders}, failed {latestSandboxRunResult.failedProviders},
+            skipped {latestSandboxRunResult.skippedProviders}, regressions {latestSandboxRunResult.regressionsDetected}.
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead className="text-text-secondary border-b border-border-primary/40">
+              <tr>
+                <th className="text-left py-2 px-2">Started</th>
+                <th className="text-left py-2 px-2">Provider</th>
+                <th className="text-left py-2 px-2">Requested</th>
+                <th className="text-left py-2 px-2">Effective</th>
+                <th className="text-left py-2 px-2">Status</th>
+                <th className="text-left py-2 px-2">Quality</th>
+                <th className="text-left py-2 px-2">Regression</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(sandboxVerificationRuns ?? []).map((run) => (
+                <tr key={run.id} className="border-b border-border-primary/20 text-text-secondary">
+                  <td className="py-2 px-2">{formatDate(run.startedAt)}</td>
+                  <td className="py-2 px-2">{IntegrationTypeLabels[run.integrationType] ?? run.integrationType}</td>
+                  <td className="py-2 px-2">{run.requestedMode}</td>
+                  <td className="py-2 px-2">
+                    {run.effectiveMode ?? '\u2014'}
+                    {run.usedFallbackMode ? ' (fallback)' : ''}
+                  </td>
+                  <td className="py-2 px-2">{run.status}</td>
+                  <td className="py-2 px-2">
+                    {run.qualityGrade ? `${run.qualityGrade} (${run.qualityScore ?? '\u2014'})` : '\u2014'}
+                  </td>
+                  <td className="py-2 px-2">
+                    {run.regressionDetected ? run.regressionReason ?? 'Detected' : 'No'}
+                  </td>
+                </tr>
+              ))}
+              {!sandboxVerificationRunsLoading && (sandboxVerificationRuns?.length ?? 0) === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-4 text-center text-text-muted">
+                    No sandbox verification history yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Operations Snapshot */}
+      <div className="bg-surface-primary/50 backdrop-blur-lg p-6 rounded-2xl border border-border-primary/50 shadow-lg space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-text-primary">Operations Snapshot</h2>
+          {opsSnapshotLoading && <Spinner size="sm" />}
+        </div>
+        <p className="text-sm text-text-secondary">
+          Live parity-health view for Testing Lab integrations: failed sync runs, outbox backlog tied to testing sync correlations,
+          and mock route mismatch failures detected from sync logs.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+          <div className="bg-surface-secondary/50 border border-border-primary/40 rounded-lg p-3">
+            <div className="text-xs text-text-secondary">Testing Integrations</div>
+            <div className="text-xl font-semibold text-text-primary">{opsSnapshot?.testingIntegrationCount ?? 0}</div>
+          </div>
+          <div className="bg-surface-secondary/50 border border-border-primary/40 rounded-lg p-3">
+            <div className="text-xs text-text-secondary">Outbox Pending</div>
+            <div className="text-xl font-semibold text-text-primary">{opsSnapshot?.outboxBacklog.pendingCount ?? 0}</div>
+          </div>
+          <div className="bg-surface-secondary/50 border border-border-primary/40 rounded-lg p-3">
+            <div className="text-xs text-text-secondary">Outbox Failed</div>
+            <div className="text-xl font-semibold text-text-primary">{opsSnapshot?.outboxBacklog.failedCount ?? 0}</div>
+          </div>
+          <div className="bg-surface-secondary/50 border border-border-primary/40 rounded-lg p-3">
+            <div className="text-xs text-text-secondary">Route Mismatch Failures</div>
+            <div className="text-xl font-semibold text-text-primary">{opsSnapshot?.routeMismatchFailures.length ?? 0}</div>
+          </div>
+          <div className="bg-surface-secondary/50 border border-border-primary/40 rounded-lg p-3">
+            <div className="text-xs text-text-secondary">Healthy Sync Runs</div>
+            <div className="text-xl font-semibold text-success-muted">{opsSnapshot?.syncQuality.healthyRunCount ?? 0}</div>
+          </div>
+          <div className="bg-surface-secondary/50 border border-border-primary/40 rounded-lg p-3">
+            <div className="text-xs text-text-secondary">Critical Sync Runs</div>
+            <div className="text-xl font-semibold text-error-muted">{opsSnapshot?.syncQuality.criticalRunCount ?? 0}</div>
+          </div>
+        </div>
+
+        {opsSnapshot && (
+          <div className="text-xs text-text-secondary">
+            Generated: <span className="text-text-primary">{formatDate(opsSnapshot.generatedAt)}</span>
+            {' | '}
+            Correlations tracked: <span className="text-text-primary">{opsSnapshot.syncRunCorrelationCount}</span>
+            {' | '}
+            Graded runs: <span className="text-text-primary">{opsSnapshot.syncQuality.evaluatedRunCount}</span>
+            {' | '}
+            Oldest pending outbox event:{' '}
+            <span className="text-text-primary">{formatDate(opsSnapshot.outboxBacklog.oldestPendingOccurredAt)}</span>
+          </div>
+        )}
+
+        {opsSnapshot && (
+          <div className="text-xs text-text-secondary">
+            Grade distribution:{' '}
+            <span className="text-text-primary">
+              {Object.keys(opsSnapshot.syncQuality.gradeDistribution).length > 0
+                ? Object.entries(opsSnapshot.syncQuality.gradeDistribution)
+                    .map(([grade, count]) => `${grade}:${count}`)
+                    .join(' | ')
+                : 'No graded runs yet'}
+            </span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="bg-surface-secondary/40 border border-border-primary/40 rounded-xl p-4 space-y-2">
+            <div className="text-sm font-medium text-text-primary">Failed Sync Runs</div>
+            {opsSnapshot && opsSnapshot.failedSyncRuns.length > 0 ? (
+              <div className="space-y-2 text-xs">
+                {opsSnapshot.failedSyncRuns.map((failedRun) => (
+                  <div key={failedRun.syncRunId} className="border border-border-primary/30 rounded-lg p-2 bg-surface-primary/30">
+                    <div className="text-text-primary font-mono">{failedRun.syncRunId}</div>
+                    <div className="text-text-secondary">
+                      {IntegrationTypeLabels[failedRun.integrationType] ?? failedRun.integrationType}
+                      {' | '}
+                      {failedRun.status}
+                      {' | '}
+                      {formatDate(failedRun.startedAt)}
+                    </div>
+                    {failedRun.errorSummary && (
+                      <div className="text-error-muted mt-1">{failedRun.errorSummary}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs text-text-secondary">No failed sync runs in the current snapshot.</div>
+            )}
+          </div>
+
+          <div className="bg-surface-secondary/40 border border-border-primary/40 rounded-xl p-4 space-y-2">
+            <div className="text-sm font-medium text-text-primary">Non-Healthy Quality Runs</div>
+            {opsSnapshot && opsSnapshot.syncQuality.latestNonHealthyRuns.length > 0 ? (
+              <div className="space-y-2 text-xs">
+                {opsSnapshot.syncQuality.latestNonHealthyRuns.map((qualityRun) => (
+                  <div key={qualityRun.syncRunId} className="border border-border-primary/30 rounded-lg p-2 bg-surface-primary/30">
+                    <div className="text-text-primary font-mono">{qualityRun.syncRunId}</div>
+                    <div className="text-text-secondary">
+                      {IntegrationTypeLabels[qualityRun.integrationType] ?? qualityRun.integrationType}
+                      {' | '}
+                      {formatDate(qualityRun.startedAt)}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${getQualityGradeBadgeClass(qualityRun.grade)}`}
+                      >
+                        Grade {qualityRun.grade}
+                      </span>
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${getQualityStatusPillClass(qualityRun.status)}`}
+                      >
+                        {qualityRun.status}
+                      </span>
+                      <span className="text-text-primary">Score {qualityRun.score}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs text-text-secondary">No warning or critical sync quality runs detected.</div>
+            )}
+          </div>
+
+          <div className="bg-surface-secondary/40 border border-border-primary/40 rounded-xl p-4 space-y-2">
+            <div className="text-sm font-medium text-text-primary">Route Mismatch Failures</div>
+            {opsSnapshot && opsSnapshot.routeMismatchFailures.length > 0 ? (
+              <div className="space-y-2 text-xs">
+                {opsSnapshot.routeMismatchFailures.map((mismatch) => (
+                  <div key={`${mismatch.syncRunId}-${mismatch.logId ?? mismatch.timestamp}`} className="border border-border-primary/30 rounded-lg p-2 bg-surface-primary/30">
+                    <div className="text-text-primary">{mismatch.scope}</div>
+                    <div className="text-text-secondary">{formatDate(mismatch.timestamp)}</div>
+                    <div className="text-warning mt-1">{mismatch.message}</div>
+                    <div className="text-text-secondary mt-1 font-mono">{mismatch.correlationId}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs text-text-secondary">No route mismatch failures detected.</div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Existing Integrations */}
@@ -320,8 +911,33 @@ const IntegrationManagementSection = () => {
         </div>
 
         {syncResult && (
-          <div className="bg-surface-secondary/50 border border-border-primary/40 rounded-xl p-4 text-sm space-y-1">
+          <div className="bg-surface-secondary/50 border border-border-primary/40 rounded-xl p-4 text-sm space-y-2">
             <div className="text-text-primary font-medium">Last Operation Result</div>
+            <div className="text-text-secondary">
+              Sync run: <span className="text-text-primary font-mono">{syncResult.syncRunId}</span>
+            </div>
+            <div className="text-text-secondary">
+              Queue state:{' '}
+              <span className="text-text-primary">
+                {syncResult.queued ? 'Queued' : 'Executed inline'}
+              </span>
+            </div>
+            <div className="text-text-secondary">
+              Parity level: <span className="text-text-primary">{syncResult.parityLevel}</span>
+            </div>
+            {syncResult.parityWarning && (
+              <div className="text-warning">
+                Warning: {syncResult.parityWarning}
+              </div>
+            )}
+            {syncResult.syncJobId && (
+              <div className="text-text-secondary">
+                Job ID: <span className="text-text-primary font-mono">{syncResult.syncJobId}</span>
+              </div>
+            )}
+            <div className="text-text-secondary">
+              Queued at: <span className="text-text-primary">{formatDate(syncResult.queuedAt)}</span>
+            </div>
             <div className="text-text-secondary">
               Customers created: <span className="text-text-primary">{syncResult.customersCreated}</span>
             </div>
@@ -333,6 +949,328 @@ const IntegrationManagementSection = () => {
               {' \u2192 '}
               <span className="text-text-primary">{formatDate(syncResult.endDate)}</span>
             </div>
+            <div className="pt-2">
+              <button
+                onClick={() => openSyncRunDetail(syncResult)}
+                className="px-3 py-1.5 bg-surface-primary/60 border border-border-primary/50 rounded-lg text-text-primary hover:bg-surface-primary transition-colors"
+              >
+                View Sync Run Details
+              </button>
+            </div>
+          </div>
+        )}
+
+        {selectedSyncRunId && (
+          <div className="bg-surface-secondary/40 border border-border-primary/40 rounded-xl p-4 text-sm space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-text-primary font-medium">Selected Sync Run Detail</div>
+              <button
+                onClick={clearSyncRunDetail}
+                className="text-xs text-text-secondary hover:text-text-primary transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="text-text-secondary">
+              Integration: <span className="text-text-primary font-mono">{selectedRunIntegrationId}</span>
+            </div>
+            <div className="text-text-secondary">
+              Sync run: <span className="text-text-primary font-mono">{selectedSyncRunId}</span>
+            </div>
+
+            {selectedSyncRunDetailLoading && (
+              <div className="flex items-center gap-2 text-text-secondary">
+                <Spinner size="sm" /> Loading sync run detail...
+              </div>
+            )}
+
+            {selectedSyncRunDetailError && !selectedSyncRunDetailLoading && (
+              <div className="text-error-muted">
+                Unable to load sync run detail for this run.
+              </div>
+            )}
+
+            {selectedSyncRunDetail && !selectedSyncRunDetailLoading && (
+              <div className="space-y-4 text-text-secondary">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+                  <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                    <div className="text-xs text-text-secondary">Status</div>
+                    <div className="text-sm font-semibold text-text-primary">{selectedSyncRunDetail.status}</div>
+                  </div>
+                  <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                    <div className="text-xs text-text-secondary">Mode</div>
+                    <div className="text-sm font-semibold text-text-primary">{selectedSyncRunDetail.mode}</div>
+                  </div>
+                  <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                    <div className="text-xs text-text-secondary">Started</div>
+                    <div className="text-sm font-semibold text-text-primary">{formatDate(selectedSyncRunDetail.startedAt)}</div>
+                  </div>
+                  <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                    <div className="text-xs text-text-secondary">Completed</div>
+                    <div className="text-sm font-semibold text-text-primary">{formatDate(selectedSyncRunDetail.completedAt)}</div>
+                  </div>
+                  <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                    <div className="text-xs text-text-secondary">Quality Grade</div>
+                    {selectedRunQuality ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getQualityGradeBadgeClass(selectedRunQuality.grade)}`}
+                        >
+                          {selectedRunQuality.grade}
+                        </span>
+                        <span className="text-sm font-semibold text-text-primary">{selectedRunQuality.score}</span>
+                      </div>
+                    ) : (
+                      <div className="text-sm font-semibold text-text-secondary">Unavailable</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-text-secondary text-xs">
+                  Correlation:{' '}
+                  <span className="text-text-primary font-mono break-all">{selectedSyncRunDetail.correlationId}</span>
+                  {' | '}Logs: <span className="text-text-primary">{selectedSyncRunDetail.returnedLogCount}</span>
+                  {selectedSyncRunDetail.logsTruncated ? ' (truncated)' : ''}
+                </div>
+
+                {selectedSyncRunDetail.errorSummary && (
+                  <div className="text-xs text-error-muted bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+                    {selectedSyncRunDetail.errorSummary}
+                  </div>
+                )}
+
+                {selectedRunQuality && (
+                  <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs text-text-secondary">Sync Quality Grade</div>
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${getQualityStatusPillClass(selectedRunQuality.status)}`}
+                      >
+                        {selectedRunQuality.status}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+                      <div>
+                        Overall: <span className="text-text-primary">{selectedRunQuality.score}</span>
+                      </div>
+                      <div>
+                        Ingestion: <span className="text-text-primary">{selectedRunQuality.ingestionScore}</span>
+                      </div>
+                      <div>
+                        Extraction: <span className="text-text-primary">{selectedRunQuality.extractionScore}</span>
+                      </div>
+                      <div>
+                        Projection: <span className="text-text-primary">{selectedRunQuality.projectionScore}</span>
+                      </div>
+                      <div>
+                        Downstream: <span className="text-text-primary">{selectedRunQuality.downstreamScore}</span>
+                      </div>
+                    </div>
+                    {selectedRunQuality.criticalIssues.length > 0 && (
+                      <div className="text-xs text-text-secondary">
+                        Critical issues:{' '}
+                        <span className="text-text-primary">{selectedRunQuality.criticalIssues.join(', ')}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <div className="text-xs text-text-secondary">Run Metrics</div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                      <div className="text-xs text-text-secondary">Pulled</div>
+                      <div className="text-lg font-semibold text-text-primary">{selectedRunMetrics?.pulled ?? 0}</div>
+                    </div>
+                    <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                      <div className="text-xs text-text-secondary">Mapped</div>
+                      <div className="text-lg font-semibold text-text-primary">{selectedRunMetrics?.mapped ?? 0}</div>
+                    </div>
+                    <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                      <div className="text-xs text-text-secondary">Updated</div>
+                      <div className="text-lg font-semibold text-text-primary">{selectedRunMetrics?.updated ?? 0}</div>
+                    </div>
+                    <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                      <div className="text-xs text-text-secondary">Failed</div>
+                      <div className="text-lg font-semibold text-text-primary">{selectedRunMetrics?.failed ?? 0}</div>
+                    </div>
+                    <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3">
+                      <div className="text-xs text-text-secondary">Affected Customers</div>
+                      <div className="text-lg font-semibold text-text-primary">{selectedRunMetrics?.affectedCustomers ?? 0}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3 space-y-2">
+                    <div className="text-xs text-text-secondary">Warnings / Errors</div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        Warning logs: <span className="text-text-primary">{selectedRunIssues?.warningLogCount ?? 0}</span>
+                      </div>
+                      <div>
+                        Error logs: <span className="text-text-primary">{selectedRunIssues?.errorLogCount ?? 0}</span>
+                      </div>
+                      <div>
+                        Failed steps: <span className="text-text-primary">{selectedRunIssues?.failedStepCount ?? 0}</span>
+                      </div>
+                      <div>
+                        Skipped steps: <span className="text-text-primary">{selectedRunIssues?.skippedStepCount ?? 0}</span>
+                      </div>
+                    </div>
+                    <div className="text-xs">
+                      Persistence:{' '}
+                      <span className="text-text-primary">
+                        {selectedRunMetrics?.persistenceAttempted ? 'Attempted' : 'Not attempted'}
+                      </span>
+                      {' | '}Inserted:{' '}
+                      <span className="text-text-primary">{selectedRunMetrics?.persistenceInserted ?? 0}</span>
+                      {' | '}Duplicates:{' '}
+                      <span className="text-text-primary">{selectedRunMetrics?.persistenceDuplicates ?? 0}</span>
+                      {' | '}Errors:{' '}
+                      <span className="text-text-primary">{selectedRunMetrics?.persistenceErrors ?? 0}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3 space-y-2">
+                    <div className="text-xs text-text-secondary">Downstream Outcomes</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        Outbox emitted:{' '}
+                        <span className="text-text-primary">{selectedRunDownstream?.outboxEmitted ?? 0}</span>
+                      </div>
+                      <div>
+                        Outbox processed:{' '}
+                        <span className="text-text-primary">{selectedRunDownstream?.outboxProcessed ?? 0}</span>
+                      </div>
+                      <div>
+                        Outbox failed:{' '}
+                        <span className="text-text-primary">{selectedRunDownstream?.outboxFailed ?? 0}</span>
+                      </div>
+                      <div>
+                        Recompute queued:{' '}
+                        <span className="text-text-primary">{selectedRunDownstream?.recomputeQueued ?? 0}</span>
+                      </div>
+                      <div>
+                        Recompute processed:{' '}
+                        <span className="text-text-primary">{selectedRunDownstream?.recomputeProcessed ?? 0}</span>
+                      </div>
+                      <div>
+                        Recompute failed:{' '}
+                        <span className="text-text-primary">{selectedRunDownstream?.recomputeFailed ?? 0}</span>
+                      </div>
+                      <div>
+                        Churn risk changed:{' '}
+                        <span className="text-text-primary">{selectedRunDownstream?.churnRiskChanged ?? 0}</span>
+                      </div>
+                      <div>
+                        Segment deltas:{' '}
+                        <span className="text-text-primary">{selectedRunDownstream?.segmentMembershipChanged ?? 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3 space-y-2">
+                  <div className="text-xs text-text-secondary">Step Metrics</div>
+                  <div className="space-y-2">
+                    {selectedSyncRunDetail.steps.map((step) => (
+                      <div key={step.id} className="border border-border-primary/25 rounded-lg px-3 py-2 bg-surface-secondary/30">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-text-primary font-medium">{step.stepKey}</div>
+                          <span
+                            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                              step.status === 'Completed'
+                                ? 'bg-success-muted/20 text-success-muted border-success-muted/40'
+                                : step.status === 'Failed'
+                                  ? 'bg-error-muted/20 text-error-muted border-error-muted/40'
+                                  : step.status === 'Skipped'
+                                    ? 'bg-warning-muted/20 text-warning-muted border-warning-muted/40'
+                                    : 'bg-surface-secondary/60 text-text-secondary border-border-primary/40'
+                            }`}
+                          >
+                            {step.status}
+                          </span>
+                        </div>
+                        <div className="text-xs text-text-secondary mt-1">
+                          Started: <span className="text-text-primary">{formatDate(step.startedAt)}</span>
+                          {' | '}Duration:{' '}
+                          <span className="text-text-primary">
+                            {formatDuration(step.startedAt, step.completedAt)}
+                          </span>
+                        </div>
+                        {step.summary && (
+                          <div className="text-xs text-text-secondary mt-1">{step.summary}</div>
+                        )}
+                      </div>
+                    ))}
+                    {selectedSyncRunDetail.steps.length === 0 && (
+                      <div className="text-xs text-text-secondary">No step records for this run.</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3 space-y-2">
+                  <div className="text-xs text-text-secondary">Latest Warning/Error Logs</div>
+                  {selectedRunWarningAndErrorLogs.length === 0 && (
+                    <div className="text-xs text-text-secondary">No warning or error logs in the selected log window.</div>
+                  )}
+                  {selectedRunWarningAndErrorLogs.length > 0 && (
+                    <div className="space-y-2">
+                      {selectedRunWarningAndErrorLogs.map((log) => (
+                        <div key={log.id} className="text-xs border border-border-primary/25 rounded-lg px-3 py-2 bg-surface-secondary/30">
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={`font-semibold ${
+                                log.level === 'Error' ? 'text-error-muted' : 'text-warning-muted'
+                              }`}
+                            >
+                              {log.level}
+                            </span>
+                            <span className="text-text-secondary">{formatDate(log.timestamp)}</span>
+                          </div>
+                          <div className="text-text-primary mt-1">{log.message}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-surface-primary/35 border border-border-primary/30 rounded-lg p-3 space-y-2">
+                  <div className="text-xs text-text-secondary">Affected Customers</div>
+                  {selectedRunAffectedCustomers.length === 0 && (
+                    <div className="text-xs text-text-secondary">No affected-customer summary available for this run.</div>
+                  )}
+                  {selectedRunAffectedCustomers.length > 0 && (
+                    <div className="space-y-2">
+                      {selectedRunAffectedCustomers.map((customer) => (
+                        <div key={customer.customerId} className="text-xs border border-border-primary/25 rounded-lg px-3 py-2 bg-surface-secondary/30">
+                          <div className="text-text-primary font-mono">{customer.customerId}</div>
+                          <div className="text-text-secondary mt-1">
+                            Changed domains:{' '}
+                            <span className="text-text-primary">
+                              {customer.changedDomains.length > 0
+                                ? customer.changedDomains.join(', ')
+                                : '\u2014'}
+                            </span>
+                          </div>
+                          <div className="text-text-secondary">
+                            Risk delta:{' '}
+                            <span className="text-text-primary">
+                              {typeof customer.riskDelta === 'number'
+                                ? customer.riskDelta.toFixed(2)
+                                : '\u2014'}
+                            </span>
+                            {' | '}Segment deltas:{' '}
+                            <span className="text-text-primary">{customer.segmentDeltaCount}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -360,8 +1298,8 @@ const IntegrationCard = ({
   isPipelineRunning: boolean;
 }) => {
   const { addNotification } = useNotifications();
-  const hasDataSync = supportsDataSync(integration.integrationType);
-  const hasActions = supportsActions(integration.integrationType);
+  const hasDataSync = integration.supportsDataSync ?? supportsDataSync(integration.integrationType);
+  const hasActions = integration.supportsActions ?? supportsActions(integration.integrationType);
   const purpose = getIntegrationPurpose(integration.integrationType);
   const actionTypes = getActionTypesForIntegration(integration.integrationType);
 
@@ -497,6 +1435,20 @@ const IntegrationCard = ({
         ? 'bg-warning/20 text-warning'
         : 'bg-success/20 text-success';
 
+  const parityLabel =
+    integration.parityLevel === 'FullParity'
+      ? 'Full Parity'
+      : integration.parityLevel === 'PartialParity'
+        ? 'Partial Parity'
+        : 'Not Supported';
+
+  const parityColor =
+    integration.parityLevel === 'FullParity'
+      ? 'bg-success/20 text-success'
+      : integration.parityLevel === 'PartialParity'
+        ? 'bg-warning/20 text-warning'
+        : 'bg-error/20 text-error';
+
   return (
     <div className="bg-surface-secondary/40 border border-border-primary/40 rounded-xl overflow-hidden">
       {/* Header */}
@@ -514,10 +1466,18 @@ const IntegrationCard = ({
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${purposeColor}`}>
                 {purposeLabel}
               </span>
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${parityColor}`}>
+                {parityLabel}
+              </span>
             </div>
             <div className="text-xs text-text-secondary">
               {integration.scenario ?? 'No scenario'} &middot; Seed {integration.seed ?? '\u2014'}
             </div>
+            {integration.parityWarning && (
+              <div className="text-xs text-warning mt-1">
+                {integration.parityWarning}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-4 text-xs text-text-secondary">

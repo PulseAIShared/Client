@@ -1093,6 +1093,12 @@ export enum IntegrationStatus {
   TokenExpired = 'TokenExpired'
 }
 
+export enum IntegrationMode {
+  Live = 'Live',
+  Sandbox = 'Sandbox',
+  TestingLab = 'TestingLab',
+}
+
 export enum IntegrationPurpose {
   DataSource = 'data_source',
   ActionChannel = 'action_channel',
@@ -1113,6 +1119,7 @@ export interface IntegrationApiItem {
   type: IntegrationType | string;
   name: string;
   status: 'Connected' | 'Disconnected' | 'Error' | string;
+  mode?: IntegrationMode | string | null;
   purpose?: IntegrationPurpose | string | null;
   supportedActionTypes?: string[] | null;
   connectedAt: string;
@@ -1133,6 +1140,7 @@ export interface IntegrationStatusResponse {
   type: IntegrationType | string;
   name: string;
   status: IntegrationStatus;
+  mode: IntegrationMode | string;
   purpose: IntegrationPurpose;
   supportedActionTypes: string[];
   isConnected: boolean;
@@ -1871,15 +1879,46 @@ export interface CustomerDataSourceEntry {
   categories?: string[] | null;
   type?: string | null;
   lastSync?: string | null;
+  lastRawEventAt?: string | null;
+  lastIntegrationSyncAt?: string | null;
+  lastStateUpdatedAt?: string | null;
+  integrationStatus?: string | null;
+  externalIdentifiers?: Array<{
+    externalId: string;
+    lastSyncedAt?: string | null;
+    isActive?: boolean;
+  }> | null;
   isPrimary?: boolean;
   status?: string | null;
   syncStatus?: string | null;
+}
+
+export interface CustomerMappedFieldEntry {
+  field: string;
+  value: string;
+  lastUpdatedAt?: string | null;
+  sourceProviders?: string[] | null;
+  evidenceCount?: number;
+}
+
+export interface CustomerMappedDomainEntry {
+  domain: string;
+  lastUpdatedAt?: string | null;
+  sourceProviders?: string[] | null;
+  evidenceCount?: number;
+  fields?: CustomerMappedFieldEntry[] | null;
+}
+
+export interface CustomerMappedDataEntry {
+  asOf?: string | null;
+  domains?: CustomerMappedDomainEntry[] | null;
 }
 
 export interface CustomerDataSourcesResponse {
   totalSources?: number;
   lastOverallSync?: string | null;
   sources: CustomerDataSourceEntry[];
+  mappedData?: CustomerMappedDataEntry | null;
 }
 
 export interface CategoryScores {

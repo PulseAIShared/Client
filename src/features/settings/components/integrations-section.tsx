@@ -32,7 +32,8 @@ import {
   parseIntegrationProblem,
   useSaveActionConfig,
 } from '../api/integrations';
-import { IntegrationPurpose, IntegrationStatus } from '@/types/api';
+import type { StartConnectionParams } from '../api/integrations';
+import { IntegrationMode, IntegrationPurpose, IntegrationStatus } from '@/types/api';
 import type {
   IntegrationStatusResponse,
   IntegrationInspection,
@@ -244,6 +245,12 @@ const PURPOSE_META: Record<
 };
 
 type CapabilityFilterOption = 'all' | IntegrationPurpose;
+type ConnectableIntegrationMode = IntegrationMode.Live | IntegrationMode.Sandbox;
+
+const CONNECTABLE_INTEGRATION_MODES: ConnectableIntegrationMode[] = [
+  IntegrationMode.Live,
+  IntegrationMode.Sandbox,
+];
 
 const normalizeIntegrationPurpose = (
   purpose: IntegrationPurpose | string | undefined,
@@ -282,6 +289,32 @@ const normalizeIntegrationPurpose = (
 
   return IntegrationPurpose.DataSource;
 };
+
+const normalizeIntegrationMode = (
+  mode: IntegrationStatusResponse['mode'] | undefined
+): IntegrationMode => {
+  const normalized = String(mode ?? '').trim().toLowerCase();
+  if (normalized === 'sandbox') {
+    return IntegrationMode.Sandbox;
+  }
+
+  if (normalized === 'testinglab') {
+    return IntegrationMode.TestingLab;
+  }
+
+  return IntegrationMode.Live;
+};
+
+const resolveConnectableMode = (
+  mode: IntegrationStatusResponse['mode'] | undefined
+): ConnectableIntegrationMode => {
+  return normalizeIntegrationMode(mode) === IntegrationMode.Sandbox
+    ? IntegrationMode.Sandbox
+    : IntegrationMode.Live;
+};
+
+const buildConnectionKey = (type: string, mode: ConnectableIntegrationMode): string =>
+  `${type}:${mode}`;
 
 const parseCapabilityFilter = (value: string | null): CapabilityFilterOption => {
   if (!value) {
@@ -1662,7 +1695,8 @@ export const IntegrationsSection: React.FC = () => {
   const [testingIntegrationId, setTestingIntegrationId] = useState<string | null>(null);
   const [disconnectingIntegrationId, setDisconnectingIntegrationId] = useState<string | null>(null);
   const [reconnectingIntegrationId, setReconnectingIntegrationId] = useState<string | null>(null);
-  const [connectingType, setConnectingType] = useState<string | null>(null);
+  const [newConnectionMode, setNewConnectionMode] = useState<ConnectableIntegrationMode>(IntegrationMode.Live);
+  const [connectingKey, setConnectingKey] = useState<string | null>(null);
   const [jobFilterIntegrationId, setJobFilterIntegrationId] = useState<string>('all');
   const [expandedCardIds, setExpandedCardIds] = useState<Set<string>>(new Set());
 
@@ -1721,27 +1755,37 @@ export const IntegrationsSection: React.FC = () => {
   });
 
   const startConnectionMutation = useStartConnection({
-    onMutate: (type) => {
-      setConnectingType(type);
+    onMutate: (params: StartConnectionParams) => {
+      setConnectingKey(
+        buildConnectionKey(
+          params.type,
+          (params.mode ?? IntegrationMode.Live) as ConnectableIntegrationMode
+        )
+      );
     },
-    onSuccess: (result, integrationType) => {
-      const meta = getProviderMetadata(integrationType);
+    onSuccess: (result, params: StartConnectionParams) => {
+      const mode = (params.mode ?? IntegrationMode.Live) as ConnectableIntegrationMode;
+      const meta = getProviderMetadata(params.type);
       addNotification({
         type: 'info',
-        title: `Connecting ${meta.name}`,
-        message: 'Redirecting to the provider to authorise access.',
+        title: `Connecting ${meta.name} (${mode})`,
+        message: 'Redirecting to the provider to authorize access.',
       });
       persistOAuthSession({
-        type: integrationType,
+        type: params.type,
         state: result.state,
         existingIntegrationId: result.existingIntegrationId ?? null,
       });
       window.location.assign(result.authorizationUrl);
     },
-    onError: (error, integrationType) => {
+    onError: (error, params: StartConnectionParams) => {
       const problem = parseIntegrationProblem(error);
-      const meta = getProviderMetadata(integrationType);
-      logIntegrationProblem('Start integration connection failed', problem, { integrationType });
+      const mode = (params.mode ?? IntegrationMode.Live) as ConnectableIntegrationMode;
+      const meta = getProviderMetadata(params.type);
+      logIntegrationProblem('Start integration connection failed', problem, {
+        integrationType: params.type,
+        mode,
+      });
 
       if (problem.code === 'Integration.AlreadyExists' && problem.metadata && typeof problem.metadata === 'object') {
         const metadata = problem.metadata as Record<string, unknown>;
@@ -1770,13 +1814,13 @@ export const IntegrationsSection: React.FC = () => {
       } else {
         addNotification({
           type: 'error',
-          title: `Unable to connect ${meta.name}`,
+          title: `Unable to connect ${meta.name} (${mode})`,
           message: problem.detail ?? 'Unexpected error while starting OAuth flow.',
         });
       }
     },
     onSettled: () => {
-      setConnectingType(null);
+      setConnectingKey(null);
     },
   });
 
@@ -2003,14 +2047,23 @@ export const IntegrationsSection: React.FC = () => {
   const typeFilterOptions = useMemo(() => ['all', ...integrationTypes], [integrationTypes]);
 
   const availableProviders = useMemo(() => {
-    const connectedTypes = new Set(integrations.map((integration) => integration.type));
+    const connectedTypeModeKeys = new Set(
+      integrations
+        .map((integration) => ({
+          type: integration.type,
+          mode: normalizeIntegrationMode(integration.mode),
+        }))
+        .filter((item) => item.mode === IntegrationMode.Live || item.mode === IntegrationMode.Sandbox)
+        .map((item) => buildConnectionKey(item.type, item.mode as ConnectableIntegrationMode))
+    );
+
     return integrationTypes
       .filter((type) => {
         if (type.toLowerCase() === 'email') {
           return !hasEmailActionChannelProfiles;
         }
 
-        return !connectedTypes.has(type);
+        return !connectedTypeModeKeys.has(buildConnectionKey(type, newConnectionMode));
       })
       .map(getProviderMetadata)
       .filter((provider) => {
@@ -2031,6 +2084,7 @@ export const IntegrationsSection: React.FC = () => {
     hasEmailActionChannelProfiles,
     integrationTypes,
     integrations,
+    newConnectionMode,
     normalizedSearch,
   ]);
 
@@ -2048,6 +2102,36 @@ export const IntegrationsSection: React.FC = () => {
 
     return grouped;
   }, [availableProviders]);
+
+  const hasAnyAvailableProviders = useMemo(() => {
+    const connectedTypeModeKeys = new Set(
+      integrations
+        .map((integration) => ({
+          type: integration.type,
+          mode: normalizeIntegrationMode(integration.mode),
+        }))
+        .filter((item) => item.mode === IntegrationMode.Live || item.mode === IntegrationMode.Sandbox)
+        .map((item) => buildConnectionKey(item.type, item.mode as ConnectableIntegrationMode))
+    );
+
+    for (const type of integrationTypes) {
+      if (type.toLowerCase() === 'email') {
+        if (!hasEmailActionChannelProfiles) {
+          return true;
+        }
+
+        continue;
+      }
+
+      const hasLive = connectedTypeModeKeys.has(buildConnectionKey(type, IntegrationMode.Live));
+      const hasSandbox = connectedTypeModeKeys.has(buildConnectionKey(type, IntegrationMode.Sandbox));
+      if (!hasLive || !hasSandbox) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [hasEmailActionChannelProfiles, integrationTypes, integrations]);
 
   const purposeSectionSummaries = useMemo(
     () =>
@@ -2498,6 +2582,8 @@ export const IntegrationsSection: React.FC = () => {
     const purpose = resolveIntegrationPurpose(integration);
     const purposeMeta = PURPOSE_META[purpose];
     const meta = getProviderMetadata(integration.type);
+    const integrationMode = normalizeIntegrationMode(integration.mode);
+    const connectMode = resolveConnectableMode(integration.mode);
     const accentGradient =
       meta.accentGradient ?? CATEGORY_GRADIENTS[meta.category] ?? CATEGORY_GRADIENTS.other;
     const primaryActionClass = `bg-gradient-to-r ${accentGradient} text-white shadow-md hover:shadow-xl`;
@@ -2558,8 +2644,8 @@ export const IntegrationsSection: React.FC = () => {
         ? 'Sync in progress. Manual controls are temporarily disabled.'
         : 'Manual sync and connection checks are available.'
       : purpose === IntegrationPurpose.ActionChannel
-      ? 'Start the OAuth flow to connect this action channel.'
-      : 'Start the OAuth flow to connect this data integration.';
+      ? `Start the OAuth flow to connect this ${integrationMode.toLowerCase()} action channel.`
+      : `Start the OAuth flow to connect this ${integrationMode.toLowerCase()} data integration.`;
 
     return (
       <div
@@ -2604,6 +2690,9 @@ export const IntegrationsSection: React.FC = () => {
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-text-muted">
                   <span className="rounded-full bg-surface-secondary/70 px-2 py-1 font-medium text-text-secondary">
                     {integration.type}
+                  </span>
+                  <span className="rounded-full bg-surface-secondary/70 px-2 py-1 font-medium text-text-secondary">
+                    {integrationMode}
                   </span>
                   {connectedAt && (
                     <span>
@@ -2951,11 +3040,19 @@ export const IntegrationsSection: React.FC = () => {
                 ) : (
                   <>
                     <Button
-                      onClick={() => startConnectionMutation.mutate(integration.type)}
-                      isLoading={connectingType === integration.type && startConnectionMutation.isPending}
+                      onClick={() =>
+                        startConnectionMutation.mutate({
+                          type: integration.type,
+                          mode: connectMode,
+                        })
+                      }
+                      isLoading={
+                        connectingKey === buildConnectionKey(integration.type, connectMode) &&
+                        startConnectionMutation.isPending
+                      }
                       className={primaryActionClass}
                     >
-                      Connect
+                      Connect ({connectMode})
                     </Button>
                     <Button
                       variant="outline"
@@ -3144,100 +3241,131 @@ export const IntegrationsSection: React.FC = () => {
         )}
       </div>
 
-      {availableProviders.length > 0 && (
+      {hasAnyAvailableProviders && (
         <div className="rounded-2xl border border-border-primary/40 bg-surface-primary/80 p-6 shadow-xl">
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-text-primary">Available integrations</h2>
             <p className="text-sm text-text-secondary">
               Connect additional providers by capability so your data ingestion and playbook actions stay explicit.
             </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <label htmlFor="integration-connect-mode" className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                Connection mode
+              </label>
+              <select
+                id="integration-connect-mode"
+                className="w-full rounded-lg border border-border-primary/50 bg-surface-secondary/70 px-3 py-2 text-sm text-text-primary sm:w-48"
+                value={newConnectionMode}
+                onChange={(event) => setNewConnectionMode(event.target.value as ConnectableIntegrationMode)}
+              >
+                {CONNECTABLE_INTEGRATION_MODES.map((mode) => (
+                  <option key={mode} value={mode}>
+                    {mode}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-text-muted">
+                Use Live for production accounts or Sandbox for provider test environments.
+              </span>
+            </div>
           </div>
-          <div className="space-y-6">
-            {PURPOSE_DISPLAY_ORDER.map((purpose) => {
-              const providers = availableProvidersByPurpose[purpose];
-              if (providers.length === 0) {
-                return null;
-              }
+          {availableProviders.length === 0 ? (
+            <div className="rounded-xl border border-border-primary/30 bg-surface-secondary/60 p-4 text-sm text-text-muted">
+              No providers are currently available in <span className="font-medium text-text-primary">{newConnectionMode}</span> mode. Try switching connection mode.
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {PURPOSE_DISPLAY_ORDER.map((purpose) => {
+                const providers = availableProvidersByPurpose[purpose];
+                if (providers.length === 0) {
+                  return null;
+                }
 
-              const purposeMeta = PURPOSE_META[purpose];
-              return (
-                <section key={purpose} className="space-y-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold uppercase tracking-wide text-text-secondary">
-                      {purposeMeta.label}
-                    </h3>
-                    <span className="rounded-full bg-surface-secondary/70 px-2.5 py-1 text-xs text-text-muted">
-                      {providers.length} available
-                    </span>
-                  </div>
+                const purposeMeta = PURPOSE_META[purpose];
+                return (
+                  <section key={purpose} className="space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-semibold uppercase tracking-wide text-text-secondary">
+                        {purposeMeta.label}
+                      </h3>
+                      <span className="rounded-full bg-surface-secondary/70 px-2.5 py-1 text-xs text-text-muted">
+                        {providers.length} available
+                      </span>
+                    </div>
 
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {providers.map((provider) => {
-                      const providerAccent =
-                        provider.accentGradient ??
-                        CATEGORY_GRADIENTS[provider.category] ??
-                        CATEGORY_GRADIENTS.other;
-                      const providerActionClass = `bg-gradient-to-r ${providerAccent} text-white shadow-md hover:shadow-xl`;
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {providers.map((provider) => {
+                        const providerAccent =
+                          provider.accentGradient ??
+                          CATEGORY_GRADIENTS[provider.category] ??
+                          CATEGORY_GRADIENTS.other;
+                        const providerActionClass = `bg-gradient-to-r ${providerAccent} text-white shadow-md hover:shadow-xl`;
 
-                      return (
-                        <div
-                          key={provider.type}
-                          className="group relative overflow-hidden rounded-2xl border border-border-primary/30 bg-surface-primary/90 p-5 shadow-lg transition hover:border-border-primary/50 hover:shadow-2xl"
-                        >
+                        return (
                           <div
-                            className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${providerAccent}`}
-                            aria-hidden="true"
-                          />
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                              <ProviderIcon provider={provider} />
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h3 className="text-base font-semibold text-text-primary">{provider.name}</h3>
-                                  <span className="rounded-full bg-surface-secondary/75 px-2 py-0.5 text-[11px] uppercase tracking-wide text-text-muted">
-                                    {provider.category.toUpperCase()}
-                                  </span>
+                            key={provider.type}
+                            className="group relative overflow-hidden rounded-2xl border border-border-primary/30 bg-surface-primary/90 p-5 shadow-lg transition hover:border-border-primary/50 hover:shadow-2xl"
+                          >
+                            <div
+                              className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${providerAccent}`}
+                              aria-hidden="true"
+                            />
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-start gap-3">
+                                <ProviderIcon provider={provider} />
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <h3 className="text-base font-semibold text-text-primary">{provider.name}</h3>
+                                    <span className="rounded-full bg-surface-secondary/75 px-2 py-0.5 text-[11px] uppercase tracking-wide text-text-muted">
+                                      {provider.category.toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <p className="mt-1 text-sm text-text-secondary">{provider.description}</p>
                                 </div>
-                                <p className="mt-1 text-sm text-text-secondary">{provider.description}</p>
                               </div>
                             </div>
-                          </div>
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {provider.features.map((feature) => (
-                              <span
-                                key={feature}
-                                className="rounded-full bg-surface-secondary/70 px-2.5 py-1 text-xs text-text-secondary"
-                              >
-                                {feature}
-                              </span>
-                            ))}
-                          </div>
-                          <CompanyAuthorization policyCheck={canManageIntegrations}>
-                            <Button
-                              className={`mt-6 w-full justify-center ${providerActionClass}`}
-                              onClick={() => {
-                                if (provider.type.toLowerCase() === 'email') {
-                                  handleOpenEmailActionChannelModal();
-                                  return;
-                                }
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              {provider.features.map((feature) => (
+                                <span
+                                  key={feature}
+                                  className="rounded-full bg-surface-secondary/70 px-2.5 py-1 text-xs text-text-secondary"
+                                >
+                                  {feature}
+                                </span>
+                              ))}
+                            </div>
+                            <CompanyAuthorization policyCheck={canManageIntegrations}>
+                              <Button
+                                className={`mt-6 w-full justify-center ${providerActionClass}`}
+                                onClick={() => {
+                                  if (provider.type.toLowerCase() === 'email') {
+                                    handleOpenEmailActionChannelModal();
+                                    return;
+                                  }
 
-                                startConnectionMutation.mutate(provider.type);
-                              }}
-                              isLoading={
-                                connectingType === provider.type && startConnectionMutation.isPending
-                              }
-                            >
-                              Connect {provider.name}
-                            </Button>
-                          </CompanyAuthorization>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+                                  startConnectionMutation.mutate({
+                                    type: provider.type,
+                                    mode: newConnectionMode,
+                                  });
+                                }}
+                                isLoading={
+                                  connectingKey ===
+                                    buildConnectionKey(provider.type, newConnectionMode) &&
+                                  startConnectionMutation.isPending
+                                }
+                              >
+                                Connect {provider.name} ({newConnectionMode})
+                              </Button>
+                            </CompanyAuthorization>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -3254,4 +3382,3 @@ export const IntegrationsSection: React.FC = () => {
     </div>
   );
 };
-

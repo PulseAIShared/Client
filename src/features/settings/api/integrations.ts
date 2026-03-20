@@ -8,6 +8,7 @@ import {
   IntegrationStatusResponse,
   IntegrationType,
   IntegrationStatus,
+  IntegrationMode,
   IntegrationPurpose,
   IntegrationApiItem,
   StartConnectionResult,
@@ -59,6 +60,20 @@ const normalizePurpose = (
   }
 };
 
+const normalizeIntegrationMode = (mode: IntegrationApiItem['mode']): IntegrationMode => {
+  const normalized = String(mode ?? '').trim().toLowerCase();
+
+  switch (normalized) {
+    case 'sandbox':
+      return IntegrationMode.Sandbox;
+    case 'testinglab':
+      return IntegrationMode.TestingLab;
+    case 'live':
+    default:
+      return IntegrationMode.Live;
+  }
+};
+
 export const parseIntegrationProblem = (error: unknown): ProblemDetails => {
   if (isAxiosError(error)) {
     const data = error.response?.data;
@@ -99,6 +114,7 @@ const mapIntegrationFromApi = (item: IntegrationApiItem): IntegrationStatusRespo
     type: item.type as IntegrationType | string,
     name: item.name,
     status: mappedStatus,
+    mode: normalizeIntegrationMode(item.mode),
     purpose: normalizePurpose(item.purpose, item.type),
     supportedActionTypes: Array.isArray(item.supportedActionTypes)
       ? item.supportedActionTypes.filter((actionType): actionType is string => typeof actionType === 'string')
@@ -143,10 +159,12 @@ const mapStatusFilterToApi = (status: IntegrationStatus): string => {
 
 export const getIntegrations = async ({ 
   type, 
-  status 
+  status,
+  mode,
 }: { 
   type?: IntegrationType | string; 
   status?: IntegrationStatus; 
+  mode?: IntegrationMode;
 } = {}): Promise<IntegrationStatusResponse[]> => {
   const queryParams = new URLSearchParams();
   
@@ -156,6 +174,10 @@ export const getIntegrations = async ({
   
   if (status) {
     queryParams.append('status', mapStatusFilterToApi(status));
+  }
+
+  if (mode) {
+    queryParams.append('mode', mode);
   }
 
   const queryString = queryParams.toString();
@@ -185,8 +207,30 @@ export const getSyncJobs = async (
 };
 
 // OAuth Flow Functions
-export const startConnection = async (type: IntegrationType | string): Promise<StartConnectionResult> => {
-  return await api.post(`/integrations/${type}/connect`, {});
+export type StartConnectionParams = {
+  type: IntegrationType | string;
+  mode?: IntegrationMode;
+};
+
+const normalizeStartConnectionParams = (
+  input: IntegrationType | string | StartConnectionParams
+): Required<StartConnectionParams> => {
+  if (typeof input === 'string') {
+    return { type: input, mode: IntegrationMode.Live };
+  }
+
+  return {
+    type: input.type,
+    mode: input.mode ?? IntegrationMode.Live,
+  };
+};
+
+export const startConnection = async (
+  input: IntegrationType | string | StartConnectionParams
+): Promise<StartConnectionResult> => {
+  const { type, mode } = normalizeStartConnectionParams(input);
+  const query = new URLSearchParams({ mode }).toString();
+  return await api.post(`/integrations/${type}/connect?${query}`, {});
 };
 
 export const handleCallback = async (
@@ -249,7 +293,7 @@ export const getIntegrationStats = async (): Promise<IntegrationStats> => {
 };
 
 // Query Options
-export const getIntegrationsQueryOptions = (params?: { type?: IntegrationType | string; status?: IntegrationStatus }) => ({
+export const getIntegrationsQueryOptions = (params?: { type?: IntegrationType | string; status?: IntegrationStatus; mode?: IntegrationMode }) => ({
   queryKey: ['integrations', params],
   queryFn: () => getIntegrations(params),
 });
@@ -272,7 +316,7 @@ export const getIntegrationStatsQueryOptions = () => ({
 
 // Hooks
 export const useGetIntegrations = (
-  params?: { type?: IntegrationType | string; status?: IntegrationStatus },
+  params?: { type?: IntegrationType | string; status?: IntegrationStatus; mode?: IntegrationMode },
   queryConfig?: QueryConfig<typeof getIntegrationsQueryOptions>
 ) => {
   return useQuery({
@@ -321,9 +365,9 @@ export const useInspectIntegration = (integrationId: string, queryConfig?: Query
 };
 
 // Mutations
-export const useStartConnection = (mutationConfig?: MutationConfig<(type: IntegrationType | string) => Promise<StartConnectionResult>>) => {
+export const useStartConnection = (mutationConfig?: MutationConfig<(params: StartConnectionParams) => Promise<StartConnectionResult>>) => {
   return useMutation({
-    mutationFn: (type: IntegrationType | string) => startConnection(type),
+    mutationFn: (params: StartConnectionParams) => startConnection(params),
     ...mutationConfig,
   });
 };
@@ -383,7 +427,7 @@ export const useDeleteIntegrationPermanent = (mutationConfig?: MutationConfig<(i
 // Legacy mutations for backward compatibility
 export const useConnectIntegration = (mutationConfig?: MutationConfig<(params: { type: string; name?: string }) => Promise<StartConnectionResult>>) => {
   return useMutation({
-    mutationFn: ({ type }: { type: string; name?: string }) => startConnection(type),
+    mutationFn: ({ type }: { type: string; name?: string }) => startConnection({ type, mode: IntegrationMode.Live }),
     ...mutationConfig,
   });
 };

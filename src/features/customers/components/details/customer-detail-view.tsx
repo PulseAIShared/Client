@@ -15,7 +15,9 @@ import {
   useGetCustomerTimeline,
   useTrackCustomerDetailUiEvent,
 } from '@/features/customers/api/customers';
+import { useUser } from '@/lib/auth';
 import { formatCurrency } from '@/types/api';
+import { PlatformRole } from '@/types/api';
 
 type CustomerDetailViewProps = {
   customerId: string;
@@ -40,6 +42,7 @@ const CONFIDENCE_LEVEL_LABELS = ['Minimal', 'Good', 'High', 'Excellent'];
 const EMPTY_VALUE = 'N/A';
 
 const CLOSED_STATUSES = new Set(['closed', 'resolved', 'done', 'cancelled', 'canceled']);
+const RAW_TIMELINE_CATEGORIES = new Set(['payment', 'engagement', 'support', 'marketing', 'crm']);
 
 const isDetailTabId = (value: string | null): value is DetailTabId =>
   TAB_ORDER.some((tab) => tab.id === value);
@@ -124,6 +127,24 @@ const toStatusTone = (status?: string | null) => {
     return 'bg-error/10 text-error border-error/30';
   }
   return 'bg-surface-secondary/60 text-text-secondary border-border-primary/40';
+};
+
+const normalizeToken = (value?: string | null) =>
+  (value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+
+const isRawTimelineCategory = (value?: string | null) =>
+  RAW_TIMELINE_CATEGORIES.has(normalizeToken(value));
+
+const timelineEventProvider = (details?: Record<string, unknown>) => {
+  if (!details) {
+    return null;
+  }
+
+  const provider = details.provider;
+  return typeof provider === 'string' && provider.trim().length > 0 ? provider : null;
 };
 
 const daysUntil = (date?: string | null) => {
@@ -422,9 +443,12 @@ const summarySections: CustomerDetailSectionsSpec = {
 
 export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customerId }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const authUser = useUser();
+  const isPlatformAdmin = authUser.data?.platformRole === PlatformRole.Admin;
   const rawTab = searchParams.get('tab');
   const activeTab: DetailTabId = isDetailTabId(rawTab) ? rawTab : 'summary';
   const [expandedAnomalies, setExpandedAnomalies] = React.useState<Record<string, boolean>>({});
+  const [expandedRawDrilldowns, setExpandedRawDrilldowns] = React.useState<Record<string, boolean>>({});
   const trackUiEventMutation = useTrackCustomerDetailUiEvent();
 
   const setActiveTab = (nextTab: DetailTabId) => {
@@ -491,6 +515,20 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
     });
   };
 
+  const toggleRawDrilldown = (key: string, metadata: Record<string, unknown>) => {
+    setExpandedRawDrilldowns((current) => {
+      const isOpening = !current[key];
+      if (isOpening) {
+        trackUiEvent('customer_detail_raw_drilldown_opened', 'raw_event_drilldown', metadata);
+      }
+
+      return {
+        ...current,
+        [key]: isOpening,
+      };
+    });
+  };
+
   const overviewQuery = useGetCustomerOverview(customerId);
   const summaryV2Query = useCustomerDetailQuery(customerId, summarySections, {
     enabled: activeTab === 'summary',
@@ -547,12 +585,60 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
   const playbookSummary = playbooksQuery.data?.playbooks?.summary;
   const playbookRuns = playbooksQuery.data?.playbooks?.runs?.items ?? [];
   const dataSources = dataSourcesQuery.data?.sources ?? [];
+  const mappedDataAsOf = dataSourcesQuery.data?.mappedData?.asOf ?? dataSourcesQuery.data?.lastOverallSync ?? null;
+  const mappedDomains = dataSourcesQuery.data?.mappedData?.domains ?? [];
   const timelineEvents = timelineQuery.data?.events ?? [];
+  const rawTimelineEvents = React.useMemo(
+    () => timelineEvents.filter((event) => isRawTimelineCategory(event.category)),
+    [timelineEvents],
+  );
 
   const anomalyEvents = timelineEvents.filter(
     (event) => event.severity === 'warning' || event.severity === 'critical',
   );
   const missingCategories = overviewQuery.data?.completeness?.missingCategories ?? [];
+  const getMatchingRawEventsForSource = React.useCallback((source: (typeof dataSources)[number]) => {
+    const providerKey = normalizeToken(source.source || source.name || source.id || null);
+    const categoryKeys = (
+      source.categories && source.categories.length > 0
+        ? source.categories
+        : source.category
+          ? [source.category]
+          : []
+    )
+      .map((category) => normalizeToken(category))
+      .filter(Boolean);
+
+    return rawTimelineEvents.filter((event) => {
+      if (categoryKeys.length > 0 && !categoryKeys.includes(normalizeToken(event.category))) {
+        return false;
+      }
+
+      if (!providerKey) {
+        return true;
+      }
+
+      return normalizeToken(timelineEventProvider(event.details)) === providerKey;
+    });
+  }, [dataSources, rawTimelineEvents]);
+  const getMatchingRawEventsForDomain = React.useCallback((domain: (typeof mappedDomains)[number]) => {
+    const domainKey = normalizeToken(domain.domain);
+    const providerKeys = (domain.sourceProviders ?? [])
+      .map((provider) => normalizeToken(provider))
+      .filter(Boolean);
+
+    return rawTimelineEvents.filter((event) => {
+      if (normalizeToken(event.category) !== domainKey) {
+        return false;
+      }
+
+      if (providerKeys.length === 0) {
+        return true;
+      }
+
+      return providerKeys.includes(normalizeToken(timelineEventProvider(event.details)));
+    });
+  }, [mappedDomains, rawTimelineEvents]);
 
   const churnHistoryPagination = useClientPagination(churnHistoryRows, 8);
   const paymentTrendPagination = useClientPagination(paymentTrendRows, 8);
@@ -564,6 +650,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
   const playbookRunsPagination = useClientPagination(playbookRuns, 8);
   const timelinePagination = useClientPagination(timelineEvents, 10);
   const dataSourcesPagination = useClientPagination(dataSources, 8);
+  const mappedDomainsPagination = useClientPagination(mappedDomains, 4);
   const anomaliesPagination = useClientPagination(anomalyEvents, 8);
   const missingCategoriesPagination = useClientPagination(missingCategories, 8);
 
@@ -1273,29 +1360,119 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
           </SectionCard>
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <SectionCard title="Sync Sources" description="Source freshness and status by provider.">
+            <SectionCard title="Data Sources" description="Provider-level freshness, identifiers, and sync status.">
               {dataSourcesQuery.isLoading ? (
                 <div className="text-sm text-text-secondary">Loading source inventory...</div>
               ) : dataSources.length > 0 ? (
                 <>
-                  <div className="space-y-2">
-                    {dataSourcesPagination.items.map((source, index) => (
-                      <div key={`${source.source ?? source.name ?? 'source'}-${dataSourcesPagination.startItem + index}`} className="rounded-xl border border-border-primary/25 bg-surface-secondary/30 p-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="text-sm font-medium text-text-primary">
-                            {source.source || source.name || EMPTY_VALUE}
+                  <div className="space-y-3">
+                    {dataSourcesPagination.items.map((source, index) => {
+                      const sourceName = source.source || source.name || EMPTY_VALUE;
+                      const sourceCategories = source.categories && source.categories.length > 0
+                        ? source.categories
+                        : source.category
+                          ? [source.category]
+                          : [];
+                      const sourceExternalIdentifiers = source.externalIdentifiers ?? [];
+                      const sourceRawEvents = getMatchingRawEventsForSource(source);
+                      const sourceDrilldownKey = `source:${sourceName}:${dataSourcesPagination.startItem + index}`;
+                      const sourceDrilldownExpanded = !!expandedRawDrilldowns[sourceDrilldownKey];
+
+                      return (
+                        <div key={`${sourceName}-${dataSourcesPagination.startItem + index}`} className="rounded-xl border border-border-primary/25 bg-surface-secondary/30 p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="text-sm font-medium text-text-primary">{sourceName}</div>
+                              <div className="mt-1 text-xs text-text-secondary">
+                                {sourceCategories.length > 0 ? sourceCategories.map((category) => humanizeToken(category)).join(', ') : 'Uncategorized'}
+                                {source.isPrimary ? ' | Primary' : ''}
+                              </div>
+                            </div>
+                            <span className={`rounded-full border px-2 py-0.5 text-xs ${toStatusTone(source.syncStatus || source.integrationStatus || source.status)}`}>
+                              {humanizeToken(source.syncStatus || source.integrationStatus || source.status || 'unknown')}
+                            </span>
                           </div>
-                          <span className={`rounded-full border px-2 py-0.5 text-xs ${toStatusTone(source.syncStatus || source.status)}`}>
-                            {humanizeToken(source.syncStatus || source.status || 'unknown')}
-                          </span>
+
+                          <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-text-secondary">
+                            <div className="rounded-lg border border-border-primary/20 bg-surface-primary/60 p-2">
+                              <div className="text-text-muted">Last overall sync</div>
+                              <div className="mt-0.5 text-text-primary">{toDateLabel(source.lastSync, true)}</div>
+                            </div>
+                            <div className="rounded-lg border border-border-primary/20 bg-surface-primary/60 p-2">
+                              <div className="text-text-muted">Last raw event</div>
+                              <div className="mt-0.5 text-text-primary">{toDateLabel(source.lastRawEventAt, true)}</div>
+                            </div>
+                            <div className="rounded-lg border border-border-primary/20 bg-surface-primary/60 p-2">
+                              <div className="text-text-muted">Integration sync</div>
+                              <div className="mt-0.5 text-text-primary">{toDateLabel(source.lastIntegrationSyncAt, true)}</div>
+                            </div>
+                            <div className="rounded-lg border border-border-primary/20 bg-surface-primary/60 p-2">
+                              <div className="text-text-muted">State update</div>
+                              <div className="mt-0.5 text-text-primary">{toDateLabel(source.lastStateUpdatedAt, true)}</div>
+                            </div>
+                          </div>
+
+                          {sourceExternalIdentifiers.length > 0 ? (
+                            <div className="mt-3 rounded-lg border border-border-primary/20 bg-surface-primary/60 p-2 text-xs">
+                              <div className="text-text-muted">External identifiers</div>
+                              <div className="mt-1 space-y-1 text-text-secondary">
+                                {sourceExternalIdentifiers.slice(0, 4).map((identifier) => (
+                                  <div key={`${identifier.externalId}-${identifier.lastSyncedAt || 'no-sync'}`} className="flex items-center justify-between gap-2">
+                                    <span className="truncate text-text-primary">{identifier.externalId}</span>
+                                    <span>
+                                      {identifier.isActive ? 'Active' : 'Inactive'} | {toDateLabel(identifier.lastSyncedAt, true)}
+                                    </span>
+                                  </div>
+                                ))}
+                                {sourceExternalIdentifiers.length > 4 ? (
+                                  <div className="text-text-muted">+{sourceExternalIdentifiers.length - 4} more identifiers</div>
+                                ) : null}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {isPlatformAdmin && sourceRawEvents.length > 0 ? (
+                            <div className="mt-3 space-y-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                  onClick={() => toggleRawDrilldown(sourceDrilldownKey, {
+                                    source: sourceName,
+                                    categories: sourceCategories,
+                                  })}
+                                  className="rounded-lg border border-accent-primary/40 bg-accent-primary/10 px-2.5 py-1 text-xs font-semibold text-accent-primary hover:border-accent-primary/55"
+                                >
+                                  {sourceDrilldownExpanded ? 'Hide raw events' : `View raw events (${sourceRawEvents.length})`}
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActiveTab('operations');
+                                    trackUiEvent('customer_detail_raw_drilldown_timeline_clicked', 'raw_event_drilldown', {
+                                      source: sourceName,
+                                      categories: sourceCategories,
+                                    });
+                                  }}
+                                  className="rounded-lg border border-border-primary/35 bg-surface-primary/70 px-2.5 py-1 text-xs text-text-primary hover:border-accent-primary/35"
+                                >
+                                  Open full timeline
+                                </button>
+                              </div>
+                              {sourceDrilldownExpanded ? (
+                                <div className="space-y-1 rounded-lg border border-border-primary/20 bg-surface-primary/65 p-2 text-xs text-text-secondary">
+                                  {sourceRawEvents.slice(0, 5).map((event, eventIndex) => (
+                                    <div key={`${event.occurredAt}-${event.type}-${eventIndex}`} className="rounded border border-border-primary/15 bg-surface-secondary/25 p-2">
+                                      <div className="text-text-primary">
+                                        {toDateLabel(event.occurredAt, true)} | {humanizeToken(event.category)} | {humanizeToken(event.type)}
+                                      </div>
+                                      <div>{event.description}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
-                        <div className="mt-1 text-xs text-text-secondary">
-                          Last sync {toDateLabel(source.lastSync, true)}
-                          {source.categories && source.categories.length > 0 ? ` | ${source.categories.join(', ')}` : ''}
-                          {source.isPrimary ? ' | Primary' : ''}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <PaginationControls pagination={dataSourcesPagination} />
                 </>
@@ -1308,62 +1485,163 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({ customer
               )}
             </SectionCard>
 
-            <SectionCard title="Anomalies" description="Warnings and critical events from the unified timeline.">
-              {timelineQuery.isLoading ? (
-                <div className="text-sm text-text-secondary">Loading anomaly feed...</div>
-              ) : anomalyEvents.length > 0 ? (
+            <SectionCard
+              title="Mapped Data"
+              description={mappedDataAsOf ? `Current domain state mapped as of ${toDateLabel(mappedDataAsOf, true)}.` : 'Current domain state values and provenance.'}
+            >
+              {dataSourcesQuery.isLoading ? (
+                <div className="text-sm text-text-secondary">Loading mapped state...</div>
+              ) : mappedDomains.length > 0 ? (
                 <>
-                  <div className="space-y-2">
-                    {anomaliesPagination.items.map((event, index) => {
-                      const anomalyKey = `${event.occurredAt}-${event.type}-${anomaliesPagination.startItem + index}`;
-                      const details = (event.details ?? {}) as Record<string, unknown>;
-                      const provider = typeof details.provider === 'string' ? details.provider : null;
-                      const isExpanded = !!expandedAnomalies[anomalyKey];
+                  <div className="space-y-3">
+                    {mappedDomainsPagination.items.map((domain, index) => {
+                      const domainFields = domain.fields ?? [];
+                      const domainProviders = domain.sourceProviders ?? [];
+                      const domainRawEvents = getMatchingRawEventsForDomain(domain);
+                      const domainDrilldownKey = `domain:${domain.domain}:${mappedDomainsPagination.startItem + index}`;
+                      const domainDrilldownExpanded = !!expandedRawDrilldowns[domainDrilldownKey];
 
                       return (
-                        <div key={anomalyKey} className="rounded-xl border border-warning/30 bg-warning/10 p-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="text-sm font-medium text-text-primary">
-                              {event.category}: {event.description}
-                              <div className="mt-1 text-xs font-normal text-text-secondary">
-                                {toDateLabel(event.occurredAt, true)} | {humanizeToken(event.severity)}
-                                {provider ? ` | Provider ${provider}` : ''}
-                              </div>
+                        <div key={`${domain.domain}-${mappedDomainsPagination.startItem + index}`} className="rounded-xl border border-border-primary/25 bg-surface-secondary/30 p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="text-sm font-medium text-text-primary">{humanizeToken(domain.domain)}</div>
+                            <div className="text-xs text-text-secondary">
+                              Evidence {domain.evidenceCount ?? 0}
                             </div>
-                            <button
-                              onClick={() => toggleAnomaly(anomalyKey, {
-                                category: event.category,
-                                severity: event.severity,
-                                type: event.type,
-                              })}
-                              className="rounded-lg border border-border-primary/35 bg-surface-primary/70 px-2 py-1 text-xs text-text-primary hover:border-accent-primary/35"
-                            >
-                              {isExpanded ? 'Hide details' : 'View details'}
-                            </button>
                           </div>
-                          {isExpanded && Object.keys(details).length > 0 ? (
-                            <div className="mt-2 rounded-lg border border-border-primary/25 bg-surface-primary/70 p-2 text-xs text-text-secondary">
-                              {Object.entries(details).slice(0, 8).map(([key, value]) => (
-                                <div key={key}>
-                                  <span className="font-medium text-text-primary">{humanizeToken(key)}:</span>{' '}
-                                  {typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
-                                    ? String(value)
-                                    : JSON.stringify(value)}
+                          <div className="mt-1 text-xs text-text-secondary">
+                            Last updated {toDateLabel(domain.lastUpdatedAt, true)}
+                          </div>
+                          <div className="mt-1 text-xs text-text-secondary">
+                            Providers: {domainProviders.length > 0 ? domainProviders.map((provider) => humanizeToken(provider)).join(', ') : EMPTY_VALUE}
+                          </div>
+
+                          {domainFields.length > 0 ? (
+                            <div className="mt-3 space-y-1 rounded-lg border border-border-primary/20 bg-surface-primary/60 p-2 text-xs">
+                              {domainFields.slice(0, 8).map((field) => (
+                                <div key={field.field} className="flex items-start justify-between gap-3">
+                                  <span className="font-medium text-text-primary">{humanizeToken(field.field)}</span>
+                                  <span className="max-w-[60%] truncate text-right text-text-secondary" title={field.value}>
+                                    {field.value}
+                                  </span>
                                 </div>
                               ))}
+                              {domainFields.length > 8 ? (
+                                <div className="text-text-muted">+{domainFields.length - 8} more mapped fields</div>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <div className="mt-3 rounded-lg border border-border-primary/20 bg-surface-primary/60 p-2 text-xs text-text-muted">
+                              No mapped field values are available yet for this domain.
+                            </div>
+                          )}
+
+                          {isPlatformAdmin && domainRawEvents.length > 0 ? (
+                            <div className="mt-3 space-y-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                  onClick={() => toggleRawDrilldown(domainDrilldownKey, {
+                                    domain: domain.domain,
+                                    providers: domainProviders,
+                                  })}
+                                  className="rounded-lg border border-accent-primary/40 bg-accent-primary/10 px-2.5 py-1 text-xs font-semibold text-accent-primary hover:border-accent-primary/55"
+                                >
+                                  {domainDrilldownExpanded ? 'Hide raw events' : `View raw events (${domainRawEvents.length})`}
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActiveTab('operations');
+                                    trackUiEvent('customer_detail_mapped_domain_timeline_clicked', 'raw_event_drilldown', {
+                                      domain: domain.domain,
+                                      providers: domainProviders,
+                                    });
+                                  }}
+                                  className="rounded-lg border border-border-primary/35 bg-surface-primary/70 px-2.5 py-1 text-xs text-text-primary hover:border-accent-primary/35"
+                                >
+                                  Open full timeline
+                                </button>
+                              </div>
+                              {domainDrilldownExpanded ? (
+                                <div className="space-y-1 rounded-lg border border-border-primary/20 bg-surface-primary/65 p-2 text-xs text-text-secondary">
+                                  {domainRawEvents.slice(0, 5).map((event, eventIndex) => (
+                                    <div key={`${event.occurredAt}-${event.type}-${eventIndex}`} className="rounded border border-border-primary/15 bg-surface-secondary/25 p-2">
+                                      <div className="text-text-primary">
+                                        {toDateLabel(event.occurredAt, true)} | {humanizeToken(event.type)}
+                                      </div>
+                                      <div>{event.description}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
                             </div>
                           ) : null}
                         </div>
                       );
                     })}
                   </div>
-                  <PaginationControls pagination={anomaliesPagination} />
+                  <PaginationControls pagination={mappedDomainsPagination} />
                 </>
               ) : (
-                <EmptyState message="No warnings or critical anomalies captured in the selected timeline window." />
+                <EmptyState message="No mapped domain state found for this customer." />
               )}
             </SectionCard>
           </div>
+
+          <SectionCard title="Anomalies" description="Warnings and critical events from the unified timeline.">
+            {timelineQuery.isLoading ? (
+              <div className="text-sm text-text-secondary">Loading anomaly feed...</div>
+            ) : anomalyEvents.length > 0 ? (
+              <>
+                <div className="space-y-2">
+                  {anomaliesPagination.items.map((event, index) => {
+                    const anomalyKey = `${event.occurredAt}-${event.type}-${anomaliesPagination.startItem + index}`;
+                    const details = (event.details ?? {}) as Record<string, unknown>;
+                    const provider = typeof details.provider === 'string' ? details.provider : null;
+                    const isExpanded = !!expandedAnomalies[anomalyKey];
+
+                    return (
+                      <div key={anomalyKey} className="rounded-xl border border-warning/30 bg-warning/10 p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="text-sm font-medium text-text-primary">
+                            {event.category}: {event.description}
+                            <div className="mt-1 text-xs font-normal text-text-secondary">
+                              {toDateLabel(event.occurredAt, true)} | {humanizeToken(event.severity)}
+                              {provider ? ` | Provider ${provider}` : ''}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => toggleAnomaly(anomalyKey, {
+                              category: event.category,
+                              severity: event.severity,
+                              type: event.type,
+                            })}
+                            className="rounded-lg border border-border-primary/35 bg-surface-primary/70 px-2 py-1 text-xs text-text-primary hover:border-accent-primary/35"
+                          >
+                            {isExpanded ? 'Hide details' : 'View details'}
+                          </button>
+                        </div>
+                        {isExpanded && Object.keys(details).length > 0 ? (
+                          <div className="mt-2 rounded-lg border border-border-primary/25 bg-surface-primary/70 p-2 text-xs text-text-secondary">
+                            {Object.entries(details).slice(0, 8).map(([key, value]) => (
+                              <div key={key}>
+                                <span className="font-medium text-text-primary">{humanizeToken(key)}:</span>{' '}
+                                {typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+                                  ? String(value)
+                                  : JSON.stringify(value)}
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+                <PaginationControls pagination={anomaliesPagination} />
+              </>
+            ) : (
+              <EmptyState message="No warnings or critical anomalies captured in the selected timeline window." />
+            )}
+          </SectionCard>
 
           <SectionCard title="Missing Data Callouts" description="Domains that need source coverage improvements.">
             {missingCategories.length > 0 ? (
